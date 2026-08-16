@@ -1,0 +1,18 @@
+.venv/
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-tmp/
+.pytest-*/
+.coverage
+*.sqlite3
+*.db
+
+# 本地私有测试资料与工具记录（不入库）
+测试证据/
+.workbuddy/
+
+# 根目录行程导出测试产物
+/itinerary-*.html
+/itinerary-*.xlsx

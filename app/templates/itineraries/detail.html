@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/site.css">
+    <link rel="stylesheet" href="/static/css/catalog.css">
+    <link rel="stylesheet" href="/static/css/itinerary.css">
+    {% if has_map_data and map_tile_url %}<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">{% endif %}
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="itinerary-shell">
+      <a class="back-link" href="/itineraries">← 返回我的行程</a>
+      <p class="eyebrow">PREMIUM ITINERARY · v{{ itinerary.version }}</p>
+      <h1>{{ itinerary.title }}</h1>
+      <p class="intro">{{ itinerary.start_date }} 至 {{ itinerary.end_date }} · 每日约 {{ itinerary.daily_hours }} 小时{% if itinerary.generator_version %} · {{ itinerary.generator_version }}{% endif %}</p>
+      <section class="trip-summary">
+        <h2>出行与预算</h2>
+        <p>出发地：{{ itinerary.origin_city }}{% if itinerary.return_city %} · 返回地：{{ itinerary.return_city }}{% endif %} · {{ itinerary.traveler_count }} 人 · 市内交通优先：{{ itinerary.transport_preference }}</p>
+        {% if itinerary.budget_amount %}<p>预算上限：¥{{ itinerary.budget_amount }}{% if itinerary.budget_summary and itinerary.budget_summary.estimated_amount is not none %} · 已汇总费用：¥{{ itinerary.budget_summary.estimated_amount }}{% endif %}</p>{% endif %}
+        {% if itinerary.budget_summary and itinerary.budget_summary.breakdown %}<p>费用构成：交通 ¥{{ itinerary.budget_summary.breakdown.transport or 0 }} · 住宿 ¥{{ itinerary.budget_summary.breakdown.lodging or 0 }} · 景点/门票 ¥{{ itinerary.budget_summary.breakdown.scenic or 0 }} · 餐饮 ¥{{ itinerary.budget_summary.breakdown.food or 0 }} · 其他 ¥{{ itinerary.budget_summary.breakdown.other or 0 }}</p>{% if itinerary.budget_summary.unpriced_item_count %}<p>另有 {{ itinerary.budget_summary.unpriced_item_count }} 个未标价项目未计入总预算。</p>{% endif %}{% endif %}
+        <p class="price-notice">价格仅作参考，请以实际情况为准。</p>
+        {% if itinerary.lodging_reference %}<p>住宿：{{ itinerary.lodging_reference.status }}{% if itinerary.lodging_reference.name %} · {{ itinerary.lodging_reference.name }}{% elif itinerary.lodging_reference.options %} · {{ itinerary.lodging_reference.options|join(' / ') }}{% endif %}</p>{% endif %}
+        {% if itinerary.transport_reference %}<p>大交通：{{ itinerary.transport_reference.status }}；班次、余票和票价以出行前实际查询为准。</p>{% for leg in itinerary.transport_reference.legs or [] %}<p class="transport-leg"><strong>{{ leg.label }}</strong> · {{ leg.from }} → {{ leg.to }}（{{ leg.date }}）{% if leg.flight_options %}<br>机票候选：{% for option in leg.flight_options %}{{ option.id }}（{{ option.seat }}）{% if not loop.last %}、{% endif %}{% endfor %}{% endif %}{% if leg.train_options %}<br>火车候选：{% for option in leg.train_options %}{{ option.id }}（{{ option.seat }}）{% if not loop.last %}、{% endif %}{% endfor %}{% endif %}</p>{% endfor %}{% endif %}
+      </section>
+      <div class="export-actions"><a href="/api/v1/itineraries/{{ itinerary.id }}/exports/html">导出 HTML</a><a href="/api/v1/itineraries/{{ itinerary.id }}/exports/docx">导出 DOCX</a><a href="/api/v1/itineraries/{{ itinerary.id }}/exports/xlsx">导出 XLSX</a></div>
+
+      {% if has_map_data and map_tile_url %}
+      <section class="map-section" aria-label="行程路线地图">
+        <div id="itinerary-map" data-tile-url="{{ map_tile_url }}" aria-label="行程地标分布与路线地图"></div>
+        <p class="map-notice">地图仅展示行程顺序与地标分布，不提供实时导航。</p>
+      </section>
+      <script type="application/json" id="itinerary-map-data">{{ map_data | tojson }}</script>
+      {% endif %}
+
+      {% for day in itinerary.days|sort(attribute='day_number') %}
+      <section class="itinerary-day">
+        <h2 class="day-heading"><span class="day-number">第 {{ day.day_number }} 天</span><span class="day-date">{{ day.itinerary_date }}</span></h2>
+        {% if day.summary %}<p class="day-summary">{{ day.summary }}</p>{% endif %}
+        {% if day.travel_context %}
+        <div class="day-travel-context">
+          <p><strong>当日城市：</strong>{{ day.travel_context.city or '待确认' }}</p>
+          {% if day.travel_context.lodging and day.travel_context.lodging.mode != 'none' %}<p><strong>住宿锚点：</strong>{% if day.travel_context.lodging.name %}{{ day.travel_context.lodging.name }}{% else %}系统推荐住宿区域{% endif %} · {{ day.travel_context.lodging.note }}</p>{% endif %}
+          {% for leg in day.travel_context.intercity_transport or [] %}<p><strong>{{ leg.label }}大交通：</strong>{{ leg.from }} → {{ leg.to }} · {{ leg.date }}，请从上方候选中确认班次。</p>{% endfor %}
+        </div>
+        {% endif %}
+        {% set meituan_items = day.travel_context.meituan_items or [] %}
+        {% if meituan_items %}
+        <ol class="timeline meituan-timeline" aria-label="美团酒旅官方日程">
+          {% for item in meituan_items %}
+          <li class="timeline-item">
+            <div class="timeline-time">{{ item.time_slot }}</div>
+            <div class="timeline-rail"><span class="timeline-dot"></span></div>
+            <article class="timeline-card">
+              <p class="timeline-meta">{{ {'transport': '大交通', 'lodging': '住宿', 'scenic': '景点/体验', 'food': '餐饮', 'other': '其他安排'}.get(item.category, '行程安排') }}{% if item.end_time %} · 至 {{ item.end_time }}{% endif %}</p>
+              <h3>{{ item.name }}</h3>
+              <p class="timeline-transit">交通：{{ item.transport or '待确认' }}</p>
+              <p class="reason">{{ item.note|replace('美团酒旅推荐：', '车次：')|replace('美团酒旅推荐住宿；', '') }}{% if item.price_missing %} · 费用待确认，未计入总预算{% else %} · 费用估算 ¥{{ item.price }}{% endif %}</p>
+            </article>
+          </li>
+          {% endfor %}
+        </ol>
+        {% endif %}
+        {% set manual_supplements = day.supplemental_items|rejectattr('source', 'equalto', '后台规划服务')|list %}
+        {% if manual_supplements or day.travel_context.confirmed_food_events %}<div class="supplemental-items"><h3>已确认补充安排</h3><ul>{% for item in manual_supplements %}<li><strong>{{ item.time_slot }}{% if item.end_time %}–{{ item.end_time }}{% endif %}</strong> · {% if item.source_url %}<a href="{{ item.source_url }}" target="_blank" rel="noopener">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %} <span>· ¥{{ item.price or 0 }} · {{ item.note }}</span></li>{% endfor %}{% for item in day.travel_context.confirmed_food_events or [] %}<li><strong>{{ item.time_slot }}–{{ item.end_time }}</strong> · 用餐：{{ item.name }} <span>· ¥{{ item.price or 0 }} · {{ item.note }}</span></li>{% endfor %}</ul></div>{% endif %}
+        {% if day.stops %}<details class="ip-landmark-reference"{% if not meituan_items %} open{% endif %}><summary>IP 地标参考点位（用于地图与线路校验）</summary><ol class="timeline">
+          {% for stop in day.stops|sort(attribute='stop_order') %}
+          <li class="timeline-item">
+            <div class="timeline-time">{{ stop.time_slot }}</div>
+            <div class="timeline-rail"><span class="timeline-dot"></span></div>
+            <article class="timeline-card">
+              <p class="timeline-meta">建议停留 {{ stop.planned_minutes }} 分钟</p>
+              <h3><a href="/landmarks/{{ stop.landmark_id }}">{{ stop.landmark.name }}</a></h3>
+              <p class="timeline-address">{{ stop.landmark.location.normalized_address }}</p>
+              <p class="timeline-transit">{{ stop.landmark.transit_text or '暂无交通文字说明。' }}</p>
+              <p class="reason">{{ stop.selection_reason }}</p>
+            </article>
+          </li>
+          {% endfor %}
+        </ol></details>{% endif %}
+      </section>
+      {% endfor %}
+
+      <p class="disclaimer">本计划以已发布 IP 地标为核心；系统补充景点、酒店民宿和大交通均为生成时参考。交通、票价、营业、预约、天气及安全信息请在出行前向官方确认。</p>
+    </main>
+    {% if has_map_data and map_tile_url %}
+    <script src="/static/vendor/leaflet/leaflet.js"></script>
+    <script src="/static/js/itinerary-map.js"></script>
+    {% endif %}
+    <script src="/static/js/export-feedback.js"></script>
+  </body>
+</html>

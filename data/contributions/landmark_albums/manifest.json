@@ -1,0 +1,335 @@
+{
+  "schema_version": 1,
+  "albums": {
+    "literature:百草园与三味书屋": [
+      {
+        "file": "literature/luxun-former-residence/commons-01.jpg",
+        "alt": "百草园与三味书屋实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Gisling",
+        "license": "CC BY 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Luxun_native_place.JPG"
+      }
+    ],
+    "literature:外白渡桥": [
+      {
+        "file": "literature/waibaidu-bridge/commons-01.jpg",
+        "alt": "外白渡桥实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "kallerna",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Waibaidu_Bridge_Shanghai.jpg"
+      }
+    ],
+    "literature:边城茶峒古镇": [
+      {
+        "file": "literature/chadong-ancient-town/commons-01.jpg",
+        "alt": "边城茶峒古镇实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Zhangzhugang",
+        "license": "CC BY-SA 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Zhongshan_Chadong_Chensi_Zongciqun_2013.11.24_15-21-18.jpg"
+      }
+    ],
+    "literature:地坛公园": [
+      {
+        "file": "literature/temple-of-earth/commons-01.jpg",
+        "alt": "地坛公园实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "N509FZ",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:West_gate_Paifang_of_the_Temple_of_Earth_(20240915133650).jpg"
+      }
+    ],
+    "literature:额尔古纳河右岸": [
+      {
+        "file": "literature/erguna-river/commons-01.jpg",
+        "alt": "额尔古纳河右岸实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "wanghongliu",
+        "license": "CC BY-SA 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:%E9%A2%9D%E5%B0%94%E5%8F%A4%E7%BA%B3%E6%B2%B3_Argun_River_-_panoramio.jpg"
+      }
+    ],
+    "literature:巴黎圣母院": [
+      {
+        "file": "literature/notre-dame-literature/commons-01.jpg",
+        "alt": "巴黎圣母院实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Dietmar Rabich",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Paris,_Notre_Dame_--_2014_--_1458-65.jpg"
+      }
+    ],
+    "literature:伊夫堡": [
+      {
+        "file": "literature/chateau-d-if/commons-01.jpg",
+        "alt": "伊夫堡实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Unknown authorUnknown author",
+        "license": "Public domain",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Marseille_Le_Chateau_d%27If_postcard.jpg"
+      }
+    ],
+    "literature:桑迪科夫马特洛塔": [
+      {
+        "file": "literature/james-joyce-tower/commons-01.jpg",
+        "alt": "桑迪科夫马特洛塔实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Karlunun",
+        "license": "CC0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Sandycove_Martello_Tower_115_IMG_20250804_1750.jpg"
+      }
+    ],
+    "literature:卢浮宫": [
+      {
+        "file": "literature/louvre-museum/commons-01.jpg",
+        "alt": "卢浮宫实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Benh LIEU SONG",
+        "license": "CC BY 2.5",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Cour_Napol%C3%A9on_at_night_-_Louvre.jpg"
+      }
+    ],
+    "literature:莫斯科大都会酒店": [
+      {
+        "file": "literature/hotel-metropol-moscow/commons-01.jpg",
+        "alt": "莫斯科大都会酒店实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Юрий Д.К.",
+        "license": "CC BY 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Hotel_Metropol_(Moscow)_-_2024.jpg"
+      }
+    ],
+    "literature:纯真博物馆": [
+      {
+        "file": "literature/museum-of-innocence/commons-01.jpg",
+        "alt": "纯真博物馆实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Fuzheado (talk)",
+        "license": "CC BY-SA 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:The_Museum_of_Innocence.jpg"
+      }
+    ],
+    "game:应县木塔": [
+      {
+        "file": "game/yingxian-wooden-pagoda/commons-01.jpg",
+        "alt": "应县木塔实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Charlie fong",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Pagoda_of_Fogong_Temple_at_Dust.jpg"
+      }
+    ],
+    "game:佛光寺": [
+      {
+        "file": "game/foguang-temple/commons-01.jpg",
+        "alt": "佛光寺实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Angus Cepka",
+        "license": "CC BY-SA 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Foguang_Temple_9.JPG"
+      }
+    ],
+    "game:开封府": [
+      {
+        "file": "game/kaifengfu/commons-01.jpg",
+        "alt": "开封府实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Windmemories",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:20241025_Stone_Lions_at_Kaifeng_Fu_Confucian_Temple_02.jpg"
+      }
+    ],
+    "game:佛罗伦萨圣母百花大教堂": [
+      {
+        "file": "game/florence-duomo/commons-01.jpg",
+        "alt": "佛罗伦萨圣母百花大教堂实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Dllu",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Florence_Cathedral_seen_from_Piazzale_Michelangelo_night_dllu.jpg"
+      }
+    ],
+    "game:威尼斯圣马可广场": [
+      {
+        "file": "game/piazza-san-marco/commons-01.jpg",
+        "alt": "威尼斯圣马可广场实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "This Photo was taken by Wolfgang Moroder.  \n\nFeel free to use my photos, but please mention me as the author and send me a  message. \n\n\n\nThis image is not in the public domain. Please respect the copyright protection. It may only be used according to the rules mentioned here. This specifically excludes use in social media, if applicable terms of the licenses listed here not appropriate.\n\n\n\nPlease do not upload an updated image here without consultation with the Author. The author would like to make corrections only at his own source. This ensures that the changes are preserved.Please if you think that any changes should be required, please inform the author.Otherwise you can upload a new image with a new name. Please use one of the templates derivative or extract.",
+        "license": "CC BY-SA 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Panorama_Piazza_San_Marco_and_Venice_on_Easter_2013.jpg"
+      }
+    ],
+    "game:巴黎圣母院": [
+      {
+        "file": "game/notre-dame-game/commons-01.jpg",
+        "alt": "巴黎圣母院实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Dietmar Rabich",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Paris,_Notre_Dame_--_2014_--_1458-65.jpg"
+      }
+    ],
+    "game:金门大桥": [
+      {
+        "file": "game/golden-gate-bridge/commons-01.jpg",
+        "alt": "金门大桥实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Frank Schulenburg",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Golden_Gate_Bridge_as_seen_from_Marshall%E2%80%99s_Beach,_March_2018.jpg"
+      }
+    ],
+    "game:萨扎瓦修道院": [
+      {
+        "file": "game/sazava-monastery/commons-01.jpg",
+        "alt": "萨扎瓦修道院实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Zdeněk Fiedler, edited by Pavel Hrdlička (Packa)",
+        "license": "CC BY-SA 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:S%C3%A1zava_Monastery,_aerial_view_crop.jpg"
+      }
+    ],
+    "screen:重庆大厦": [
+      {
+        "file": "screen/chungking-mansions/commons-01.jpg",
+        "alt": "重庆大厦实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Ralf Roletschek",
+        "license": "CC BY 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:13-08-11-hongkong-chungking-mansions-25.jpg"
+      }
+    ],
+    "screen:赤坎古镇": [
+      {
+        "file": "screen/chikan-ancient-town/commons-01.jpg",
+        "alt": "赤坎古镇实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Stefan Fussan",
+        "license": "CC BY-SA 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Chikan_0028.jpg"
+      }
+    ],
+    "screen:九份老街": [
+      {
+        "file": "screen/jiufen-old-street/commons-01.jpg",
+        "alt": "九份老街实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Another Believer",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Jiufen_Qingyun_Temple,_Taiwan,_2024.jpg"
+      }
+    ],
+    "screen:黄河路": [
+      {
+        "file": "screen/huanghe-road-shanghai/commons-01.jpg",
+        "alt": "黄河路实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Shwangtianyuan",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Huanghe_Road_sign-20240106.jpg"
+      }
+    ],
+    "screen:北京大学红楼": [
+      {
+        "file": "screen/peking-university-red-building/commons-01.jpg",
+        "alt": "北京大学红楼实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "N509FZ",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:PKU_Red_Building_(20220908152758).jpg"
+      }
+    ],
+    "screen:禾木村": [
+      {
+        "file": "screen/hemu-village/commons-01.jpg",
+        "alt": "禾木村实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Leeinm",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Hemu_Village_in_the_snow.jpg"
+      }
+    ],
+    "screen:真理之口": [
+      {
+        "file": "screen/mouth-of-truth/commons-01.jpg",
+        "alt": "真理之口实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Dietmar Rabich",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Rome_(IT),_Bocca_della_Verit%C3%A0_--_2013_--_3479.jpg"
+      }
+    ],
+    "screen:米拉贝尔花园": [
+      {
+        "file": "screen/mirabell-gardens/commons-01.jpg",
+        "alt": "米拉贝尔花园实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Sumit Surai",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Mirabell_Gardens_Dwarf_Statue_V.jpg"
+      }
+    ],
+    "screen:莎士比亚书店": [
+      {
+        "file": "screen/shakespeare-and-company/commons-01.jpg",
+        "alt": "莎士比亚书店实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Photograph by Mike Peel (www.mikepeel.net).",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Shakespeare_and_Company,_Paris_1.jpg"
+      }
+    ],
+    "screen:海克利尔城堡": [
+      {
+        "file": "screen/highclere-castle/commons-01.jpg",
+        "alt": "海克利尔城堡实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Richard Munckton from Windsor, Melbourne, Australia",
+        "license": "CC BY 2.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Highclere_Castle_(April_2011).jpg"
+      }
+    ],
+    "screen:圣多梅尼科宫四季酒店": [
+      {
+        "file": "screen/san-domenico-palace/commons-01.jpg",
+        "alt": "圣多梅尼科宫四季酒店实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Deborah Cordwell",
+        "license": "CC BY 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Taormina,_view_from_our_balcony_at_San_Domenico_Palace_-_panoramio.jpg"
+      }
+    ],
+    "screen:黑乡生活博物馆": [
+      {
+        "file": "screen/black-country-living-museum/commons-01.jpg",
+        "alt": "黑乡生活博物馆实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "HJ Mitchell",
+        "license": "CC BY 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Black_Country_Living_Museum,_August_2025_05.jpg"
+      }
+    ],
+    "screen:皇家新月楼": [
+      {
+        "file": "screen/royal-crescent/commons-01.jpg",
+        "alt": "皇家新月楼实景",
+        "caption": "Wikimedia Commons 实景图片",
+        "credit": "Photograph by Mike Peel (www.mikepeel.net).",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Royal_Crescent,_Bath_2014_10.jpg"
+      }
+    ],
+    "game:小西天": [
+      {
+        "file": "game/xiaoxitian-temple/commons-01.jpg",
+        "alt": "小西天??",
+        "caption": "Wikimedia Commons ????",
+        "credit": "三猎",
+        "license": "CC BY-SA 4.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:%E9%9A%B0%E5%8E%BF%E5%B0%8F%E8%A5%BF%E5%A4%A9_%E4%B8%8A%E9%99%A2%E4%B8%8B%E9%99%A2.JPG"
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+.work-heading { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+.work-heading h1 { margin: 0; }
+.work-type-badge { display: inline-block; border: 1px solid var(--accent); border-radius: 999px; padding: 4px 12px; color: var(--accent); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.work-meta { color: var(--muted); margin: 14px 0 0; }
+.work-aliases { color: var(--muted); font-size: .92rem; margin: 8px 0 0; }
+.work-synopsis { max-width: 780px; color: var(--text-strong); line-height: 1.8; margin: 14px 0 0; white-space: pre-line; }
+.work-count { color: var(--muted); font-size: .9rem; }
+@media (max-width: 720px) {
+  .work-heading { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
