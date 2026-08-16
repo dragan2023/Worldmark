@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/site.css">
+    <link rel="stylesheet" href="/static/css/catalog.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="catalog-shell">
+      <p class="eyebrow">IP LANDMARK TRAVEL</p>
+      <h1>{{ module_name }}</h1>
+      <p class="intro">只展示已审核并发布的地标；免费目录与导出统一提供作品、地标、国家/地区、详细地址、地标简介和信息更新时间。</p>
+
+      <nav class="module-tabs" aria-label="地标模块">
+        <a href="/literature"{% if module == 'literature' %} class="is-active"{% endif %}>文学</a><a href="/games"{% if module == 'games' %} class="is-active"{% endif %}>游戏</a><a href="/screen"{% if module == 'screen' %} class="is-active"{% endif %}>影视</a>
+      </nav>
+
+      <form class="catalog-filters" method="get" action="/{{ module }}" data-cascade-filter>
+        <label>{{ work_label }}<input name="work" value="{{ filters.work or '' }}" maxlength="255" placeholder="输入{{ work_label }}"></label>
+        <label>地标名称<input name="landmark" value="{{ filters.landmark or '' }}" maxlength="255" placeholder="输入地标名"></label>
+        <label>国家/地区<select name="country" data-country-select>
+          <option value="">全部</option>
+          {% for option in filter_options.countries %}<option value="{{ option.value }}"{% if filters.country == option.value %} selected{% endif %}>{{ option.label }}</option>{% endfor %}
+        </select></label>
+        <label>省/州<select name="province" data-province-select>
+          <option value="">全部</option>
+          {% for option in filter_options.provinces %}<option value="{{ option.name }}" data-country="{{ option.country_code }}"{% if filters.province == option.name %} selected{% endif %}>{{ option.name }}</option>{% endfor %}
+        </select></label>
+        <label>城市<select name="city" data-city-select>
+          <option value="">全部</option>
+          {% for option in filter_options.cities %}<option value="{{ option.name }}" data-country="{{ option.country_code }}" data-province="{{ option.province_name }}"{% if filters.city == option.name %} selected{% endif %}>{{ option.name }}</option>{% endfor %}
+        </select></label>
+        <div class="filter-actions"><button type="submit">筛选地标</button><a href="/{{ module }}">清除条件</a></div>
+      </form>
+
+      {% if total %}
+      <section class="catalog-toolbar" aria-label="导出选项">
+        <p>找到 {{ total }} 个已发布地标{% if total_pages > 1 %} · 第 {{ page }}/{{ total_pages }} 页{% endif %}</p>
+        <div><a class="export-link" href="/api/v1/exports/landmarks.csv?{{ export_query }}">导出 CSV</a><a class="export-link" href="/api/v1/exports/landmarks.xlsx?{{ export_query }}">导出 XLSX</a><a class="export-link" href="/maps/{{ module }}?{{ map_query }}">会员地图</a></div>
+      </section>
+
+      <section class="landmark-grid" aria-label="地标卡片">
+        {% for item in items %}
+        <article class="landmark-card">
+          <a class="card-media" href="/landmarks/{{ item.id }}" aria-label="{{ item.name }}">
+            {% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="{{ item.name }}" loading="lazy">{% else %}<span class="card-placeholder">{{ item.work_title[:1] }}</span>{% endif %}
+          </a>
+          <div class="card-body">
+            <p class="card-work"><a href="/works/{{ item.work_id }}">{{ item.work_title }}</a></p>
+            <h2 class="card-title"><a href="/landmarks/{{ item.id }}">{{ item.name }}</a></h2>
+            <p class="card-region">{{ item.country_name }}{% if item.province_name %} · {{ item.province_name }}{% endif %}{% if item.city_name %} · {{ item.city_name }}{% endif %}</p>
+            <p class="card-desc">{{ item.description_summary }}</p>
+            <p class="card-address"><span class="card-label">详细地址</span>{{ item.normalized_address }}</p>
+            <p class="card-meta">更新于 {{ item.updated_at.strftime('%Y-%m-%d') }}</p>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
+
+      {% if total_pages > 1 %}
+      <nav class="pagination" aria-label="分页">
+        {% if page > 1 %}<a class="page-link" href="/{{ module }}?{{ page_url(page - 1) }}">← 上一页</a>{% else %}<span class="page-link is-disabled">← 上一页</span>{% endif %}
+        <span class="page-info">第 {{ page }} / {{ total_pages }} 页</span>
+        {% if page < total_pages %}<a class="page-link" href="/{{ module }}?{{ page_url(page + 1) }}">下一页 →</a>{% else %}<span class="page-link is-disabled">下一页 →</span>{% endif %}
+      </nav>
+      {% endif %}
+      {% else %}
+      <section class="empty-state"><h2>暂时没有可展示的地标</h2><p>{% if filters.work %}该作品暂无已发布地点。{% elif filters.landmark %}没有匹配该地标名的已发布地点。{% elif filters.country or filters.province or filters.city %}该地域暂无此类地标。{% else %}当前模块还没有已发布地标。{% endif %}</p></section>
+      {% endif %}
+    </main>
+    <script src="/static/js/catalog-filters.js"></script>
+    <script src="/static/js/export-feedback.js"></script>
+  </body>
+</html>

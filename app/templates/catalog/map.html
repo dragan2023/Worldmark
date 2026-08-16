@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/site.css">
+    <link rel="stylesheet" href="/static/css/catalog.css">
+    <link rel="stylesheet" href="/static/css/map.css?v=2">
+    <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="catalog-shell">
+      <a class="back-link" href="{{ catalog_url }}">← 返回目录</a>
+      <p class="eyebrow">MEMBER MAP</p><h1>{{ module_name }}静态参考地图</h1>
+      <p class="map-notice">地图只用于参考地标分布，不提供实时导航、交通或位置追踪。可用鼠标滚轮缩放地图；在右侧按作品筛选、点击地标可快速定位。</p>
+      <div class="map-layout">
+        <div id="landmark-map" data-api-url="{{ map_api_url }}" data-tile-url="{{ map_tile_url }}" aria-label="地标静态地图"></div>
+        <aside class="map-locate" aria-label="地标快速定位">
+          <div class="map-locate-head">
+            <input type="search" id="map-locate-search" placeholder="搜索作品或地标…" autocomplete="off" aria-label="搜索作品或地标">
+            <button type="button" id="map-locate-reset">定位全部</button>
+          </div>
+          <ul class="map-locate-list" id="map-locate-list"></ul>
+        </aside>
+      </div>
+      <p class="map-attribution">地图瓦片 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>。</p>
+    </main>
+    <script src="/static/vendor/leaflet/leaflet.js"></script>
+    <script src="/static/js/landmark-map.js?v=2"></script>
+  </body>
+</html>

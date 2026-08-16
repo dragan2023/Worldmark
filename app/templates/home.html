@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/site.css">
+    <link rel="stylesheet" href="/static/css/catalog.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="page-shell">
+      <p class="eyebrow">IP LANDMARK TRAVEL</p>
+      <h1>从喜欢的故事，走到真实的地点。</h1>
+      <p class="intro">探索文学、游戏和影视作品中的地标，发现可核验的现实地点，规划你的 IP 打卡之旅。</p>
+
+      <section class="home-search" aria-label="全局搜索">
+        <form method="get" action="/search">
+          <input name="q" value="{{ query or '' }}" maxlength="255" placeholder="搜索作品名或地标名，如「黑神话」「外白渡桥」" aria-label="搜索作品或地标">
+          <button type="submit">搜索</button>
+        </form>
+      </section>
+
+      <section class="module-grid" aria-label="地标模块">
+        <article><h2><a href="/literature">文学地标</a></h2><p>循着书名、作者与故事发生地，查找可核验的现实地点。</p></article>
+        <article><h2><a href="/games">游戏地标</a></h2><p>发现游戏取景、灵感与文化关联地点。</p></article>
+        <article><h2><a href="/screen">影视地标</a></h2><p>寻找电影、电视剧和纪录片中的场景地点。</p></article>
+      </section>
+
+      {% if featured %}
+      <div class="section-heading"><h2>精选地标</h2><a href="/literature">查看全部 →</a></div>
+      <section class="landmark-grid" aria-label="精选地标">
+        {% for item in featured %}
+        <article class="landmark-card">
+          <a class="card-media" href="/landmarks/{{ item.id }}" aria-label="{{ item.name }}">
+            {% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="{{ item.name }}" loading="lazy">{% else %}<span class="card-placeholder">{{ item.work_title[:1] }}</span>{% endif %}
+          </a>
+          <div class="card-body">
+            <p class="card-work"><a href="/works/{{ item.work_id }}">{{ item.work_title }}</a></p>
+            <h2 class="card-title"><a href="/landmarks/{{ item.id }}">{{ item.name }}</a></h2>
+            <p class="card-region">{{ item.country_name }}{% if item.province_name %} · {{ item.province_name }}{% endif %}{% if item.city_name %} · {{ item.city_name }}{% endif %}</p>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
+      {% endif %}
+
+      <p><a class="contribution-link" href="/contribute">提交共创地标 →</a></p>
+    </main>
+  </body>
+</html>

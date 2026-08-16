@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/itinerary.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="itinerary-shell">
+      <a class="back-link" href="/itineraries">← 返回我的行程</a><p class="eyebrow">PREMIUM ITINERARY</p><h1>生成个性化行程</h1>
+      <p class="domestic-notice"><strong>目前仅提供中国大陆境内游行程。</strong>提交后系统会在后台完成行程规划、价格补全与预算核算，并直接生成标准行程。</p>
+      <form id="itinerary-form" class="itinerary-form">
+        <label class="wide">行程名称（选填）<input name="title" maxlength="255" placeholder="例如：开封 IP 地标 5 日游"></label>
+        <section class="wide landmark-summary"><div><h2>必去 IP 地标</h2><p id="selected-landmarks">尚未选择地标</p></div><button id="open-landmark-picker" type="button">选择地标</button></section>
+        <label>开始日期<input name="start_date" type="date" required></label><label>结束日期<input name="end_date" type="date" required></label><label>出发城市<input name="origin_city" maxlength="100" required></label>
+        <label>返程城市（选填）<input name="return_city" maxlength="100" placeholder="默认返回出发城市"></label><label>出行人数<input name="traveler_count" type="number" min="1" value="1" required></label><label>总预算（元）<input name="budget_amount" type="number" min="1" placeholder="可选"></label>
+        <label>同行方式<select name="companions"><option value="">未指定</option><option>独自出行</option><option>情侣/夫妻</option><option>朋友同行</option><option>亲子</option><option>家庭出游</option></select></label>
+        <label>市内交通偏好<select name="transport_preference"><option>地铁/轻轨</option><option>公交车</option><option>打车</option></select></label>
+        <fieldset class="wide choice-field"><legend>补充偏好</legend><label><input name="auto_fill_nearby" type="checkbox" checked> 检索同城候选景点与餐饮</label><div class="choice-row">{% for item in ['历史文化', '自然风景', '博物馆/展览', '亲子娱乐', '夜游/夜市', '美食体验'] %}<label><input type="checkbox" name="interests" value="{{ item }}">{{ item }}</label>{% endfor %}</div></fieldset>
+        <label class="wide">补充需求<textarea name="free_text" maxlength="1000" placeholder="例如：首日晚上到达、想吃本地小吃、不要夜游"></textarea></label>
+        <input name="lodging_mode" type="hidden" value="none"><button id="preview-button" class="primary-button" type="submit">生成标准行程</button><p id="form-error" class="form-error" role="alert"></p>
+      </form>
+    </main>
+    <dialog id="landmark-dialog" class="landmark-dialog"><div class="dialog-heading"><div><h2>选择境内 IP 地标</h2><p>支持按地标、作品或别名模糊搜索。</p></div><button id="close-landmark-picker" type="button">×</button></div><div class="landmark-search"><input id="landmark-keyword" type="search" placeholder="例如：开封府、狂飙、悟空"><button id="landmark-search-button" type="button">搜索</button></div><div id="landmark-options" class="landmark-options"></div><div class="dialog-actions"><button id="confirm-landmarks" class="primary-button" type="button">确认选择</button></div></dialog>
+    <script src="/static/js/itinerary-form.js?v=final-itinerary-v1"></script>
+  </body>
+</html>

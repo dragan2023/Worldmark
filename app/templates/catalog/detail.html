@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/site.css">
+    <link rel="stylesheet" href="/static/css/catalog.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="catalog-shell detail-shell">
+      <a class="back-link" href="/{{ 'literature' if item.ip_type.value == 'literature' else 'games' if item.ip_type.value == 'game' else 'screen' }}">← 返回目录</a>
+      <p class="eyebrow"><a class="work-link" href="/works/{{ item.work_id }}">{{ item.work_title }}</a></p>
+      <h1>{{ item.name }}</h1>
+      <p class="card-meta">{{ item.country_name }}{% if item.province_name %} · {{ item.province_name }}{% endif %}{% if item.city_name %} · {{ item.city_name }}{% endif %}{% if item.district_name %} · {{ item.district_name }}{% endif %}</p>
+      <section class="detail-section"><h2>地标简介</h2><p class="landmark-description">{{ item.description }}</p></section>
+      <section class="detail-section"><h2>详细地址</h2><p>{{ item.normalized_address }}</p></section>
+      {% if item.contributors %}<section class="detail-section"><h2>共创者</h2><p>本条目由 {{ item.contributors|join('、') }} 提交。</p></section>{% endif %}
+      <section class="detail-section landmark-album-section">
+        <div class="album-heading"><div><p class="eyebrow">LOCAL PHOTO ALBUM</p><h2>地标相册</h2></div>{% if album_photos %}<span class="album-count">{{ album_photos|length }} 张</span>{% endif %}</div>
+        {% if album_photos %}
+        <div class="album-carousel" data-album-carousel><div class="album-track" data-album-track tabindex="0" aria-label="{{ item.name }}相册，可左右滑动浏览">{% for photo in album_photos %}<figure class="album-card"><img src="{{ photo.url }}" alt="{{ photo.alt }}" loading="lazy"><figcaption>{% if photo.caption %}<strong>{{ photo.caption }}</strong>{% endif %}{% if photo.credit or photo.license_note %}<span>{% if photo.credit %}{{ photo.credit }}{% endif %}{% if photo.credit and photo.license_note %} · {% endif %}{% if photo.license_note %}{{ photo.license_note }}{% endif %}</span>{% endif %}{% if photo.source_url %}<a href="{{ photo.source_url }}" rel="noopener noreferrer" target="_blank">图片来源</a>{% endif %}</figcaption></figure>{% endfor %}</div><div class="album-controls"><button type="button" class="album-button" data-album-previous aria-label="上一张图片">←</button><div class="album-progress" data-album-progress aria-hidden="true"></div><button type="button" class="album-button" data-album-next aria-label="下一张图片">→</button></div></div>
+        {% else %}
+        <p class="album-empty">暂无已授权的本地图片。共创者可按相册目录说明添加图片与署名信息，发布后会自动在这里展示。</p>
+        {% endif %}
+      </section>
+      <section class="detail-section"><h2>信息来源</h2><ul>{% for source in item.sources %}<li><a href="{{ source.url }}" rel="noopener noreferrer" target="_blank">{{ source.title or source.url }}</a>{% if source.publisher %}（{{ source.publisher }}）{% endif %}</li>{% endfor %}</ul></section>
+      <p class="disclaimer">地标信息仅供行前参考，请以现场公告和官方渠道为准。</p>
+    </main>
+    <script src="/static/js/landmark-album.js"></script>
+  </body>
+</html>

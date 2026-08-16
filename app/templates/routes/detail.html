@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/catalog.css">
+  </head>
+  <body>{% include "_header.html" %}<main class="catalog-shell detail-shell">
+    <a class="back-link" href="/">← 返回首页</a><p class="eyebrow">RECOMMENDED ROUTE</p><h1>{{ route.title }}</h1>
+    {% if route.summary %}<p class="intro">{{ route.summary }}</p>{% endif %}{% if route.duration_text %}<p class="card-meta">建议时长：{{ route.duration_text }}</p>{% endif %}
+    <ol class="route-stops">{% for stop in route.stops %}<li class="detail-section"><h2>{{ stop.stop_order }}. {{ stop.landmark_name }}</h2><p>{{ stop.work_title }} · {{ stop.normalized_address }}</p><p>{{ stop.transit_text or '暂无交通文字说明。' }}</p>{% if stop.stay_minutes %}<p>建议停留：{{ stop.stay_minutes }} 分钟</p>{% endif %}{% if stop.note %}<p>{{ stop.note }}</p>{% endif %}{% if stop.source_updated_at %}<p class="card-meta">来源更新：{{ stop.source_updated_at.strftime('%Y-%m-%d') }}</p>{% endif %}</li>{% endfor %}</ol>
+    <p class="disclaimer">路线仅表达建议访问顺序，不代表实时道路距离、交通时间或导航指引。</p>
+  </main></body>
+</html>
