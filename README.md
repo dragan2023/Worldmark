@@ -79,6 +79,17 @@ GET /api/v1/exports/landmarks.csv
 GET /api/v1/exports/landmarks.xlsx
 ```
 
+## 🤝 如何参与共创
+
+欢迎为 Worldmark 贡献新的文学 / 游戏 / 影视地标条目。共创采用「一条地标 = 一个 CSV 文件 + PR 审核机器人」的方式：
+
+1. 使用主流 AI 智能体工具（Codex、Claude Code、WorkBuddy、Qoder 等）打开本仓库，复制 [`docs/共创提示词包/01_共创条目添加提示词.md`](docs/共创提示词包/01_共创条目添加提示词.md) 中的提示词并执行，工具会自动生成条目文件并完成本地校验。
+2. 把新增的条目文件（仅 `data/contributions/entries/<ip_type>/<slug>.csv`）提交为 Pull Request；[审核机器人](.github/workflows/review-contribution.yml) 会自动检查是否只新增了条目文件、字段与三段式简介是否合规，并在 PR 上留言评审结果。
+3. 通过机器人检查后，由维护者人工确认并合入；合入后条目进入种子数据，并以你的 GitHub 用户名署名。
+4. 共创者名单在 [共创者页面](/contributors) 实时同步展示。
+
+详细说明见 [`docs/共创提示词包/00_使用说明.md`](docs/共创提示词包/00_使用说明.md) 与 [`docs/共创贡献规范.md`](docs/共创贡献规范.md)。
+
 ## 🧪 测试
 
 ```powershell
