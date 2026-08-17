@@ -1,7 +1,7 @@
 name: 共创 PR 审核
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 permissions:
@@ -20,6 +20,7 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
         with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
           fetch-depth: 0
       - name: 计算变更文件
         shell: bash
@@ -66,6 +67,7 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
         with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
           fetch-depth: 0
       - name: 安装 Python
         uses: actions/setup-python@v5
