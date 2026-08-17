@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/site.css">
+    <link rel="stylesheet" href="/static/css/contributors.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="page-shell contributors-shell">
+      <p class="eyebrow">COMMUNITY CONTRIBUTORS</p>
+      <h1>共创者</h1>
+      <p class="intro">感谢每一位为 Worldmark 提供 IP 地标条目的共创者。名单实时同步自
+        <code>data/contributions/contributors.json</code>，由发布流水线在合入共创 PR 后自动维护。</p>
+      {% if contributors %}
+      <section class="contributors-grid" aria-label="共创者名单">
+        {% for item in contributors %}
+        <article class="contributor-card">
+          <a class="contributor-avatar" href="{{ item.github_url }}" target="_blank" rel="noopener" aria-hidden="true">{{ item.username[:1] | upper }}</a>
+          <div class="contributor-body">
+            <p class="contributor-name"><a href="{{ item.github_url }}" target="_blank" rel="noopener">{{ item.username }}</a></p>
+            <p class="contributor-meta">加入时间：{{ item.first_merged_at }}</p>
+            <p class="contributor-meta">累计合并条目：{{ item.merged_entries }}</p>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
+      {% else %}
+      <section class="contributors-empty" aria-label="暂无共创者">
+        <h2>还没有共创者</h2>
+        <p>成为第一位共创者：你可以访问 <a href="/contribute">提交页</a> 直接填写单条地标，也可以使用主流 AI 智能体工具
+          （Codex、Claude Code、WorkBuddy、Qoder 等）按
+          <a href="/docs/共创提示词包/00_使用说明.md">提示词包</a> 生成条目并以 Pull Request 提交。</p>
+        <p>PR 合入后，你的 GitHub 用户名会自动出现在这里。</p>
+      </section>
+      {% endif %}
+    </main>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+name: 发布共创条目
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/contributions/entries/**"
+  workflow_dispatch:
+    inputs:
+      contributor:
+        description: 手动触发时指定 PR 作者 GitHub 用户名
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-contributions
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: 合并导入并回写种子数据
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: 安装依赖
+        run: python3 -m pip install -r requirements.txt
+
+      - name: 确定作者用户名
+        id: author
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            USER="${{ inputs.contributor }}"
+          else
+            USER="${{ github.actor }}"
+          fi
+          echo "username=${USER}" >> "$GITHUB_OUTPUT"
+
+      - name: 合并导入共创条目
+        shell: bash
+        run: |
+          python3 scripts/import_contribution_entries.py --contributor "${{ steps.author.outputs.username }}"
+
+      - name: 回写种子数据与共创者名单
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/seed data/contributions/contributors.json data/contributions/entries
+          if git diff --cached --quiet; then
+            echo "没有需要回写的变更，跳过提交"
+            exit 0
+          fi
+          git commit -m "chore(contributions): 合并共创条目并更新共创者名单 [skip ci]"
+          git push

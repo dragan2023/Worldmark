@@ -1,0 +1,11 @@
+# 共创 PR 文件封锁：任何非条目文件（app/、tests/、alembic/、scripts/、data/seed/、docs/、.github/ 等）
+# 的改动都必须由维护者审批；条目文件 data/contributions/entries/** 无需维护者审批（由机器人校验）。
+* @dragan2023
+.github/ @dragan2023
+app/ @dragan2023
+tests/ @dragan2023
+alembic/ @dragan2023
+scripts/ @dragan2023
+data/seed/ @dragan2023
+data/contributions/contributors.json @dragan2023
+docs/ @dragan2023

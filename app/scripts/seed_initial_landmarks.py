@@ -12,6 +12,7 @@ from pathlib import Path
 from sqlalchemy import select
 
 from app.db.session import SessionLocal
+from app.models.contribution import LandmarkContribution
 from app.models.enums import VerificationStatus
 from app.models.landmark import Landmark
 from app.models.ip_work import IPWork
@@ -21,6 +22,7 @@ from app.services.review import LandmarkReviewService
 
 SEED_PATH = Path(__file__).resolve().parents[2] / "data" / "seed" / "landmarks_verified.csv"
 CONTENT_PATH = Path(__file__).resolve().parents[2] / "data" / "seed" / "landmark_content.json"
+ENTRIES_ARCHIVE_ROOT = Path(__file__).resolve().parents[2] / "data" / "contributions" / "entries" / "archive"
 REVIEW_REASON = "初始表已按数据采集规范补齐详细地址、原创简介和至少一条作品关联来源。"
 REVIEWER_NAME = "initial-data-review"
 
@@ -59,7 +61,8 @@ def main() -> None:
             published += 1
 
         synced = _sync_public_content(db)
-        print(f"Imported {len(result.imported_landmark_ids)} records; published {published} seed records; synchronized {synced} content records.")
+        attributed = _write_attributions(db)
+        print(f"Imported {len(result.imported_landmark_ids)} records; published {published} seed records; synchronized {synced} content records; wrote {attributed} contributor attribution(s).")
     finally:
         db.close()
 
@@ -86,6 +89,66 @@ def _sync_public_content(db) -> int:
             changed += 1
     db.commit()
     return changed
+
+
+def _load_attribution_manifests(archive_root: Path | None = None) -> list[dict[str, object]]:
+    """Collect import records from every per-day manifest.json under the archive.
+
+    Each record carries the entry file, the PR author's GitHub username and the
+    imported landmark key (ip_type + work_title + landmark_name), which is what
+    seed_initial_landmarks uses to write LandmarkContribution attribution rows.
+    """
+    archive_root = archive_root or ENTRIES_ARCHIVE_ROOT
+    records: list[dict[str, object]] = []
+    if not archive_root.exists():
+        return records
+    for manifest_path in sorted(archive_root.rglob("manifest.json")):
+        try:
+            data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        records.extend(data.get("imports", []))
+    return records
+
+
+def _write_attributions(db, records: list[dict[str, object]] | None = None) -> int:
+    """Create LandmarkContribution rows for manifest records with a GitHub username.
+
+    Records whose landmark is not found or whose username is empty are skipped
+    (the pre-existing behavior for rows without attribution is unchanged). The
+    function is idempotent: a landmark+username pair is only written once.
+    """
+    if records is None:
+        records = _load_attribution_manifests()
+    created = 0
+    for record in records:
+        username = str(record.get("contributor") or "").strip()
+        if not username:
+            continue
+        landmark = db.scalar(
+            select(Landmark)
+            .join(IPWork)
+            .where(
+                IPWork.ip_type == record.get("ip_type"),
+                IPWork.title == record.get("work_title"),
+                Landmark.name == record.get("landmark_name"),
+            )
+        )
+        if landmark is None:
+            continue
+        exists = db.scalar(
+            select(LandmarkContribution.id).where(
+                LandmarkContribution.landmark_id == landmark.id,
+                LandmarkContribution.contributor_name == username,
+            )
+        )
+        if exists is not None:
+            continue
+        db.add(LandmarkContribution(landmark_id=landmark.id, contributor_name=username))
+        created += 1
+    if created:
+        db.commit()
+    return created
 
 
 if __name__ == "__main__":

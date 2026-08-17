@@ -1,0 +1,104 @@
+name: 共创 PR 审核
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: review-contribution-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  path-gate:
+    name: 文件封锁检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 计算变更文件
+        shell: bash
+        run: |
+          git diff --name-only "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" > "$RUNNER_TEMP/changed-files.txt"
+          wc -l "$RUNNER_TEMP/changed-files.txt"
+      - name: 分类变更文件
+        shell: bash
+        run: |
+          python3 scripts/review_logic.py classify \
+            --changed-file-list "$RUNNER_TEMP/changed-files.txt" \
+            --entries-dir "$GITHUB_WORKSPACE/data/contributions/entries" \
+            --json > "$RUNNER_TEMP/classification.json"
+          cat "$RUNNER_TEMP/classification.json"
+      - name: 越界文件留言并标记失败
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const cls = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/classification.json', 'utf8'));
+            if (cls.violations.length > 0) {
+              const body = [
+                '## 文件封锁检查未通过',
+                '仅允许新增条目文件，越界文件：',
+                ...cls.violations.map((v) => '- `' + v + '`'),
+                '请按 `docs/共创提示词包/00_使用说明.md` 调整后推送更新，机器人会自动复查。',
+              ].join('\n');
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+              core.setFailed('发现 ' + cls.violations.length + ' 个越界文件');
+            }
+
+  validate-contribution:
+    name: validate-contribution
+    runs-on: ubuntu-latest
+    needs: path-gate
+    if: always()
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: 安装依赖
+        run: python3 -m pip install -r requirements.txt
+      - name: 计算变更并校验条目
+        shell: bash
+        run: |
+          git diff --name-only "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" > "$RUNNER_TEMP/changed-files.txt"
+          python3 scripts/review_logic.py review \
+            --changed-file-list "$RUNNER_TEMP/changed-files.txt" \
+            --author "${{ github.event.pull_request.user.login }}" \
+            --entries-dir "$GITHUB_WORKSPACE/data/contributions/entries" \
+            --json > "$RUNNER_TEMP/review.json"
+          cat "$RUNNER_TEMP/review.json"
+      - name: 留言评审结果
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/review.json', 'utf8'));
+            if (review.violations.length > 0) {
+              core.setFailed('发现 ' + review.violations.length + ' 个越界文件');
+              return;
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: review.comment,
+            });
+            if (review.invalid_count > 0) {
+              core.setFailed(review.invalid_count + ' 个条目文件未通过校验');
+            }
