@@ -18,17 +18,19 @@
 
 ### 3.1 文件封锁（路径闸门）
 
-1. 在 `pull_request`（opened/synchronize/reopened）工作流第一步计算 changed files：checkout（`fetch-depth: 0`）后执行 `git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}`，不依赖第三方 action。
-2. 允许集 = `data/contributions/entries/**`（首期仅条目文件）。
-3. 任何越界路径 → 用 `actions/github-script` 在 PR 上留言「仅允许新增条目文件，越界文件：<列表>」，并将该 job 标记失败（失败即不满足分支保护、不可合入）。
-4. 说明：GitHub 无法对 fork PR 做真正的文件级写锁定；「机器人路径检查（必须通过）+ main 分支保护（必须通过才能合入）+ CODEOWNERS」是平台内最稳妥、最简单的封锁组合，效果等同封锁其他文件。
+1. 工作流使用 `pull_request_target`（opened/synchronize/reopened）触发：自动在 fork PR 上运行，且能用仓库写权限留言；同时**不把 fork PR 代码检出进工作区**。
+2. 第一步用 `actions/checkout@v4` 只检出主分支。GitHub 自 2026-07-20 起在 `pull_request_target` 下禁止 `actions/checkout` 检出 fork PR 的 `refs/pull/<n>/merge`、`refs/pull/<n>/head` 或 fork 提交 SHA；唯一例外 `allow-unsafe-pr-checkout: true` 是官方明确警告的选项，本项目不使用。因此改用 `actions/github-script` 调 `github.rest.pulls.listFiles()` 获取 PR 变更文件列表，写入 `$RUNNER_TEMP/changed-files.txt`，不再依赖 `git diff`。
+3. 允许集 = `data/contributions/entries/**`（首期仅条目文件）。
+4. 任何越界路径 → 用 `actions/github-script` 在 PR 上留言「仅允许新增条目文件，越界文件：<列表>」，并将该 job 标记失败（失败即不满足分支保护、不可合入）。
+5. 说明：GitHub 无法对 fork PR 做真正的文件级写锁定；「机器人路径检查（必须通过）+ main 分支保护（必须通过才能合入）+ CODEOWNERS」是平台内最稳妥、最简单的封锁组合，效果等同封锁其他文件。
 
 ### 3.2 条目校验检查
 
-1. 同一工作流新增 `validate` job：`actions/setup-python`（Python 3.13）→ `pip install -r requirements.txt` → 对每个新增 entry 文件运行 `scripts/validate_contribution_entry.py --file <path> --json` → 汇总结果。
-2. 任一文件 invalid → 留言列出具体错误（列级、三段式、重复等）并请求修改；全部 valid → 留言「校验通过，等待维护者人工确认」。
-3. `validate` job 的最终结果为分支保护要求的状态检查（命名为 `validate-contribution`）。
-4. 留言中记录 PR 作者 GitHub 用户名（`github.event.pull_request.user.login`），作为后续署名与共创者名单的依据（见 04 阶段）。
+1. 同一工作流新增 `validate` job：`actions/setup-python`（Python 3.13）→ `pip install -r requirements.txt` → 校验 PR 新增条目。
+2. 由于不检出 PR 代码，先由 `actions/github-script` 用 `github.rest.repos.getContent()`（`ref = github.event.pull_request.head.sha`）逐个拉取 PR 中的条目 CSV 内容，按原相对路径写入 `$GITHUB_WORKSPACE/data/contributions/entries/`，再运行 `scripts/review_logic.py review` 复用 01 阶段校验逻辑；重复检查会同时覆盖主分支既有条目与 PR 新增条目。
+3. 任一文件 invalid → 留言列出具体错误（列级、三段式、重复等）并请求修改；全部 valid → 留言「校验通过，等待维护者人工确认」。
+4. `validate` job 的最终结果为分支保护要求的状态检查（命名为 `validate-contribution`）。
+5. 留言中记录 PR 作者 GitHub 用户名（`github.event.pull_request.user.login`），作为后续署名与共创者名单的依据（见 04 阶段）。
 
 ### 3.3 分支保护与 CODEOWNERS
 
@@ -80,6 +82,7 @@
 2. 机器人只读代码与数据，不做 `git push` 回写（回写属于 04 的发布流水线）。
 3. 分支保护需人工复核，避免「机器人账号被授予批准/合并权限」的漏洞；机器人使用 `github-actions[bot]` 且不授予批准权限。
 4. 不把 repo secrets 打印到留言或日志。
+5. 不在 `pull_request_target` 工作流中检出 fork PR 代码，不使用 `actions/checkout` 的 `allow-unsafe-pr-checkout` 选项。
 
 ## 7. 验收标准
 
