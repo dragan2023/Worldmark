@@ -49,6 +49,7 @@
    - Require status checks to pass（勾选 `validate-contribution`）
    - Require conversation resolution
    - Restrict who can push to matching branches（仅维护者）
+   > 实际配置记录（2026-08-18）：已启用 `validate-contribution` 与 `文件封锁检查` 两个状态检查、strict（PR 必须基于最新 main）、enforce_admins；「至少 1 个维护者批准 / conversation resolution / restrict push」为可选增强项，当前未启用。完整配置方法与检查名见 05 阶段 §3.5。
 3. 效果：共创者 PR 即使改动其他文件也无法合入；`.github/`、`app/`、`tests/` 等配置与代码变更必须由维护者处理。
 
 ### 3.4 机器人行为规范与可测性

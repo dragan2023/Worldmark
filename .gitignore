@@ -18,6 +18,8 @@ __pycache__/
 /itinerary-*.xlsx
 
 # 开发计划与内部运营文档（不入库，仅供本地）
+.github_token
+
 docs/IP地标旅游应用基础框架实施计划/
 docs/第三方Skills/
 docs/美团酒旅Skills驱动个性化行程重构/
