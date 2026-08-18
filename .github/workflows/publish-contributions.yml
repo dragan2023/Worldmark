@@ -90,6 +90,8 @@ jobs:
             echo "没有需要回写的变更，跳过提交"
             exit 0
           fi
+          # 清除 actions/checkout 注入的 GITHUB_TOKEN 请求头，否则回写 push 会以 github-actions[bot] 身份执行，无法作为管理员绕过分支保护（GH006）
+          git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
           # 用管理员 PAT 直推 main（enforce_admins=false，管理员可绕过必检检查完成自动回写）
           git commit -m "chore(contributions): 合并共创条目并更新共创者名单"
-          git push "https://x-access-token:${ADMIN_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
+          git push "https://dragan2023:${ADMIN_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
