@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-d71f00)
-![License](https://img.shields.io/badge/license-Private-8b0000)
+![License](https://img.shields.io/badge/license-%E5%85%AC%E5%BC%80%E4%BB%93%E5%BA%93-2b6cb0)
 
 ---
 
@@ -81,12 +81,25 @@ GET /api/v1/exports/landmarks.xlsx
 
 ## 🤝 如何参与共创
 
-欢迎为 Worldmark 贡献新的文学 / 游戏 / 影视地标条目。共创采用「一条地标 = 一个 CSV 文件 + PR 审核机器人」的方式：
+欢迎为 Worldmark 贡献新的文学 / 游戏 / 影视地标条目。**项目仓库已公开**，任何人都可以参与。共创有**两种方式**：
 
-1. 使用主流 AI 智能体工具（Codex、Claude Code、WorkBuddy、Qoder 等）打开本仓库，复制 [`docs/共创提示词包/01_共创条目添加提示词.md`](docs/共创提示词包/01_共创条目添加提示词.md) 中的提示词并执行，工具会自动生成条目文件并完成本地校验。
-2. 把新增的条目文件（仅 `data/contributions/entries/<ip_type>/<slug>.csv`）提交为 Pull Request；[审核机器人](.github/workflows/review-contribution.yml) 会自动检查是否只新增了条目文件、字段与三段式简介是否合规，并在 PR 上留言评审结果。
-3. 通过机器人检查后，由维护者人工确认并合入；合入后条目进入种子数据，并以你的 GitHub 用户名署名。
-4. 共创者名单在 [共创者页面](/contributors) 实时同步展示。
+### 方式一：网页提交（无需代码，单条）
+
+打开 [贡献页面](/contribute)，填写作品、地标、简介与署名，候选条目会进入人工审核；审核发布后展示署名。适合快速提交单条地标。
+
+### 方式二：Harness PR 共创（推荐，批量可追溯）
+
+「一条地标 = 一个 CSV 文件 + PR 审核机器人」：
+
+1. **Fork 本仓库**（仓库主页右上角 Fork 按钮），得到你自己的副本（`<你的用户名>/Worldmark`），克隆到本地。
+2. 使用主流 AI 智能体工具（Codex、Claude Code、WorkBuddy、Qoder 等）打开项目目录，复制 [`docs/共创提示词包/01_共创条目添加提示词.md`](docs/共创提示词包/01_共创条目添加提示词.md) 中的提示词并执行，工具会自动联网核实、生成条目文件并完成本地校验。
+3. 把新增的条目文件（仅 `data/contributions/entries/<ip_type>/<slug>.csv`）推送并开 Pull Request。审核机器人会自动运行两个检查：
+   - `文件封锁检查`：只允许新增条目文件，改动其他任何代码/配置文件都会拦截并留言；
+   - `validate-contribution`：校验条目字段、三段式简介与重复性，通过后留言「校验通过，等待维护者人工确认」。
+4. **main 分支受保护**：两个检查必须全部通过、且 PR 基于最新 main 才能合并。通过后由维护者人工确认合入，合入后条目进入种子数据，并以你的 **GitHub 用户名**署名。
+5. 共创者名单在 [共创者页面](/contributors) 实时同步展示。
+
+> 共创者只能新增自己的条目文件，不能修改、删除他人条目或任何既有代码；越界改动会被机器人拦截，无法合入。
 
 详细说明见 [`docs/共创提示词包/00_使用说明.md`](docs/共创提示词包/00_使用说明.md) 与 [`docs/共创贡献规范.md`](docs/共创贡献规范.md)。
 
@@ -142,6 +155,7 @@ GET /api/v1/exports/landmarks.xlsx
 ## 📚 文档
 
 - [运行手册](docs/运行手册.md)
+- [共创提示词包 · 使用说明](docs/共创提示词包/00_使用说明.md)
 - [共创贡献规范](docs/共创贡献规范.md)
 - [数据采集规范](docs/数据采集规范.md)
 - [来源分级与审核准则](docs/来源分级与审核准则.md)
@@ -167,5 +181,5 @@ GET /api/v1/exports/landmarks.xlsx
 
 ## 📄 License
 
-本项目当前为**私有项目**，保留所有权利。
+项目仓库当前为**公开仓库**，代码与数据对外可见。共创者提交的条目按 [共创贡献规范](docs/共创贡献规范.md) 署名与发布；具体授权条款以仓库声明为准。
 
