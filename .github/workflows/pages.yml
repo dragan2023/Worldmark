@@ -1,0 +1,49 @@
+name: 部署共创者名单页面
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "data/contributions/contributors.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: 构建并发布 GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 组装站点文件
+        shell: bash
+        run: |
+          mkdir -p _site
+          cp site/index.html _site/index.html
+          cp data/contributions/contributors.json _site/contributors.json
+          echo "组装完成：" && ls -la _site
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 上传站点产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
