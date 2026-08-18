@@ -7,13 +7,6 @@
       "ip_type": "screen",
       "work_title": "情书",
       "landmark_name": "小樽运河"
-    },
-    {
-      "file": "screen/e2e-test--automation-landmark.csv",
-      "contributor": "zjlkfc-ship-it",
-      "ip_type": "screen",
-      "work_title": "自动化测试作品",
-      "landmark_name": "自动化测试地标"
     }
   ]
 }
