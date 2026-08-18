@@ -8,7 +8,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.admin import router as admin_router
 from app.api.contributors import router as contributors_router
-from app.api.contributions import router as contributions_router
 from app.api.exports import router as exports_router
 from app.api.itineraries import router as itineraries_router
 from app.api.landmarks import router as landmarks_router
@@ -17,7 +16,6 @@ from app.api.routes import router as routes_router
 from app.api.admin_routes import router as admin_routes_router
 from app.api.meta import router as meta_router
 from app.web.catalog import router as catalog_router
-from app.web.contributions import router as contributions_web_router
 from app.web.contributors import router as contributors_web_router
 from app.web.home import router as home_router
 from app.web.maps import router as maps_web_router
@@ -40,14 +38,12 @@ def create_app() -> FastAPI:
     app.include_router(search_web_router)
     app.include_router(works_web_router)
     app.include_router(catalog_router)
-    app.include_router(contributions_web_router)
     app.include_router(contributors_web_router)
     app.include_router(maps_web_router)
     app.include_router(itineraries_web_router)
     app.include_router(routes_web_router)
     app.include_router(meta_router)
     app.include_router(contributors_router)
-    app.include_router(contributions_router)
     app.include_router(landmarks_router)
     app.include_router(maps_router)
     app.include_router(routes_router)

@@ -26,7 +26,7 @@ def test_contributors_page_shows_empty_state_guide(client, monkeypatch, tmp_path
 
     assert response.status_code == 200
     assert "还没有共创者" in response.text
-    assert "/contribute" in response.text
+    assert "Pull Request" in response.text
     assert "提示词包" in response.text
 
 
