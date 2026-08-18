@@ -1,0 +1,2 @@
+ip_type,work_title,aliases,landmark_name,country_code,country_name,province_name,city_name,district_name,normalized_address,latitude,longitude,description,transit_text,landmark_kind,source_url,source_publisher,source_title,source_type,accessed_at,license_note,claim_scope
+"screen","自动化坏路径测试","","自动化坏路径测试地标","CN","中国","北京市","北京市","","北京市海淀区自动化测试地址","","","在作品中的重要地位：用于自动化坏路径端到端测试的占位条目。主要出现的情节：由测试账号故意连同越界文件一起提交，用于验证文件封锁机制。现实地标介绍：本条目仅用于测试，不对应任何真实地标。","","测试占位","https://example.com","自动化测试","自动化测试来源","official","2026-08-18T12:00:00+08:00","","work_association"
