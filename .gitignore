@@ -16,3 +16,11 @@ __pycache__/
 # 根目录行程导出测试产物
 /itinerary-*.html
 /itinerary-*.xlsx
+
+# 开发计划与内部运营文档（不入库，仅供本地）
+docs/IP地标旅游应用基础框架实施计划/
+docs/第三方Skills/
+docs/美团酒旅Skills驱动个性化行程重构/
+docs/运行手册.md
+docs/故障处理手册.md
+docs/上线前数据检查清单.md
