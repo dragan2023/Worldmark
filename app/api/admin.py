@@ -2,13 +2,11 @@ import secrets
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from app.core.config import Settings, get_settings
 from app.db.session import get_db
 from app.models.enums import VerificationStatus
-from app.models.contribution import LandmarkContribution
 from app.models.landmark import Landmark
 from app.services.data_quality import LandmarkDataQualityService
 from app.services.import_landmarks import LandmarkImportService
@@ -17,7 +15,6 @@ from app.services.search_discovery import SearchDiscoveryService
 from app.integrations.search.bocha_web_search import SearchConfigurationError, SearchProviderError
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
-
 
 def require_admin(
     x_admin_token: str | None = Header(default=None), settings: Settings = Depends(get_settings)
@@ -28,17 +25,14 @@ def require_admin(
     if x_admin_token is None or not secrets.compare_digest(x_admin_token, configured_token):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin token.")
 
-
 class ReviewRequest(BaseModel):
     decision: VerificationStatus
     reason: str = Field(min_length=1, max_length=4000)
     reviewer_name: str = Field(min_length=1, max_length=255)
 
-
 class SearchDiscoveryRequest(BaseModel):
     query_template: str = Field(min_length=1, max_length=500)
     query: str = Field(min_length=1, max_length=1000)
-
 
 @router.post("/imports/landmarks", dependencies=[Depends(require_admin)])
 async def import_landmarks(file: UploadFile = File(...), db: Session = Depends(get_db)) -> dict[str, object]:
@@ -50,31 +44,6 @@ async def import_landmarks(file: UploadFile = File(...), db: Session = Depends(g
         "failures": [{"row_number": failure.row_number, "message": failure.message} for failure in result.failures],
     }
 
-
-@router.get("/contributions", dependencies=[Depends(require_admin)])
-def list_community_contributions(db: Session = Depends(get_db)) -> dict[str, object]:
-    contributions = db.scalars(
-        select(LandmarkContribution)
-        .options(selectinload(LandmarkContribution.landmark).selectinload(Landmark.ip_work))
-        .order_by(LandmarkContribution.created_at.desc(), LandmarkContribution.id.desc())
-    ).all()
-    return {
-        "items": [
-            {
-                "id": contribution.id,
-                "contributor_name": contribution.contributor_name,
-                "contributor_user_id": contribution.contributor_user_id,
-                "submitted_at": contribution.created_at,
-                "landmark_id": contribution.landmark_id,
-                "landmark_name": contribution.landmark.name,
-                "work_title": contribution.landmark.ip_work.title,
-                "verification_status": contribution.landmark.verification_status,
-            }
-            for contribution in contributions
-        ]
-    }
-
-
 @router.post("/landmarks/{landmark_id}/review", dependencies=[Depends(require_admin)])
 def review_landmark(landmark_id: int, payload: ReviewRequest, db: Session = Depends(get_db)) -> dict[str, object]:
     try:
@@ -82,7 +51,6 @@ def review_landmark(landmark_id: int, payload: ReviewRequest, db: Session = Depe
     except ReviewValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {"id": landmark.id, "verification_status": landmark.verification_status}
-
 
 @router.post("/landmarks/{landmark_id}/publish", dependencies=[Depends(require_admin)])
 def publish_landmark(landmark_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
@@ -92,12 +60,10 @@ def publish_landmark(landmark_id: int, db: Session = Depends(get_db)) -> dict[st
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {"id": landmark.id, "published_at": landmark.published_at}
 
-
 @router.get("/data-quality", dependencies=[Depends(require_admin)])
 def published_data_quality(db: Session = Depends(get_db)) -> dict[str, object]:
     issues = LandmarkDataQualityService(db).scan_published()
     return {"issues": [issue.__dict__ for issue in issues]}
-
 
 @router.post("/search/discover", dependencies=[Depends(require_admin)])
 def discover_candidates(payload: SearchDiscoveryRequest, db: Session = Depends(get_db)) -> dict[str, object]:
