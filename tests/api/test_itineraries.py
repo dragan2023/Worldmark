@@ -26,24 +26,34 @@ def _payload(**overrides) -> dict[str, object]:
     return value
 
 
-def test_only_premium_member_can_create_and_manage_itinerary(client, db_session):
+def test_any_user_can_create_and_manage_itinerary(client, db_session):
     landmark = create_landmark(db_session)
     lite = create_member(db_session, MembershipTier.LITE)
-    premium = create_member(db_session, MembershipTier.PREMIUM)
 
-    denied = client.post("/api/v1/itineraries", json=_payload(), headers=_headers(lite))
-    assert denied.status_code == 403
-
-    created = client.post("/api/v1/itineraries", json=_payload(must_visit_landmark_ids=[landmark.id]), headers=_headers(premium))
+    created = client.post("/api/v1/itineraries", json=_payload(must_visit_landmark_ids=[landmark.id]), headers=_headers(lite))
     assert created.status_code == 200
     itinerary = created.json()
     assert itinerary["days"][0]["stops"][0]["landmark_id"] == landmark.id
     assert itinerary["status"] == "succeeded"
 
-    updated = client.patch(f"/api/v1/itineraries/{itinerary['id']}", json={"title": "已编辑行程"}, headers=_headers(premium))
+    updated = client.patch(f"/api/v1/itineraries/{itinerary['id']}", json={"title": "已编辑行程"}, headers=_headers(lite))
     assert updated.status_code == 200
     assert updated.json()["version"] == 2
     assert updated.json()["title"] == "已编辑行程"
+
+
+def test_anonymous_visitor_can_create_list_and_delete_itinerary(client, db_session):
+    create_landmark(db_session)
+
+    created = client.post("/api/v1/itineraries", json=_payload())
+    assert created.status_code == 200
+    itinerary = created.json()
+
+    listed = client.get("/api/v1/itineraries")
+    assert listed.status_code == 200
+    assert any(item["id"] == itinerary["id"] for item in listed.json()["items"])
+
+    assert client.delete(f"/api/v1/itineraries/{itinerary['id']}").status_code == 204
 
 
 def test_itinerary_exports_html_docx_and_xlsx(client, db_session):

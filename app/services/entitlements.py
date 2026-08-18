@@ -16,8 +16,8 @@ class EntitlementService:
     """The single source of truth for membership feature access."""
 
     _MATRIX = {
-        MembershipTier.FREE: Entitlements(True, True, False, False, False),
-        MembershipTier.LITE: Entitlements(True, True, True, True, False),
+        MembershipTier.FREE: Entitlements(True, True, True, True, True),
+        MembershipTier.LITE: Entitlements(True, True, True, True, True),
         MembershipTier.PREMIUM: Entitlements(True, True, True, True, True),
     }
 

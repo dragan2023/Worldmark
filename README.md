@@ -22,8 +22,8 @@ IP 地标旅游应用把这份好奇心变成可检索、可规划的工具，�
 
 - 🗂️ **三类 IP 地标目录**：文学 `/literature`、游戏 `/games`、影视剧 `/screen`，统一检索与详情页
 - 🧾 **候选发现与人工审核**：搜索候选不自动发布，经审核后才会公开，保证数据可靠
-- 🗺️ **轻量级会员地图与线路**：静态点位展示与已发布路线，基于 OpenStreetMap 瓦片
-- 🧳 **个性化行程规划**：`premium` 成员可创建行程草案，并导出 HTML / DOCX / XLSX
+- 🗺️ **轻量级地图与线路**：静态点位展示与已发布路线，基于 OpenStreetMap 瓦片
+- 🧳 **个性化行程规划**：所有用户均可创建行程草案，并导出 HTML / DOCX / XLSX
 - 🔍 **统一目录 API 与免费导出**：按作品、国家/地区、省市筛选，CSV / XLSX 一键导出
 - 🤝 **共创贡献**：任何人都可提交带署名的候选地标，审核发布后展示共创者署名
 
@@ -38,7 +38,7 @@ IP 地标旅游应用把这份好奇心变成可检索、可规划的工具，�
 
 ### 安装与运行
 
-1. 复制 `.env.example` 为本机 `.env`，填写本地 PostgreSQL 连接和随机的 `APP_SECRET_KEY`。不要填写或提交真实 API 密钥：
+1. 复制 `.env.example` 为本机 `.env`，填写本地 PostgreSQL 连接和随机的 `APP_SECRET_KEY`。地图与旅游计划所需 API Key 的申请与配置见下方「配置 API Key」小节；请勿把真实密钥提交到仓库：
 
    ```powershell
    Copy-Item .env.example .env
@@ -79,7 +79,55 @@ GET /api/v1/exports/landmarks.csv
 GET /api/v1/exports/landmarks.xlsx
 ```
 
+## 🔑 配置 API Key（地图与旅游计划）
+
+地图展示与个性化旅游计划会调用外部地图 / AI / 旅游服务。**不配置任何 Key 也能正常浏览目录与导出数据**，但以下功能需要对应的 Key 才会启用完整能力：
+
+### 地图功能
+
+| 配置项 | 作用 | 是否需要 | 申请 / 文档链接 |
+| --- | --- | --- | --- |
+| `MAP_TILE_URL` | 地图瓦片地址（默认已填 OpenStreetMap，可换成高德或其他合规瓦片服务） | 可选（默认可用） | — |
+| `AMAP_WEB_SERVICE_API_KEY` | 高德 Web 服务 Key：地址地理编码、酒店坐标、步行距离动线优化 | 建议配置 | [高德开放平台 · 创建应用与 Key](https://console.amap.com/dev/key/app)（[Web 服务开发文档](https://lbs.amap.com/api/webservice/create-project-and-key)） |
+
+### 旅游计划功能
+
+| 配置项 | 作用 | 是否需要 | 申请 / 文档链接 |
+| --- | --- | --- | --- |
+| `DEEPSEEK_API_KEY` | **LLM API Key**（OpenAI 兼容接口）：启用 AI 行程生成，自动安排地标顺序与日程；不限定 DeepSeek，任何 OpenAI 兼容服务商均可；未配置时回退到确定性本地生成器 | 建议配置 | [DeepSeek 开放平台 · API Keys](https://platform.deepseek.com/api_keys)（示例；其他厂商以各自开放平台为准） |
+| `MEITUAN_HT_TOKEN` | 美团酒旅官方 Skill Token：生成行程草案，提供住宿 / 交通 / 门票价格参考 | 可选 | [美团开发者中心 · 获取 Token](https://developer.meituan.com/zh/v2/dev/token) |
+| `AMAP_WEB_SERVICE_API_KEY` | 同地图功能，用于行程动线优化 | 建议配置 | [高德开放平台](https://console.amap.com/dev/key/app) |
+| `BOCHA_API_KEY` | 博查 AI 搜索 Key：候选地标发现与行程资料检索 | 可选 | [博查 AI 开放平台 · API Keys](https://open.bochaai.com/api-keys) |
+
+> **LLM 说明**：系统通过 OpenAI 兼容的 `/chat/completions` 接口调用大模型，只需一个支持 OpenAI 格式的 LLM API Key。默认使用 DeepSeek；若使用其他服务商，把对应 Key 填入 `DEEPSEEK_API_KEY`，并在 `DEEPSEEK_BASE_URL` 填其接口地址、`DEEPSEEK_MODEL` 填其模型名即可。
+
+> 提示：`MAP_TILE_URL` 未配置时地图页会提示「地图瓦片服务未配置」。默认 OpenStreetMap 瓦片仅限用户主动浏览，禁止预抓取或离线下载；生产上线前请根据访问量改用符合业务规模与许可条件的地图服务，并保留可见署名。
+
+### 配置步骤
+
+1. 复制 `.env.example` 为 `.env`（若已存在则直接编辑）：
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+2. 按上方表格把申请到的 Key 填入对应配置项，例如：
+
+   ```dotenv
+   AMAP_WEB_SERVICE_API_KEY=你的高德Web服务Key
+   DEEPSEEK_API_KEY=你的LLM API Key（不限于 DeepSeek，OpenAI 兼容接口即可）
+   ```
+
+3. 重启开发服务使配置生效：
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+   ```
+
+> ⚠️ `.env` 已被 git 忽略，请勿把真实 Key 提交到仓库或公开环境；泄露后请及时到对应平台吊销并重新申请。
+
 ## 🤝 如何参与共创
+
 
 欢迎为 Worldmark 贡献新的文学 / 游戏 / 影视地标条目。**项目仓库已公开**，任何人都可以参与。共创有**两种方式**：
 
@@ -128,7 +176,7 @@ GET /api/v1/exports/landmarks.xlsx
 | 数据库 | PostgreSQL（测试用 SQLite） |
 | 前端 | Jinja2 模板 + 原生 CSS/JS + Leaflet |
 | 认证 | JWT + passlib/bcrypt |
-| 集成 | httpx（博查搜索、DeepSeek、高德 Web Service、美团酒旅 Skill） |
+| 集成 | httpx（博查搜索、LLM 默认 DeepSeek、高德 Web Service、美团酒旅 Skill） |
 | 导出 | openpyxl（XLSX）、python-docx（DOCX） |
 
 ## 📁 项目结构
@@ -138,7 +186,7 @@ GET /api/v1/exports/landmarks.xlsx
 │   ├── api/              # 对外 API 路由
 │   ├── core/             # 配置与认证
 │   ├── db/               # 数据库会话
-│   ├── integrations/     # 外部服务集成（搜索、DeepSeek、高德、美团）
+│   ├── integrations/     # 外部服务集成（搜索、LLM 默认 DeepSeek、高德、美团）
 │   ├── models/           # SQLAlchemy 数据模型
 │   ├── services/         # 业务逻辑（目录、审核、行程、地图数据等）
 │   ├── static/           # CSS / JS / 静态资源
@@ -167,12 +215,12 @@ GET /api/v1/exports/landmarks.xlsx
 
 ## 📝 范围与说明
 
-- 当前版本没有真实支付、网页爬虫或 AI 行程生成；候选发现通过受管理员令牌保护的博查搜索 API 进行，不依赖 LLM 模型，搜索结果不会自动发布。
+- 当前版本没有真实支付、网页爬虫；候选发现通过受管理员令牌保护的博查搜索 API 进行，搜索结果不会自动发布。未配置 LLM API Key（`DEEPSEEK_API_KEY`，OpenAI 兼容接口，不限于 DeepSeek）时，行程生成回退到确定性本地生成器。
 - 免费目录和 CSV/XLSX 导出统一提供作品名称、地标名称、国家/地区、详细地址、地标简介和信息更新时间；不会输出交通文字、坐标、地图瓦片、审核记录或未发布候选。
 - 地标相册仅加载 `data/contributions/landmark_albums/` 中已登记许可信息的本地图片。
-- `lite` 与 `premium` 成员可通过带有效 JWT 的 `Authorization: Bearer <token>` 请求，或同源的 `ip_landmark_access_token` Cookie，访问静态点位 API、`/maps/{module}` 地图页和已发布路线；系统始终以数据库会员等级判定权限。
+- 所有用户（无需登录）均可访问静态点位 API、`/maps/{module}` 地图页、已发布路线与个性化行程；系统不再按会员等级限制功能。
 - 任何人可通过 `/contribute` 提交带署名的候选地标；提交不会直接公开。系统记录署名、候选地标和（如已登录）用户 ID，审核发布后才在详情页显示共创者。
-- `premium` 成员可通过 `/itineraries` 创建、查看、编辑、删除个性化行程草案，并导出 HTML、DOCX 和 XLSX。预览阶段使用美团酒旅官方 `@meituan-travel/ht-ai` Skill，本地服务始终校验已发布 IP 地标并生成可编辑的基础日程；配置 `DEEPSEEK_API_KEY` 时，DeepSeek 可辅助安排本地 IP 地标顺序，调用失败时回退到确定性生成器；配置高德 Web Service 后，系统会自动使用酒店地址地理编码和步行距离优化当天动线。酒店、交通、门票和餐饮的官方建议须由用户自行确认，系统不会自动下单或写入未确认价格。
+- 所有用户均可通过 `/itineraries` 创建、查看、编辑、删除个性化行程草案，并导出 HTML、DOCX 和 XLSX。预览阶段使用美团酒旅官方 `@meituan-travel/ht-ai` Skill，本地服务始终校验已发布 IP 地标并生成可编辑的基础日程；配置 LLM API Key（`DEEPSEEK_API_KEY`，OpenAI 兼容接口，不限于 DeepSeek）时，可辅助安排本地 IP 地标顺序，调用失败时回退到确定性生成器；配置高德 Web Service 后，系统会自动使用酒店地址地理编码和步行距离优化当天动线。酒店、交通、门票和餐饮的官方建议须由用户自行确认，系统不会自动下单或写入未确认价格。
 - 静态地图只做地标分布与路线顺序参考，不提供实时导航。默认 `MAP_TILE_URL` 使用 OpenStreetMap 标准瓦片 URL：仅限用户主动浏览，禁止预抓取、离线下载或自行抓取瓦片；生产上线前应根据访问量改用符合业务规模与许可条件的地图服务，并保留可见署名和有效 Referer。
 
 ## 📦 版本记录

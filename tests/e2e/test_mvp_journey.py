@@ -23,7 +23,8 @@ def test_mvp_journey_covers_three_ip_types_and_member_services(client, db_sessio
         assert [item["id"] for item in catalog.json()["items"]] == [landmark_id]
 
     free_map = client.get("/api/v1/maps/landmarks", headers=_headers(free))
-    assert free_map.status_code == 403
+    assert free_map.status_code == 200
+    assert {marker["id"] for marker in free_map.json()["items"]} == {literature.id, game.id, screen.id}
     lite_map = client.get("/api/v1/maps/landmarks", headers=_headers(lite))
     assert lite_map.status_code == 200
     assert {marker["id"] for marker in lite_map.json()["items"]} == {literature.id, game.id, screen.id}

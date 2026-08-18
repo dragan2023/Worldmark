@@ -54,6 +54,23 @@ def _ensure_dev_user(db: Session) -> User:
     return user
 
 
+ANONYMOUS_USER_EMAIL = "anonymous@iplandmarks.local"
+ANONYMOUS_USER_PASSWORD_HASH = "anonymous-no-login"
+
+
+def resolve_user_id(db: Session, member: CurrentMember) -> int:
+    """Return the member's user id, creating a shared guest identity for anonymous visitors."""
+    if member.user_id is not None:
+        return member.user_id
+    user = db.scalar(select(User).where(User.email == ANONYMOUS_USER_EMAIL))
+    if user is None:
+        user = User(email=ANONYMOUS_USER_EMAIL, password_hash=ANONYMOUS_USER_PASSWORD_HASH)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return user.id
+
+
 def get_current_member(
     authorization: str | None = Header(default=None),
     access_token: str | None = Cookie(default=None, alias=ACCESS_TOKEN_COOKIE),

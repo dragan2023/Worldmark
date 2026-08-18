@@ -14,7 +14,7 @@
     {% include "_header.html" %}
     <main class="itinerary-shell">
       <a class="back-link" href="/itineraries">← 返回我的行程</a>
-      <p class="eyebrow">PREMIUM ITINERARY · v{{ itinerary.version }}</p>
+      <p class="eyebrow">行程规划 · v{{ itinerary.version }}</p>
       <h1>{{ itinerary.title }}</h1>
       <p class="intro">{{ itinerary.start_date }} 至 {{ itinerary.end_date }} · 每日约 {{ itinerary.daily_hours }} 小时{% if itinerary.generator_version %} · {{ itinerary.generator_version }}{% endif %}</p>
       <section class="trip-summary">
