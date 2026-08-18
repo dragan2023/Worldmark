@@ -14,26 +14,22 @@ jobs:
         run: |
           echo "PREFIX=${ADMIN_TOKEN:0:12}"
           echo "LEN=${#ADMIN_TOKEN}"
-      - name: 探测 push 绕过行为
+      - name: 探测 push（去掉 extraheader 后，正确捕获退出码）
         env:
           ADMIN_TOKEN: ${{ secrets.WORLDMARK_ADMIN_TOKEN }}
         run: |
+          set +e
           git config user.name "dragan2023"
           git config user.email "140294267+dragan2023@users.noreply.github.com"
+          git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
           echo "e2e probe $(date -u +%s)" > e2e-probe-bypass.txt
           git add e2e-probe-bypass.txt
-          git commit -m "test(e2e): probe push bypass"
-          echo "=== attempt1: dragan2023 用户名 ==="
-          if git push "https://dragan2023:${ADMIN_TOKEN}@github.com/dragan2023/Worldmark.git" HEAD:main 2>&1 | tee /tmp/push1.log; then
-            echo "ATTEMPT1=SUCCESS"
-          else
-            echo "ATTEMPT1=FAIL"
-          fi
-          grep -E "Bypassed|GH006|rejected|up.to.date|error" /tmp/push1.log || true
-          echo "=== attempt2: x-access-token 用户名 ==="
-          if git push "https://x-access-token:${ADMIN_TOKEN}@github.com/dragan2023/Worldmark.git" HEAD:main 2>&1 | tee /tmp/push2.log; then
-            echo "ATTEMPT2=SUCCESS"
-          else
-            echo "ATTEMPT2=FAIL"
-          fi
-          grep -E "Bypassed|GH006|rejected|up.to.date|error" /tmp/push2.log || true
+          git commit -m "test(e2e): probe push bypass v2"
+          echo "=== attempt1: dragan2023 用户名（已去掉 extraheader） ==="
+          git push "https://dragan2023:${ADMIN_TOKEN}@github.com/dragan2023/Worldmark.git" HEAD:main > /tmp/push1.log 2>&1
+          echo "ATTEMPT1_RC=$?"
+          grep -E "Bypassed|GH006|rejected|denied|up.to.date|error|403" /tmp/push1.log || true
+          echo "=== attempt2: x-access-token 用户名（已去掉 extraheader） ==="
+          git push "https://x-access-token:${ADMIN_TOKEN}@github.com/dragan2023/Worldmark.git" HEAD:main > /tmp/push2.log 2>&1
+          echo "ATTEMPT2_RC=$?"
+          grep -E "Bypassed|GH006|rejected|denied|up.to.date|error|403" /tmp/push2.log || true
