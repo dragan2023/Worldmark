@@ -4,15 +4,17 @@ from app.models.enums import MembershipTier
 from tests.factories import create_landmark, create_member
 
 
-def test_anonymous_map_request_is_rejected_without_coordinate_leak(client, db_session):
-    create_landmark(db_session)
+def test_anonymous_map_request_returns_only_published_geocoded_markers(client, db_session):
+    visible = create_landmark(db_session, landmark_name="有坐标地点")
+    create_landmark(db_session, landmark_name="无坐标地点", has_coordinates=False)
+    create_landmark(db_session, landmark_name="候选地点", published=False)
 
     response = client.get("/api/v1/maps/landmarks?ip_type=game")
 
-    assert response.status_code == 403
-    assert response.json()["detail"]["code"] == "membership_required"
-    assert "latitude" not in response.text
-    assert "longitude" not in response.text
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert [item["id"] for item in items] == [visible.id]
+    assert items[0]["latitude"] == 39.57
 
 
 def test_lite_member_gets_only_published_geocoded_markers(client, db_session):

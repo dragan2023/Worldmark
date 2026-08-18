@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from app.core.auth import CurrentMember, require_entitlement
+from app.core.auth import CurrentMember, require_entitlement, resolve_user_id
 from app.db.session import get_db
 from app.models.itinerary import Itinerary
 from app.schemas.itinerary import (
@@ -24,10 +24,9 @@ from app.services.itinerary_validator import ItineraryValidationError
 router = APIRouter(prefix="/api/v1/itineraries", tags=["itineraries"])
 
 
-def _user_id(member: CurrentMember) -> int:
-    if member.user_id is None:
-        raise HTTPException(status_code=403, detail={"code": "membership_required", "upgrade_url": "/membership"})
-    return member.user_id
+def _user_id(db: Session, member: CurrentMember) -> int:
+    """Return the member id; anonymous visitors share a persistent guest identity."""
+    return resolve_user_id(db, member)
 
 
 def _response(itinerary: Itinerary) -> ItineraryResponse:
@@ -96,7 +95,7 @@ def create_itinerary(
     db: Session = Depends(get_db),
 ) -> ItineraryResponse:
     try:
-        itinerary = ItineraryPlannerService(db).create(_user_id(member), payload)
+        itinerary = ItineraryPlannerService(db).create(_user_id(db, member), payload)
     except ItineraryValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return _response(itinerary)
@@ -109,7 +108,7 @@ def finalize_itinerary(
     db: Session = Depends(get_db),
 ) -> ItineraryResponse:
     try:
-        itinerary = ItineraryPlannerService(db).finalize(_user_id(member), payload)
+        itinerary = ItineraryPlannerService(db).finalize(_user_id(db, member), payload)
     except ItineraryValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return _response(itinerary)
@@ -122,7 +121,7 @@ def reprocess_meituan_itinerary(
     db: Session = Depends(get_db),
 ) -> ItineraryResponse:
     try:
-        itinerary = ItineraryPlannerService(db).reprocess_meituan_plan(_user_id(member), itinerary_id)
+        itinerary = ItineraryPlannerService(db).reprocess_meituan_plan(_user_id(db, member), itinerary_id)
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ItineraryValidationError as exc:
@@ -137,7 +136,6 @@ def preview_itinerary_choices(
     db: Session = Depends(get_db),
 ) -> dict:
     try:
-        _user_id(member)
         return ItineraryPlannerService(db).preview_choices(payload)
     except ItineraryValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -147,7 +145,7 @@ def preview_itinerary_choices(
 def list_itineraries(
     member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db)
 ) -> ItineraryListResponse:
-    items = ItineraryPlannerService(db).list_owned(_user_id(member))
+    items = ItineraryPlannerService(db).list_owned(_user_id(db, member))
     return ItineraryListResponse(
         items=[
             ItineraryListItem(
@@ -164,7 +162,7 @@ def get_itinerary(
     itinerary_id: int, member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db)
 ) -> ItineraryResponse:
     try:
-        return _response(ItineraryPlannerService(db).get_owned(_user_id(member), itinerary_id))
+        return _response(ItineraryPlannerService(db).get_owned(_user_id(db, member), itinerary_id))
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -175,7 +173,7 @@ def update_itinerary(
     member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db),
 ) -> ItineraryResponse:
     try:
-        itinerary = ItineraryPlannerService(db).update_days(_user_id(member), itinerary_id, payload.title, payload.days)
+        itinerary = ItineraryPlannerService(db).update_days(_user_id(db, member), itinerary_id, payload.title, payload.days)
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ItineraryValidationError as exc:
@@ -188,7 +186,7 @@ def delete_itinerary(
     itinerary_id: int, member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db)
 ) -> Response:
     try:
-        ItineraryPlannerService(db).delete(_user_id(member), itinerary_id)
+        ItineraryPlannerService(db).delete(_user_id(db, member), itinerary_id)
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return Response(status_code=204)
@@ -200,7 +198,7 @@ def export_itinerary(
     member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db),
 ) -> Response:
     try:
-        itinerary = ItineraryPlannerService(db).get_owned(_user_id(member), itinerary_id)
+        itinerary = ItineraryPlannerService(db).get_owned(_user_id(db, member), itinerary_id)
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     service = ItineraryExportService(db)

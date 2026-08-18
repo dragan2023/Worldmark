@@ -3,12 +3,13 @@ from app.models.enums import MembershipTier
 from tests.factories import create_landmark, create_member
 
 
-def test_free_browser_cannot_open_member_map_page(client, db_session):
+def test_anonymous_browser_can_open_map_page(client, db_session):
     create_landmark(db_session)
 
     response = client.get("/maps/games")
 
-    assert response.status_code == 403
+    assert response.status_code == 200
+    assert "静态参考地图" in response.text
     assert "39.57" not in response.text
 
 

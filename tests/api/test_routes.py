@@ -41,10 +41,28 @@ def test_admin_creates_and_publishes_route_then_lite_member_reads_it(client, app
     assert [stop["landmark_name"] for stop in response.json()["stops"]] == ["第二站", "第一站"]
 
 
-def test_free_member_cannot_read_route(client, db_session):
-    create_landmark(db_session)
+def test_anonymous_user_can_read_published_route(client, app, db_session):
+    first = create_landmark(db_session, landmark_name="第一站")
+    second = create_landmark(db_session, landmark_name="第二站")
+    admin_settings = Settings(admin_api_token=SecretStr("route-admin"))
+    app.dependency_overrides[get_settings] = lambda: admin_settings
 
-    response = client.get("/api/v1/routes/1")
+    created = client.post(
+        "/api/v1/admin/routes",
+        headers={"X-Admin-Token": "route-admin"},
+        json={
+            "title": "匿名可读路线",
+            "summary": "人工维护的访问顺序。",
+            "duration_text": "半日",
+            "stops": [{"landmark_id": first.id, "stay_minutes": 30}, {"landmark_id": second.id, "stay_minutes": 45}],
+        },
+    )
+    assert created.status_code == 200
+    route_id = created.json()["id"]
+    published = client.post(f"/api/v1/admin/routes/{route_id}/publish", headers={"X-Admin-Token": "route-admin"})
+    assert published.status_code == 200
 
-    assert response.status_code == 403
-    assert response.json()["detail"]["feature"] == "static_route"
+    response = client.get(f"/api/v1/routes/{route_id}")
+
+    assert response.status_code == 200
+    assert [stop["landmark_name"] for stop in response.json()["stops"]] == ["第一站", "第二站"]

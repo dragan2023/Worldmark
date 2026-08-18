@@ -40,7 +40,7 @@
       {% if total %}
       <section class="catalog-toolbar" aria-label="导出选项">
         <p>找到 {{ total }} 个已发布地标{% if total_pages > 1 %} · 第 {{ page }}/{{ total_pages }} 页{% endif %}</p>
-        <div><a class="export-link" href="/api/v1/exports/landmarks.csv?{{ export_query }}">导出 CSV</a><a class="export-link" href="/api/v1/exports/landmarks.xlsx?{{ export_query }}">导出 XLSX</a><a class="export-link" href="/maps/{{ module }}?{{ map_query }}">会员地图</a></div>
+        <div><a class="export-link" href="/api/v1/exports/landmarks.csv?{{ export_query }}">导出 CSV</a><a class="export-link" href="/api/v1/exports/landmarks.xlsx?{{ export_query }}">导出 XLSX</a><a class="export-link" href="/maps/{{ module }}?{{ map_query }}">静态地图</a></div>
       </section>
 
       <section class="landmark-grid" aria-label="地标卡片">

@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.core.auth import CurrentMember, require_entitlement
+from app.core.auth import CurrentMember, require_entitlement, resolve_user_id
 from app.core.config import Settings, get_settings
 from app.db.session import get_db
 from app.services.itinerary_planner import ItineraryNotFound, ItineraryPlannerService
@@ -14,10 +14,9 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parents[1] / "templates"))
 
 
-def _user_id(member: CurrentMember) -> int:
-    if member.user_id is None:
-        raise HTTPException(status_code=403, detail={"code": "membership_required", "upgrade_url": "/membership"})
-    return member.user_id
+def _user_id(db: Session, member: CurrentMember) -> int:
+    """Return the member id; anonymous visitors share a persistent guest identity."""
+    return resolve_user_id(db, member)
 
 
 def _map_data(itinerary) -> dict:
@@ -48,7 +47,7 @@ def itinerary_index(
     member: CurrentMember = Depends(require_entitlement("personalized_itinerary")),
     db: Session = Depends(get_db),
 ) -> HTMLResponse:
-    items = ItineraryPlannerService(db).list_owned(_user_id(member))
+    items = ItineraryPlannerService(db).list_owned(_user_id(db, member))
     return templates.TemplateResponse(request, "itineraries/index.html", {"request": request, "title": "我的个性化行程", "items": items})
 
 
@@ -66,7 +65,7 @@ def itinerary_detail(
     settings: Settings = Depends(get_settings),
 ) -> HTMLResponse:
     try:
-        itinerary = ItineraryPlannerService(db).get_owned(_user_id(member), itinerary_id)
+        itinerary = ItineraryPlannerService(db).get_owned(_user_id(db, member), itinerary_id)
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     map_data = _map_data(itinerary)
