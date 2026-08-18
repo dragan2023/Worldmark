@@ -99,7 +99,7 @@ GET /api/v1/exports/landmarks.xlsx
    - `文件封锁检查`：只允许新增条目文件，改动其他任何代码/配置文件都会拦截并留言；
    - `validate-contribution`：校验条目字段、三段式简介与重复性，通过后留言「校验通过，等待维护者人工确认」。
 4. **main 分支受保护**：两个检查必须全部通过、且 PR 基于最新 main 才能合并。通过后由维护者人工确认合入，合入后条目进入种子数据，并以你的 **GitHub 用户名**署名。
-5. 共创者名单在 [共创者名单](data/contributions/contributors.json) 实时同步展示（GitHub 直接渲染该文件）。
+5. 共创者名单在 [共创者名单页面](https://dragan2023.github.io/Worldmark/) 实时展示（网页由 GitHub Pages 托管，每次名单更新后自动发布；数据源为 [contributors.json](data/contributions/contributors.json)）。
 
 > 共创者只能新增自己的条目文件，不能修改、删除他人条目或任何既有代码；越界改动会被机器人拦截，无法合入。
 
