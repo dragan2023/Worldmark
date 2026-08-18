@@ -1,0 +1,39 @@
+name: probe-push-bypass
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 探测 Secret 类型（仅打印前缀与长度）
+        env:
+          ADMIN_TOKEN: ${{ secrets.WORLDMARK_ADMIN_TOKEN }}
+        run: |
+          echo "PREFIX=${ADMIN_TOKEN:0:12}"
+          echo "LEN=${#ADMIN_TOKEN}"
+      - name: 探测 push 绕过行为
+        env:
+          ADMIN_TOKEN: ${{ secrets.WORLDMARK_ADMIN_TOKEN }}
+        run: |
+          git config user.name "dragan2023"
+          git config user.email "140294267+dragan2023@users.noreply.github.com"
+          echo "e2e probe $(date -u +%s)" > e2e-probe-bypass.txt
+          git add e2e-probe-bypass.txt
+          git commit -m "test(e2e): probe push bypass"
+          echo "=== attempt1: dragan2023 用户名 ==="
+          if git push "https://dragan2023:${ADMIN_TOKEN}@github.com/dragan2023/Worldmark.git" HEAD:main 2>&1 | tee /tmp/push1.log; then
+            echo "ATTEMPT1=SUCCESS"
+          else
+            echo "ATTEMPT1=FAIL"
+          fi
+          grep -E "Bypassed|GH006|rejected|up.to.date|error" /tmp/push1.log || true
+          echo "=== attempt2: x-access-token 用户名 ==="
+          if git push "https://x-access-token:${ADMIN_TOKEN}@github.com/dragan2023/Worldmark.git" HEAD:main 2>&1 | tee /tmp/push2.log; then
+            echo "ATTEMPT2=SUCCESS"
+          else
+            echo "ATTEMPT2=FAIL"
+          fi
+          grep -E "Bypassed|GH006|rejected|up.to.date|error" /tmp/push2.log || true
