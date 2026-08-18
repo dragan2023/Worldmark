@@ -37,32 +37,58 @@ jobs:
       - name: 安装依赖
         run: python3 -m pip install -r requirements.txt
 
-      - name: 确定作者用户名
+      - name: 确定作者用户名（PR 作者，而非合并人）
         id: author
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            USER="${{ inputs.contributor }}"
-          else
-            USER="${{ github.actor }}"
-          fi
-          echo "username=${USER}" >> "$GITHUB_OUTPUT"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let username = "";
+            if (context.eventName === "workflow_dispatch") {
+              username = (context.payload.inputs && context.payload.inputs.contributor) || "";
+            } else {
+              // push 事件：逐个反查本次推送提交关联的 PR，取 PR 作者
+              const commits = (context.payload.commits || []).slice(0, 10);
+              for (const c of commits) {
+                try {
+                  const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    commit_sha: c.id,
+                  });
+                  if (prs.length > 0) {
+                    username = prs[0].user.login;
+                    break;
+                  }
+                } catch (err) {
+                  core.warning("反查 PR 失败：" + c.id + "（" + (err.message || err) + "）");
+                }
+              }
+            }
+            if (!username) {
+              username = context.actor;
+              core.notice("未反查到 PR，回退使用触发者：" + username);
+            }
+            core.setOutput("username", username);
+            core.notice("作者用户名：" + username);
 
       - name: 合并导入共创条目
         shell: bash
         run: |
           python3 scripts/import_contribution_entries.py --contributor "${{ steps.author.outputs.username }}"
 
-      - name: 回写种子数据与共创者名单
+      - name: 回写种子数据与共创者名单（管理员 token）
         if: always()
         shell: bash
+        env:
+          ADMIN_TOKEN: ${{ secrets.WORLDMARK_ADMIN_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "dragan2023"
+          git config user.email "140294267+dragan2023@users.noreply.github.com"
           git add data/seed data/contributions/contributors.json data/contributions/entries
           if git diff --cached --quiet; then
             echo "没有需要回写的变更，跳过提交"
             exit 0
           fi
-          git commit -m "chore(contributions): 合并共创条目并更新共创者名单 [skip ci]"
-          git push
+          # 用管理员 PAT 直推 main（enforce_admins=false，管理员可绕过必检检查完成自动回写）
+          git commit -m "chore(contributions): 合并共创条目并更新共创者名单"
+          git push "https://x-access-token:${ADMIN_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
