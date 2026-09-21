@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_env: str = "development"
-    dev_bypass_auth: bool = True
+    dev_bypass_auth: bool = False
     app_secret_key: SecretStr = SecretStr("development-only-change-me-before-production")
     database_url: str = "sqlite+pysqlite:///./ip_landmarks.db"
     map_tile_url: str | None = None

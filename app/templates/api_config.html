@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/api-config.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="page-shell api-config-shell">
+      <p class="eyebrow">开源自托管 · 密钥管理</p>
+      <h1>API 配置</h1>
+      <p class="page-lead">
+        这里集中展示项目内置的美团酒旅、高德、LLM（OpenAI 兼容）等客户端。
+        配置你自己的密钥后即可启用对应能力；密钥只写入本机 <code>.env</code> 文件，页面仅显示掩码，绝不会回传完整值。
+      </p>
+      <div id="env-banner" class="config-banner hidden"></div>
+      <div id="client-list" class="client-list"><p class="config-loading">正在加载配置状态……</p></div>
+      <section class="config-help">
+        <h2>手工配置方式</h2>
+        <ol>
+          <li>复制 <code>.env.example</code> 为项目根目录的 <code>.env</code>；</li>
+          <li>把申请到的密钥填入上表对应的环境变量（也可直接在上方卡片中保存）；</li>
+          <li>重启开发服务使配置生效：<code>python -m uvicorn app.main:app --reload</code>。</li>
+        </ol>
+        <p class="config-warning">⚠️ 请勿把真实密钥提交到仓库或公开环境；泄露后请及时到对应平台吊销并重新申请。生产环境（APP_ENV=production）网页写入会被禁用，请改用系统环境变量。</p>
+      </section>
+    </main>
+    {% include "_footer.html" %}
+    <script src="/static/js/api-config.js"></script>
+  </body>
+</html>

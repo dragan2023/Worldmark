@@ -1,14 +1,16 @@
 from tests.factories import create_landmark
 
 
-def test_catalog_page_has_filter_and_export_entry(client, db_session):
+def test_catalog_page_has_filter_and_no_export_entry(client, db_session):
+    """目录页不再提供导出（导出只存在于旅游计划页）。"""
     create_landmark(db_session)
 
     response = client.get("/games?work=悟空&country=CN")
 
     assert response.status_code == 200
     assert "黑神话：悟空" in response.text
-    assert "导出 CSV" in response.text
+    assert "导出 CSV" not in response.text
+    assert "导出 XLSX" not in response.text
     assert "详细地址" in response.text
     assert "交通说明" not in response.text
     assert "name=\"city\"" in response.text

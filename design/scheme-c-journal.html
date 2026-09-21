@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>方案 C · 手帐巡游 — Worldmark IP 地标旅游</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=ZCOOL+KuaiLe&family=Caveat:wght@600&display=swap');
+:root{
+  --paper:#FBF6EC; --ink:#3A3733; --ink2:#8C8478; --line:#E4DCCB;
+  --blue:#4A6FA5; --tomato:#E2704A; --mustard:#E3B04B; --leaf:#7C9A6D;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;background:#EFE8D8;background-image:radial-gradient(rgba(122,154,109,.08) 1.2px,transparent 1.6px);background-size:24px 24px;-webkit-font-smoothing:antialiased}
+a{color:inherit}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px;border-radius:8px}
+.hand{font-family:"ZCOOL KuaiLe","Noto Sans SC",sans-serif;font-weight:400}
+.en{font-family:"Caveat",cursive}
+
+/* ====== 页头 ====== */
+.lab{max-width:1420px;margin:auto;padding:26px clamp(14px,4vw,52px) 10px}
+.lab-top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.lab-brand{display:flex;align-items:center;gap:10px;font-weight:700;color:#7A7264}
+.lab-brand i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:var(--tomato);color:#fff;font-weight:900}
+.back{color:#7A7264;font-size:13px;text-decoration:none;border:1.5px dashed #C9BFA8;border-radius:999px;padding:7px 14px;background:var(--paper)}
+.back:hover{border-color:var(--tomato);color:var(--tomato)}
+.lab h1{margin:16px 0 8px;font-size:clamp(30px,4.4vw,52px);letter-spacing:.02em}
+.lab h1 em{font-style:normal;color:var(--tomato)}
+.lab-desc{max-width:760px;color:#7A7264;font-size:14px;line-height:1.9;margin:0}
+.lab-desc b{color:var(--ink)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 6px}
+.tag{font-size:12px;color:var(--blue);border:1.5px solid rgba(74,111,165,.4);border-radius:999px;padding:5px 12px;background:rgba(74,111,165,.06)}
+.tag.t{color:var(--tomato);border-color:rgba(226,112,74,.45);background:rgba(226,112,74,.06)}
+.tag.m{color:#A87F1F;border-color:rgba(227,176,75,.6);background:rgba(227,176,75,.10)}
+.tag.l{color:var(--leaf);border-color:rgba(124,154,109,.5);background:rgba(124,154,109,.08)}
+.swatches{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px}
+.sw{display:flex;align-items:center;gap:7px;font-size:11px;color:#7A7264}
+.sw i{width:20px;height:20px;border-radius:8px;border:1px solid rgba(58,55,51,.2)}
+
+/* ====== 舞台 ====== */
+.stage{max-width:1420px;margin:auto;padding:8px clamp(14px,4vw,52px) 30px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:34px;align-items:start}
+@media(max-width:1080px){.stage{grid-template-columns:1fr}}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chips button{font-size:12.5px;color:#7A7264;border:1.5px dashed #C9BFA8;border-radius:999px;padding:8px 16px;background:var(--paper)}
+.chips button.on{background:var(--tomato);border:1.5px solid var(--tomato);color:#fff;font-weight:700}
+.hint{color:#9A917F;font-size:12px}
+
+/* ====== 手机 ====== */
+.phone{position:relative;width:390px;height:844px;max-width:96vw;border-radius:44px;background:var(--paper);border:9px solid #D9CDB4;box-shadow:0 0 0 1px rgba(58,55,51,.2),0 30px 80px rgba(58,55,51,.28);overflow:hidden}
+.phone:before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:112px;height:26px;border-radius:999px;background:#E4D9C0;z-index:60;border:1px solid #CBBFA3}
+.statusbar{position:absolute;z-index:55;top:12px;left:0;right:0;display:flex;justify-content:space-between;padding:6px 26px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.screens{position:absolute;inset:0}
+.app-screen{position:absolute;inset:0;overflow-y:auto;padding:54px 16px 100px;opacity:0;transform:scale(.985);pointer-events:none;transition:opacity .28s,transform .28s;scrollbar-width:none}
+.app-screen::-webkit-scrollbar{display:none}
+.app-screen.active{opacity:1;transform:none;pointer-events:auto}
+
+/* ====== 通用 ====== */
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:20px 4px 10px}
+.sec h3{margin:0;font-size:16px;font-weight:900}
+.sec h3 .hand{color:var(--tomato);font-size:13px;margin-left:6px}
+.sec span{font-size:11px;color:var(--ink2)}
+.btn{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;padding:13px;border-radius:16px;font-weight:800;font-size:14.5px;transition:transform .15s}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:var(--blue);color:#fff;box-shadow:0 4px 0 #38577F}
+.btn.sticker{background:var(--tomato);color:#fff;box-shadow:0 4px 0 #B85336}
+.prop{display:inline-flex;align-items:center;font-size:10px;letter-spacing:.08em;color:#A87F1F;border:1.5px dashed var(--mustard);border-radius:999px;padding:1.5px 8px;background:rgba(227,176,75,.14);vertical-align:2px}
+.tape{position:absolute;width:78px;height:24px;opacity:.85;border-radius:2px;z-index:3;
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 6px,transparent 6px 12px),var(--tp,rgba(226,112,74,.45));box-shadow:0 1px 3px rgba(58,55,51,.15)}
+.tape.blue{--tp:rgba(74,111,165,.4)}
+.tape.leaf{--tp:rgba(124,154,109,.45)}
+.tape.must{--tp:rgba(227,176,75,.5)}
+
+/* ====== 发现页 ====== */
+.hello{display:flex;justify-content:space-between;align-items:center}
+.hello h2{margin:0;font-size:21px;font-weight:900}
+.hello h2 small{display:block;font-size:11px;color:var(--ink2);font-weight:500;margin-top:3px;letter-spacing:.06em}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--mustard);border:3px solid #fff;box-shadow:0 3px 8px rgba(58,55,51,.2);display:grid;place-items:center;font-weight:900;color:#6b5410}
+.note-search{position:relative;margin-top:14px;background:#FFF9E8;border:1.5px solid #EAD9A8;border-radius:4px;padding:13px 14px 13px 40px;color:#A09378;font-size:13.5px;transform:rotate(-.6deg);box-shadow:0 4px 10px rgba(58,55,51,.08);text-align:left;width:100%}
+.note-search:before{content:"📌";position:absolute;left:12px;top:10px;font-size:15px}
+.polaroid-row{display:flex;gap:14px;overflow-x:auto;padding:10px 4px 14px;scrollbar-width:none}
+.polaroid-row::-webkit-scrollbar{display:none}
+.polaroid{flex:0 0 158px;background:#fff;padding:8px 8px 10px;border-radius:4px;box-shadow:0 6px 16px rgba(58,55,51,.16);text-align:left;position:relative;transition:transform .18s}
+.polaroid:nth-child(odd){transform:rotate(-2.2deg)}
+.polaroid:nth-child(even){transform:rotate(1.8deg)}
+.polaroid:hover{transform:rotate(0) translateY(-4px)}
+.polaroid .ph{height:96px;border-radius:2px;display:block}
+.polaroid figcaption{margin-top:8px}
+.polaroid figcaption b{display:block;font-size:13.5px;font-weight:800}
+.polaroid figcaption span{font-size:10.5px;color:var(--ink2)}
+.polaroid .workchip{position:absolute;top:-7px;left:8px;font-size:9.5px;padding:3px 8px;border-radius:99px;color:#fff;letter-spacing:.04em;box-shadow:0 2px 6px rgba(58,55,51,.2)}
+.ph1{background:linear-gradient(150deg,#7FA5C9 0%,#C9D8E8 55%,#E8E0C8)}
+.ph2{background:linear-gradient(150deg,#C98A6B,#E8C9A8 60%,#F0E6D2)}
+.ph3{background:linear-gradient(150deg,#8A6BC9,#C9A8E0 55%,#F2E3C8)}
+.wc-game{background:var(--tomato)}.wc-lit{background:var(--blue)}.wc-screen{background:#9A6BC9}
+.stickers{display:flex;gap:9px;overflow-x:auto;padding:4px 2px;scrollbar-width:none}
+.stickers::-webkit-scrollbar{display:none}
+.stk{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;border:2px solid;transform:rotate(-1deg);white-space:nowrap}
+.stk:nth-child(even){transform:rotate(1.2deg)}
+.stk.s1{color:var(--blue);border-color:var(--blue);background:rgba(74,111,165,.07)}
+.stk.s2{color:var(--tomato);border-color:var(--tomato);background:rgba(226,112,74,.07)}
+.stk.s3{color:#A87F1F;border-color:var(--mustard);background:rgba(227,176,75,.12)}
+.stk.s4{color:var(--leaf);border-color:var(--leaf);background:rgba(124,154,109,.08)}
+.map-banner{position:relative;margin-top:16px;border-radius:6px;background:#fff;padding:10px;box-shadow:0 6px 16px rgba(58,55,51,.14)}
+.map-banner svg{display:block;width:100%;border-radius:4px}
+.map-banner figcaption{display:flex;justify-content:space-between;align-items:center;padding:8px 6px 2px}
+.map-banner figcaption b{font-size:13.5px}
+.map-banner figcaption span{font-size:11px;color:var(--blue);font-weight:700}
+.weekplan{position:relative;background:#FFF9E8;border:1.5px solid #EAD9A8;border-radius:4px;padding:14px 14px 14px 18px;transform:rotate(.5deg);box-shadow:0 4px 10px rgba(58,55,51,.08)}
+.weekplan h4{margin:0 0 8px;font-size:14px;font-weight:900}
+.weekplan li{list-style:none;font-size:12.5px;padding:5px 0;border-bottom:1.5px dashed #EBDFC0;color:#6B6455;display:flex;gap:8px}
+.weekplan li b{color:var(--tomato)}
+.weekplan ul{margin:0;padding:0}
+
+/* ====== 详情页 ====== */
+.navrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.iconbtn{width:34px;height:34px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(58,55,51,.14);display:grid;place-items:center;font-size:15px}
+.hero-polaroid{position:relative;margin:6px auto 0;width:300px;background:#fff;padding:10px 10px 14px;border-radius:4px;box-shadow:0 10px 24px rgba(58,55,51,.18);transform:rotate(-1.6deg)}
+.hero-polaroid .ph{height:170px;border-radius:2px;background:linear-gradient(155deg,#7FA5C9 0%,#C9D8E8 50%,#E8D8B8 100%);display:grid;place-items:center}
+.hero-polaroid .ph span{font-size:44px;filter:drop-shadow(0 4px 8px rgba(58,55,51,.3))}
+.hero-polaroid figcaption{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px}
+.hero-polaroid figcaption b{font-size:16px;font-weight:900}
+.hero-polaroid figcaption span{font-size:11px;color:var(--ink2)}
+.bubble{position:relative;margin:14px auto 2px;width:fit-content;max-width:92%;background:#fff;border:2px solid var(--tomato);color:var(--tomato);border-radius:16px 16px 16px 4px;padding:7px 14px;font-size:13px;transform:rotate(-1deg);box-shadow:0 4px 10px rgba(226,112,74,.15)}
+.lm-desc{font-size:13px;color:#5C564C;line-height:1.95;margin:14px 4px 0}
+.tips{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.tip{position:relative;background:#fff;border-radius:4px;padding:11px 13px;box-shadow:0 3px 10px rgba(58,55,51,.1);font-size:12.5px;color:#5C564C;display:flex;gap:10px;align-items:flex-start}
+.tip:nth-child(1){transform:rotate(-.5deg)}.tip:nth-child(2){transform:rotate(.6deg)}.tip:nth-child(3){transform:rotate(-.4deg)}
+.tip i{font-style:normal;font-size:16px}
+.tip b{color:var(--ink)}
+.info-sticky{margin-top:14px;background:#E8F1E4;border:1.5px solid #C4D8BC;border-radius:4px;padding:12px 14px;font-size:12px;color:#4E5C48;line-height:1.85;transform:rotate(.4deg)}
+.info-sticky b{color:var(--ink)}
+.actions{display:flex;flex-direction:column;gap:11px;margin-top:16px}
+
+/* ====== 行程本 ====== */
+.daytabs{display:flex;gap:8px;margin:6px 0 14px}
+.daytabs button{flex:1;padding:9px;border-radius:12px;border:2px solid var(--line);font-weight:800;font-size:13px;color:var(--ink2);background:#fff}
+.daytabs button.on{border-color:var(--tomato);color:var(--tomato);background:rgba(226,112,74,.06)}
+.ticket{position:relative;background:#fff;border-radius:12px;box-shadow:0 5px 14px rgba(58,55,51,.12);display:flex;margin-bottom:14px;overflow:visible}
+.ticket .main{flex:1;padding:12px 12px 12px 14px}
+.ticket .main h5{margin:0 0 3px;font-size:14.5px;font-weight:900;display:flex;align-items:center;gap:7px}
+.ticket .main h5 .tm{font-size:10px;color:#fff;background:var(--blue);border-radius:6px;padding:2px 7px;font-family:"Caveat",cursive;letter-spacing:.06em}
+.ticket .main p{margin:0;font-size:11.5px;color:var(--ink2);line-height:1.65}
+.ticket .stub{flex:0 0 64px;border-left:2px dashed #D8CFC0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative}
+.ticket .stub:before,.ticket .stub:after{content:"";position:absolute;left:-9px;width:16px;height:16px;border-radius:50%;background:var(--paper)}
+.ticket .stub:before{top:-8px}.ticket .stub:after{bottom:-8px}
+.check{width:26px;height:26px;border-radius:50%;border:2px solid #C9C0B0;display:grid;place-items:center;color:#fff;font-size:14px;transition:.2s}
+.ticket.done .check{background:var(--leaf);border-color:var(--leaf)}
+.ticket.done .main h5{text-decoration:line-through;color:var(--ink2)}
+.ticket.done{opacity:.75}
+.pop{position:absolute;right:8px;top:-8px;font-size:20px;opacity:0;transform:scale(.4)}
+.ticket.justdone .pop{animation:popin .5s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes popin{to{opacity:1;transform:scale(1) rotate(10deg)}}
+.exports{display:flex;gap:8px;margin-top:6px}
+.exports button{flex:1;font-size:12px;font-weight:700;padding:10px 4px;border-radius:12px;color:#6B6455;background:#fff;border:2px solid var(--line);position:relative}
+.exports button:nth-child(1){transform:rotate(-.8deg)}.exports button:nth-child(2){transform:rotate(.7deg)}.exports button:nth-child(3){transform:rotate(-.5deg)}
+.exports button:hover{border-color:var(--blue);color:var(--blue)}
+.tripnote{margin-top:14px;background:#FFF9E8;border:1.5px solid #EAD9A8;border-radius:4px;padding:12px 14px;font-size:11.5px;color:#8A7B58;line-height:1.85;transform:rotate(-.4deg)}
+
+/* ====== 我的页 ====== */
+.cover-card{position:relative;border-radius:8px;background:linear-gradient(150deg,#4A6FA5,#7C9A6D 130%);padding:18px;color:#fff;box-shadow:0 8px 20px rgba(74,111,165,.25);overflow:hidden}
+.cover-card:before{content:"";position:absolute;inset:8px;border:1.5px dashed rgba(255,255,255,.4);border-radius:5px;pointer-events:none}
+.cover-card h3{margin:0;font-size:18px;font-weight:900}
+.cover-card p{margin:5px 0 0;font-size:11.5px;opacity:.85;letter-spacing:.05em}
+.cover-card .pen{position:absolute;right:14px;bottom:12px;font-size:12px;background:rgba(255,255,255,.18);border-radius:99px;padding:5px 12px;font-weight:700}
+.album{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.album .polaroid{flex:none;padding:5px 5px 8px}
+.album .polaroid .ph{height:56px}
+.album .polaroid figcaption b{font-size:10.5px}
+.stash{display:flex;gap:9px;flex-wrap:wrap}
+.stash span{font-size:17px;width:42px;height:42px;display:grid;place-items:center;background:#fff;border-radius:50%;box-shadow:0 3px 8px rgba(58,55,51,.12)}
+.postcard{position:relative;background:#fff;border-radius:6px;padding:14px;box-shadow:0 5px 14px rgba(58,55,51,.12);transform:rotate(.6deg)}
+.postcard .stampbox{position:absolute;right:12px;top:12px;width:44px;height:52px;border:1.5px dashed #C9C0B0;display:grid;place-items:center;font-size:20px;border-radius:3px}
+.postcard h5{margin:0;font-size:14px;font-weight:900}
+.postcard p{margin:7px 0 0;font-size:11.5px;color:var(--ink2);line-height:1.75;max-width:74%}
+.postcard .addr{margin-top:9px;font-size:10.5px;color:var(--blue);letter-spacing:.06em}
+.pluscard{margin-top:14px;border-radius:8px;padding:14px;background:#FFF9E8;border:1.5px solid #EAD9A8}
+.pluscard h4{margin:0;font-size:14px}
+.pluscard p{margin:6px 0 0;font-size:11.5px;color:#8A7B58;line-height:1.75}
+.pluscard .free{display:inline-block;margin-top:8px;font-size:10px;color:var(--blue);border:1.5px solid rgba(74,111,165,.4);border-radius:99px;padding:2px 9px;background:#fff}
+.notice{font-size:11px;color:#9A917F;line-height:1.8;margin:14px 4px 0}
+
+/* ====== 底部导航 ====== */
+.tabbar{position:absolute;z-index:50;left:14px;right:14px;bottom:14px;display:flex;justify-content:space-around;background:#fff;border-radius:20px;padding:9px 6px;box-shadow:0 10px 26px rgba(58,55,51,.2)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:#A79E8D;padding:5px 12px;border-radius:14px;position:relative;font-weight:700}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:#fff}
+.tab.on:before{content:"";position:absolute;inset:0;border-radius:14px;background:var(--tomato)}
+.tab.on svg,.tab.on span{position:relative;z-index:1}
+
+/* ====== 打卡弹层 ====== */
+.modal{position:absolute;inset:0;z-index:70;display:grid;place-items:center;background:rgba(58,55,51,.45);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.show{opacity:1;pointer-events:auto}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.modal-box{position:relative;width:296px;border-radius:6px;background:#fff;padding:12px 12px 16px;box-shadow:0 20px 50px rgba(58,55,51,.35);transform:scale(.9) rotate(-2deg);transition:transform .3s cubic-bezier(.2,1.4,.4,1);text-align:center}
+.modal.show .modal-box{transform:rotate(-1deg)}
+.modal-box .mph{height:180px;border-radius:3px;background:linear-gradient(155deg,#7FA5C9,#C9D8E8 55%,#E8D8B8);display:grid;place-items:center;font-size:52px}
+.modal-box h4{margin:12px 0 2px;font-size:16px}
+.modal-box p{margin:0;font-size:12px;color:var(--ink2);line-height:1.75;min-height:34px}
+.modal-box p b{color:var(--tomato)}
+.sticker-done{display:none;position:absolute;top:-16px;right:-14px;width:76px;height:76px;border-radius:50%;background:var(--tomato);color:#fff;display:none;place-items:center;font-size:13px;font-weight:900;line-height:1.3;box-shadow:0 8px 18px rgba(226,112,74,.4);transform:scale(2.4) rotate(14deg);opacity:0}
+.modal-box.done .sticker-done{display:grid;animation:stampin2 .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes stampin2{to{transform:scale(1) rotate(8deg);opacity:1}}
+.modal-close{margin-top:12px;width:100%;padding:11px;border-radius:12px;background:var(--paper);border:2px solid var(--line);color:var(--ink);font-weight:700}
+
+/* ====== 规格栏 ====== */
+.spec{display:flex;flex-direction:column;gap:14px}
+.spec-block{border:1.5px dashed #C9BFA8;border-radius:8px;background:var(--paper);padding:18px}
+.spec-block h3{margin:0 0 12px;font-size:13px;letter-spacing:.16em;color:var(--tomato)}
+.spec-block ul{margin:0;padding-left:18px;color:#5C564C;font-size:13px;line-height:2.05}
+.spec-block ul b{color:var(--ink)}
+.kw{display:flex;gap:7px;flex-wrap:wrap}
+.clist{display:flex;flex-direction:column;gap:9px}
+.clist .c{display:flex;align-items:center;gap:9px;font-size:12px;color:#7A7264}
+.clist .c i{width:18px;height:18px;border-radius:6px;border:1px solid rgba(58,55,51,.2);flex:0 0 auto}
+.maplist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.maplist li{font-size:12.5px;color:#7A7264;line-height:1.8}
+.maplist code{color:var(--blue);font-size:11.5px;background:rgba(74,111,165,.08);border:1px solid rgba(74,111,165,.3);border-radius:6px;padding:1px 7px}
+.footnote{max-width:1420px;margin:auto;padding:0 clamp(14px,4vw,52px) 44px;color:#9A917F;font-size:12px;line-height:1.9}
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);background:var(--ink);color:#FBF6EC;font-size:13px;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:82vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:460px){.phone{height:760px;border-radius:36px}}
+</style>
+</head>
+<body>
+
+<header class="lab">
+  <div class="lab-top">
+    <div class="lab-brand"><i>W</i> Worldmark · 移动端设计方案</div>
+    <a class="back" href="index.html">← 返回方案总览</a>
+  </div>
+  <h1>方案 C · 手帐巡游 <em>Travelogue</em></h1>
+  <p class="lab-desc">把旅行做成一本<b>可以翻的手帐</b>：拍立得照片、和纸胶带、票根与贴纸，让「规划—打卡—晒图」变成记录生活的仪式感。暖色纸面 + 轻微手作旋转，亲切、适合分享，天然契合小红书式传播。</p>
+  <div class="tags"><span class="tag t">拍立得</span><span class="tag">和纸胶带</span><span class="tag">票根时间线</span><span class="tag m">贴纸打卡</span><span class="tag l">便签计划</span><span class="tag">明信片共创</span></div>
+  <div class="swatches">
+    <span class="sw"><i style="background:#FBF6EC"></i>#FBF6EC 米纸</span>
+    <span class="sw"><i style="background:#4A6FA5"></i>#4A6FA5 钴蓝</span>
+    <span class="sw"><i style="background:#E2704A"></i>#E2704A 番茄橘</span>
+    <span class="sw"><i style="background:#E3B04B"></i>#E3B04B 芥末黄</span>
+    <span class="sw"><i style="background:#7C9A6D"></i>#7C9A6D 抹茶绿</span>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="phone-col">
+    <div class="chips">
+      <button class="on" data-go="scr-home">今天去哪儿</button>
+      <button data-go="scr-landmark">地点手帐页</button>
+      <button data-go="scr-trip">行程本</button>
+      <button data-go="scr-me">我的手帐</button>
+    </div>
+
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span>☀ 84%</span></div>
+
+      <div class="screens">
+
+        <!-- ====== 发现 ====== -->
+        <section class="app-screen active" id="scr-home">
+          <div class="hello">
+            <h2>今天，想去哪儿？<small>星期六 · 晴 18°C · 适合出门</small></h2>
+            <span class="avatar">默</span>
+          </div>
+
+          <button class="note-search" data-toast="正式入口：GET /search?q=…（全站统一检索）">想找一部作品里的地方… 🔍</button>
+
+          <div class="sec"><h3>拍立得推荐<span class="hand">最近超火</span></h3><span>已审核发布</span></div>
+          <div class="polaroid-row">
+            <button class="polaroid" data-go="scr-landmark">
+              <span class="workchip wc-game">黑神话：悟空</span>
+              <span class="ph ph1"></span>
+              <figcaption><b>应县木塔</b><span>山西朔州 · 1.2km</span></figcaption>
+            </button>
+            <button class="polaroid" data-toast="正式入口：外白渡桥详情页（子夜 · 上海）">
+              <span class="workchip wc-lit">子夜</span>
+              <span class="ph ph2"></span>
+              <figcaption><b>外白渡桥</b><span>上海黄浦 · 4.6km</span></figcaption>
+            </button>
+            <button class="polaroid" data-toast="正式入口：黄河路详情页（繁花 · 上海）">
+              <span class="workchip wc-screen">繁花</span>
+              <span class="ph ph3"></span>
+              <figcaption><b>黄河路</b><span>上海黄浦 · 5.3km</span></figcaption>
+            </button>
+          </div>
+
+          <div class="sec"><h3>贴纸筛选<span class="hand">按心情挑</span></h3></div>
+          <div class="stickers">
+            <button class="stk s1" data-toast="正式入口：/literature 目录">📖 文学</button>
+            <button class="stk s2" data-toast="正式入口：/games 目录">🎮 游戏</button>
+            <button class="stk s3" data-toast="正式入口：/screen 目录">🎬 影视</button>
+            <button class="stk s4" data-toast="正式入口：/maps/games 静态参考地图">🗺️ 地图</button>
+            <button class="stk s1" data-toast="正式入口：行程筛选（市内交通偏好等）">🚇 地铁友好</button>
+          </div>
+
+          <div class="sec"><h3>手绘巡礼图<span class="hand">本周路线</span></h3><span>静态参考</span></div>
+          <figure class="map-banner" style="margin:0 0 2px">
+            <svg viewBox="0 0 340 128" role="img" aria-label="手绘路线小地图">
+              <rect width="340" height="128" rx="4" fill="#F2EDDF"/>
+              <path d="M0 96 Q60 88 96 96 T190 92 T340 100" stroke="#BFD3E8" stroke-width="14" fill="none" stroke-linecap="round"/>
+              <path d="M28 92 C70 60 90 96 132 66 S200 44 236 60 300 52 312 40" stroke="#4A6FA5" stroke-width="2.4" fill="none" stroke-dasharray="6 6" stroke-linecap="round"/>
+              <g><circle cx="28" cy="92" r="7" fill="#E2704A"/><circle cx="28" cy="92" r="3" fill="#fff"/><text x="40" y="86" font-size="10" fill="#3A3733" font-family="sans-serif">小西天</text></g>
+              <g><circle cx="132" cy="66" r="7" fill="#E3B04B"/><circle cx="132" cy="66" r="3" fill="#fff"/><text x="144" y="60" font-size="10" fill="#3A3733" font-family="sans-serif">应县木塔</text></g>
+              <g><circle cx="236" cy="60" r="7" fill="#7C9A6D"/><circle cx="236" cy="60" r="3" fill="#fff"/><text x="248" y="54" font-size="10" fill="#3A3733" font-family="sans-serif">佛光寺</text></g>
+              <path d="M20 30 q8 -10 16 0 q8 -10 16 0" stroke="#A7C4E0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M256 96 l7 -14 l7 14 z M296 100 l6 -12 l6 12 z" fill="#9DB88F"/>
+              <text x="308" y="24" font-size="12" fill="#4A6FA5" font-family="cursive">N ↑</text>
+            </svg>
+            <figcaption><b>山西 · 木构古建两日</b><button data-go="scr-trip">打开行程本 →</button></figcaption>
+          </figure>
+
+          <div class="sec"><h3>本周小计划<span class="hand">写在便签上</span></h3></div>
+          <div class="weekplan">
+            <span class="tape" style="top:-10px;left:calc(50% - 39px)"></span>
+            <h4>✂️ 周末两件事</h4>
+            <ul>
+              <li><b>SAT</b> 地坛公园散步 —《我与地坛》同款长椅拍照</li>
+              <li><b>SUN</b> 整理照片，补一页「外白渡桥」手帐</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ====== 详情 ====== -->
+        <section class="app-screen" id="scr-landmark">
+          <div class="navrow">
+            <button class="iconbtn" data-go="scr-home" aria-label="返回">←</button>
+            <span style="font-size:11px;color:var(--ink2);letter-spacing:.14em">PLACE · 应县木塔</span>
+            <button class="iconbtn" data-toast="已贴上爱心贴纸（演示）" aria-label="收藏">♡</button>
+          </div>
+
+          <figure class="hero-polaroid" style="margin-bottom:2px">
+            <span class="tape" style="top:-12px;left:calc(50% - 39px)"></span>
+            <span class="ph"><span>🗼</span></span>
+            <figcaption><b>应县木塔</b><span>山西朔州 · 佛宫寺</span></figcaption>
+          </figure>
+          <div class="bubble">听我说！仰拍二、三层，斗拱超出片 📸</div>
+
+          <p class="lm-desc">《黑神话：悟空》山西古建取材的现实原型之一——为游戏里的建筑尺度与木构细节提供参照。建于辽代，是现存著名木塔；参观时记得遵守遗产保护安排。</p>
+
+          <div class="sec"><h3>拍照机位<span class="hand">前人笔记</span></h3></div>
+          <div class="tips">
+            <div class="tip"><i>📷</i><span><b>寺前广场南侧</b>：整塔入镜，上午顺光</span></div>
+            <div class="tip"><i>🔭</i><span><b>塔下仰角 60°</b>：斗拱与檐角同框</span></div>
+            <div class="tip"><i>🌇</i><span><b>傍晚侧逆光</b>：木构轮廓会发光（记得防抖）</span></div>
+          </div>
+
+          <div class="info-sticky">
+            <b>📍 地址</b>　山西省朔州市应县 · 佛宫寺内<br>
+            <b>🚗 行至</b>　大同/朔州乘班线至应县县城<br>
+            <b>✅ 核验</b>　条目登记来源与更新时间，出发前可逐条核对
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" data-toast="已收进「山西 · 木构古建两日」行程本（正式调用行程接口）">收进行程本</button>
+            <button class="btn sticker" onclick="openCheck()">贴纸打卡 <span class="prop">提案</span></button>
+          </div>
+        </section>
+
+        <!-- ====== 行程本 ====== -->
+        <section class="app-screen" id="scr-trip">
+          <div class="sec" style="margin-top:2px"><h3>山西 · 木构古建两日<span class="hand">行程本</span></h3><span>可编辑</span></div>
+          <div class="daytabs">
+            <button class="on" data-day="d1">DAY 1</button>
+            <button data-day="d2">DAY 2</button>
+          </div>
+
+          <div id="d1">
+            <div class="ticket done" data-ticket>
+              <div class="main">
+                <h5><span class="tm">09:30</span>小西天</h5>
+                <p>临汾隰县凤凰山 · 明代悬塑 —《黑神话：悟空》取材参照</p>
+              </div>
+              <button class="stub" aria-label="切换完成状态"><span class="check">✓</span><span class="pop">🌸</span></button>
+            </div>
+            <div class="ticket done" data-ticket>
+              <div class="main">
+                <h5><span class="tm">15:00</span>应县木塔</h5>
+                <p>朔州应县佛宫寺 · 辽代木塔 · 傍晚侧逆光出片</p>
+              </div>
+              <button class="stub" aria-label="切换完成状态"><span class="check">✓</span><span class="pop">🌟</span></button>
+            </div>
+          </div>
+          <div id="d2" hidden>
+            <div class="ticket" data-ticket>
+              <div class="main">
+                <h5><span class="tm">10:00</span>佛光寺</h5>
+                <p>忻州五台县豆村镇 · 唐代木构东大殿 · 建议留足 3 小时</p>
+              </div>
+              <button class="stub" aria-label="切换完成状态"><span class="check">✓</span><span class="pop">🍡</span></button>
+            </div>
+            <div class="ticket" data-ticket>
+              <div class="main">
+                <h5><span class="tm">16:30</span>返程</h5>
+                <p>忻州/太原中转 — 以实际班次为准，出行前查官方渠道</p>
+              </div>
+              <button class="stub" aria-label="切换完成状态"><span class="check">✓</span><span class="pop">🚄</span></button>
+            </div>
+          </div>
+
+          <div class="exports">
+            <button data-toast="正式导出：行程 HTML">网页版</button>
+            <button data-toast="正式导出：行程 DOCX">DOCX</button>
+            <button data-toast="正式导出：行程 XLSX">XLSX</button>
+          </div>
+          <div class="tripnote">✏️ 行程由已发布地标自动编排，可随时增删；交通、开放、票价信息以官方渠道为准。<button style="color:var(--tomato);font-weight:700" data-toast="正式入口：POST /api/v1/itineraries/finalize">+ 新建一页行程</button></div>
+        </section>
+
+        <!-- ====== 我的手帐 ====== -->
+        <section class="app-screen" id="scr-me">
+          <div class="cover-card">
+            <h3>阿默的巡礼手帐</h3>
+            <p>2026 春开始记录 · 已写满 23 个地点</p>
+            <span class="pen">手帐 PLUS ✦</span>
+          </div>
+
+          <div class="sec"><h3>最近一页页<span class="hand">相册</span></h3><span>点击回看</span></div>
+          <div class="album">
+            <button class="polaroid" data-toast="回看：应县木塔那一页（演示）"><span class="ph ph1"></span><figcaption><b>木塔</b></figcaption></button>
+            <button class="polaroid" data-toast="回看：地坛公园那一页（演示）"><span class="ph ph2"></span><figcaption><b>地坛</b></figcaption></button>
+            <button class="polaroid" data-toast="回看：外白渡桥那一页（演示）"><span class="ph ph3"></span><figcaption><b>外滩</b></figcaption></button>
+          </div>
+
+          <div class="sec"><h3>贴纸收藏<span class="hand">集齐啦</span></h3></div>
+          <div class="stash">
+            <span>🏮</span><span>🗼</span><span>🛶</span><span>📖</span><span>🌉</span><span>🍜</span><span>🎗️</span><span>❓</span>
+          </div>
+
+          <div class="sec"><h3>明信片共创<span class="hand">寄给我们</span></h3></div>
+          <button class="postcard" style="width:100%;text-align:left" data-toast="正式入口：/intake —— 一句话入库，审核发布后署名">
+            <span class="stampbox">📮</span>
+            <h5>发现了一处取景地？</h5>
+            <p>把它写成一条「明信片」寄给我们：登录后在「一键入库」描述它，审核发布后展示你的署名。</p>
+            <span class="addr">TO: Worldmark 共创计划 · /intake</span>
+          </button>
+
+          <div class="pluscard">
+            <h4>✦ 手帐 PLUS</h4>
+            <p>解锁完整静态地图图层与成员权益；<b>目录检索与导出对所有人免费</b>。</p>
+            <span class="free">免费承诺 · 目录与导出</span>
+          </div>
+          <p class="notice">「贴纸打卡 / 贴纸收藏 / 相册」为视觉提案，需新增打卡与媒体接口；其余入口对应现有路由。地图为静态参考，不提供实时导航。</p>
+        </section>
+      </div>
+
+      <nav class="tabbar" aria-label="底部导航">
+        <button class="tab on" data-go="scr-home"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2.2 5-4.8 1.5 2.2-5z"/></svg><span>发现</span></button>
+        <button class="tab" data-go="scr-landmark"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>地点</span></button>
+        <button class="tab" data-go="scr-trip"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M8 15h4"/></svg><span>行程</span></button>
+        <button class="tab" data-go="scr-me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg><span>我的</span></button>
+      </nav>
+
+      <div class="modal" id="checkin" role="dialog" aria-modal="true" aria-label="打卡演示">
+        <div class="flash" id="flash"></div>
+        <div class="modal-box" id="checkin-box">
+          <div class="mph">🗼</div>
+          <h4>应县木塔 · 打卡</h4>
+          <p id="checkin-msg">「咔嚓」一声，这页手帐就盖上了<br><b>提案功能</b>：正式版需新增打卡接口</p>
+          <span class="sticker-done" id="sticker-done">打卡<br>成功!</span>
+          <button class="modal-close" onclick="closeCheck()">收起</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">可交互：底部标签 / 屏幕切换 / 行程票根可勾选（贴纸弹出）/「贴纸打卡」闪光动效</p>
+  </div>
+
+  <aside class="spec">
+    <div class="spec-block">
+      <h3>设计关键词</h3>
+      <div class="kw">
+        <span class="tag t">记录感</span><span class="tag">手作拼贴</span><span class="tag m">轻社交</span><span class="tag l">出片攻略</span><span class="tag">陪伴感</span>
+      </div>
+    </div>
+    <div class="spec-block">
+      <h3>色板 · TOKENS</h3>
+      <div class="clist">
+        <span class="c"><i style="background:#FBF6EC"></i>paper / #FBF6EC 米纸底</span>
+        <span class="c"><i style="background:#4A6FA5"></i>blue / #4A6FA5 钴蓝（链接与交通）</span>
+        <span class="c"><i style="background:#E2704A"></i>tomato / #E2704A 番茄橘（主按钮/游戏类）</span>
+        <span class="c"><i style="background:#E3B04B"></i>mustard / #E3B04B 芥末黄（便签）</span>
+        <span class="c"><i style="background:#7C9A6D"></i>leaf / #7C9A6D 抹茶绿（完成态）</span>
+      </div>
+    </div>
+    <div class="spec-block">
+      <h3>字体系统</h3>
+      <ul>
+        <li><b>正文</b>：Noto Sans SC，稳重但不拘谨</li>
+        <li><b>点缀</b>：ZCOOL KuaiLe（中文手写）+ Caveat（英文批注）</li>
+        <li>规则：手写体只用于「人的话」——批注、便签、贴纸</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>签名组件</h3>
+      <ul>
+        <li><b>拍立得卡</b>：±2° 随机旋转 + 胶带固定，hover 回正</li>
+        <li><b>票根时间线</b>：撕票虚线 + 圆形缺口 + 勾选贴纸弹出</li>
+        <li><b>便签计划</b>：图钉便签承载「本周小计划」</li>
+        <li><b>气泡批注</b>：社区攻略以「人的话」呈现</li>
+        <li><b>明信片共创</b>：把「一句话一键入库」翻译成「寄明信片」</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>数据映射 · 真实能力</h3>
+      <ul class="maplist">
+        <li><code>GET /search?q=</code> 全站检索</li>
+        <li><code>/literature · /games · /screen</code> 三类目录</li>
+        <li><code>GET /landmarks/{id}</code> 详情 + 来源核验</li>
+        <li><code>POST /api/v1/itineraries/finalize</code> 行程生成</li>
+        <li>导出 <code>HTML / DOCX / XLSX</code></li>
+        <li><code>/intake</code> 共创（明信片隐喻）</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>适用与取舍</h3>
+      <ul>
+        <li>适合：轻旅行/周末游、女性向与社交分享场景、UGC 运营</li>
+        <li>优势：与「拍照出片」内容天然耦合，传播性强</li>
+        <li>风险：装饰元素多，正式感弱；信息密集页（表单/表格）需收敛为素纸样式</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<p class="footnote">数据说明：地标取自 <code>data/seed/landmarks_verified.csv</code>；机位笔记与照片文案为示意占位。带「提案」标记的功能（贴纸打卡/收藏/相册）需新增接口；其余入口对应现有路由。</p>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+var toast=document.getElementById('toast'),timer;
+function tell(m){toast.textContent=m;toast.classList.add('show');clearTimeout(timer);timer=setTimeout(function(){toast.classList.remove('show')},2600)}
+function go(id){
+  var sc=document.querySelectorAll('.app-screen');
+  for(var i=0;i<sc.length;i++){sc[i].classList.toggle('active',sc[i].id===id)}
+  document.querySelectorAll('.tabbar .tab').forEach(function(t){t.classList.toggle('on',t.dataset.go===id)});
+  document.querySelectorAll('.chips button').forEach(function(c){c.classList.toggle('on',c.dataset.go===id)});
+}
+document.querySelectorAll('[data-go]').forEach(function(n){n.addEventListener('click',function(){go(n.dataset.go)})});
+document.querySelectorAll('[data-toast]').forEach(function(n){n.addEventListener('click',function(e){e.preventDefault();tell(n.dataset.toast)})});
+document.querySelectorAll('.daytabs button').forEach(function(b){b.addEventListener('click',function(){
+  document.querySelectorAll('.daytabs button').forEach(function(x){x.classList.toggle('on',x===b)});
+  document.getElementById('d1').hidden=b.dataset.day!=='d1';
+  document.getElementById('d2').hidden=b.dataset.day!=='d2';
+})});
+document.querySelectorAll('[data-ticket] .stub').forEach(function(s){s.addEventListener('click',function(){
+  var t=s.closest('[data-ticket]');var was=t.classList.contains('done');
+  t.classList.toggle('done',!was);t.classList.toggle('justdone',!was);
+})});
+function openCheck(){
+  var m=document.getElementById('checkin'),b=document.getElementById('checkin-box'),f=document.getElementById('flash');
+  m.classList.add('show');b.classList.remove('done');
+  f.style.transition='none';f.style.opacity=.9;
+  requestAnimationFrame(function(){f.style.transition='opacity .6s';f.style.opacity=0});
+  setTimeout(function(){b.classList.add('done');document.getElementById('checkin-msg').innerHTML='打卡成功 · 应县木塔<br>这页手帐 +1（演示）'},350);
+}
+function closeCheck(){document.getElementById('checkin').classList.remove('show')}
+</script>
+</body>
+</html>

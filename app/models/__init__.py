@@ -11,5 +11,6 @@ from app.models.review import LandmarkReview
 from app.models.search_run import SearchReferenceRecord, SearchRun
 from app.models.source import LandmarkSource, Source
 from app.models.user import User
+from app.models.user_api_key import UserApiKey
 
-__all__ = ["Base", "ExportEvent", "IPWork", "Itinerary", "ItineraryDay", "ItineraryStop", "Landmark", "LandmarkContribution", "LandmarkReview", "LandmarkSource", "Location", "Membership", "Route", "RouteStop", "SearchReferenceRecord", "SearchRun", "Source", "User"]
+__all__ = ["Base", "ExportEvent", "IPWork", "Itinerary", "ItineraryDay", "ItineraryStop", "Landmark", "LandmarkContribution", "LandmarkReview", "LandmarkSource", "Location", "Membership", "Route", "RouteStop", "SearchReferenceRecord", "SearchRun", "Source", "User", "UserApiKey"]

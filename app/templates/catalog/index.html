@@ -13,7 +13,7 @@
     <main class="catalog-shell">
       <p class="eyebrow">IP LANDMARK TRAVEL</p>
       <h1>{{ module_name }}</h1>
-      <p class="intro">只展示已审核并发布的地标；免费目录与导出统一提供作品、地标、国家/地区、详细地址、地标简介和信息更新时间。</p>
+      <p class="intro">只展示已审核并发布的地标；免费目录提供作品、地标、国家/地区、详细地址、地标简介和信息更新时间。</p>
 
       <nav class="module-tabs" aria-label="地标模块">
         <a href="/literature"{% if module == 'literature' %} class="is-active"{% endif %}>文学</a><a href="/games"{% if module == 'games' %} class="is-active"{% endif %}>游戏</a><a href="/screen"{% if module == 'screen' %} class="is-active"{% endif %}>影视</a>
@@ -40,7 +40,7 @@
       {% if total %}
       <section class="catalog-toolbar" aria-label="导出选项">
         <p>找到 {{ total }} 个已发布地标{% if total_pages > 1 %} · 第 {{ page }}/{{ total_pages }} 页{% endif %}</p>
-        <div><a class="export-link" href="/api/v1/exports/landmarks.csv?{{ export_query }}">导出 CSV</a><a class="export-link" href="/api/v1/exports/landmarks.xlsx?{{ export_query }}">导出 XLSX</a><a class="export-link" href="/maps/{{ module }}?{{ map_query }}">静态地图</a></div>
+        <div><a class="export-link" href="/maps/{{ module }}?{{ map_query }}">静态地图</a></div>
       </section>
 
       <section class="landmark-grid" aria-label="地标卡片">
@@ -73,6 +73,6 @@
       {% endif %}
     </main>
     <script src="/static/js/catalog-filters.js"></script>
-    <script src="/static/js/export-feedback.js"></script>
+  {% include "_footer.html" %}
   </body>
 </html>

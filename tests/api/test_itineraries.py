@@ -28,7 +28,7 @@ def _payload(**overrides) -> dict[str, object]:
 
 def test_any_user_can_create_and_manage_itinerary(client, db_session):
     landmark = create_landmark(db_session)
-    lite = create_member(db_session, MembershipTier.LITE)
+    lite = create_member(db_session, MembershipTier.LITE, role="level1")
 
     created = client.post("/api/v1/itineraries", json=_payload(must_visit_landmark_ids=[landmark.id]), headers=_headers(lite))
     assert created.status_code == 200
@@ -42,23 +42,17 @@ def test_any_user_can_create_and_manage_itinerary(client, db_session):
     assert updated.json()["title"] == "已编辑行程"
 
 
-def test_anonymous_visitor_can_create_list_and_delete_itinerary(client, db_session):
+def test_anonymous_visitor_is_rejected_for_itineraries(client, db_session):
+    """新权限策略：行程生成需一级用户，匿名访客一律 401。"""
     create_landmark(db_session)
 
-    created = client.post("/api/v1/itineraries", json=_payload())
-    assert created.status_code == 200
-    itinerary = created.json()
-
-    listed = client.get("/api/v1/itineraries")
-    assert listed.status_code == 200
-    assert any(item["id"] == itinerary["id"] for item in listed.json()["items"])
-
-    assert client.delete(f"/api/v1/itineraries/{itinerary['id']}").status_code == 204
+    assert client.post("/api/v1/itineraries", json=_payload()).status_code == 401
+    assert client.get("/api/v1/itineraries").status_code == 401
 
 
 def test_itinerary_exports_html_docx_and_xlsx(client, db_session):
     create_landmark(db_session, landmark_name="导出地标")
-    premium = create_member(db_session, MembershipTier.PREMIUM)
+    premium = create_member(db_session, MembershipTier.PREMIUM, role="level1")
     created = client.post("/api/v1/itineraries", json=_payload(end_date="2026-09-01"), headers=_headers(premium))
     itinerary_id = created.json()["id"]
 
@@ -80,7 +74,7 @@ def test_itinerary_exports_html_docx_and_xlsx(client, db_session):
 
 def test_meituan_plan_is_normalized_and_budgeted_in_xlsx_export(client, db_session):
     landmark = create_landmark(db_session, landmark_name="开封府", city_name="开封市")
-    premium = create_member(db_session, MembershipTier.PREMIUM)
+    premium = create_member(db_session, MembershipTier.PREMIUM, role="level1")
     plan = """
 | 日期 | 城市 | 时间 | 游玩地点/项目 | 交通 | 重点内容 | 费用估算(元) |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -123,7 +117,7 @@ def test_meituan_plan_is_normalized_and_budgeted_in_xlsx_export(client, db_sessi
 
 def test_finalize_keeps_supplier_content_out_of_the_user_response(client, db_session, monkeypatch):
     landmark = create_landmark(db_session, landmark_name="开封府", city_name="开封市")
-    premium = create_member(db_session, MembershipTier.PREMIUM)
+    premium = create_member(db_session, MembershipTier.PREMIUM, role="level1")
     plan = """
 | 日期 | 城市 | 时间 | 游玩地点/项目 | 交通 | 重点内容 | 费用估算(元) |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -149,8 +143,8 @@ def test_finalize_keeps_supplier_content_out_of_the_user_response(client, db_ses
 
 def test_itinerary_is_private_to_its_owner_and_can_be_deleted(client, db_session):
     create_landmark(db_session)
-    owner = create_member(db_session, MembershipTier.PREMIUM)
-    other = create_member(db_session, MembershipTier.PREMIUM)
+    owner = create_member(db_session, MembershipTier.PREMIUM, role="level1")
+    other = create_member(db_session, MembershipTier.PREMIUM, role="level1")
     created = client.post("/api/v1/itineraries", json=_payload(end_date="2026-09-01"), headers=_headers(owner))
     itinerary_id = created.json()["id"]
 

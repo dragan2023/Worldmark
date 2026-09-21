@@ -1,117 +1,165 @@
-.itinerary-shell { max-width: 1000px; margin: 0 auto; padding: 32px 24px 72px; }
-.back-link { color: var(--accent); font-weight: 700; text-decoration: none; }
-.back-link:hover { text-decoration: underline; }
-.page-title { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-.primary-button { display: inline-block; background: var(--primary-bg); color: var(--white); border: 0; border-radius: 8px; padding: 11px 16px; font: inherit; text-decoration: none; cursor: pointer; }
-.itinerary-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.itinerary-list article { border: 1px solid var(--border); border-radius: 14px; padding: 18px; background: var(--surface); }
-.itinerary-list h2 { margin: 6px 0; }
-.itinerary-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
-.itinerary-form label { display: grid; gap: 6px; font-weight: 700; font-size: .9rem; }
-.itinerary-form input, .itinerary-form select, .itinerary-form textarea { min-width: 0; border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px; font: inherit; }
-.itinerary-form textarea { min-height: 100px; resize: vertical; }
-.itinerary-form .wide { grid-column: 1/-1; }
-.domestic-notice { border: 1px solid #b86d19; border-left: 5px solid #b86d19; border-radius: 10px; padding: 12px 14px; background: #fff8ea; color: #72420e; }
-.landmark-picker, .choice-field, .lodging-field { border: 1px solid var(--border); border-radius: 10px; padding: 14px; min-width: 0; }
-.landmark-picker legend, .choice-field legend, .lodging-field legend { font-weight: 700; padding: 0 6px; }
-.landmark-picker legend span { color: var(--muted); font-size: .85rem; font-weight: 400; }
-.landmark-search { display: flex; gap: 8px; margin-bottom: 10px; }
-.landmark-search input { flex: 1; }
-.landmark-search button { border: 1px solid var(--accent); background: var(--surface); color: var(--accent); border-radius: 8px; padding: 8px 12px; font: inherit; cursor: pointer; }
-.landmark-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 230px; overflow-y: auto; }
-.landmark-option { display: flex !important; align-items: flex-start; gap: 8px; border: 1px solid var(--border-soft); border-radius: 8px; padding: 9px; font-weight: 400 !important; cursor: pointer; }
-.landmark-summary { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.landmark-summary h2 { margin: 0 0 6px; font-size: 1rem; }
-.landmark-summary p { margin: 0; color: var(--muted); }
-.landmark-summary button, .dialog-heading button { border: 1px solid var(--accent); background: var(--surface); color: var(--accent); border-radius: 8px; padding: 9px 12px; font: inherit; cursor: pointer; }
-.landmark-dialog { width: min(880px, calc(100vw - 32px)); max-height: min(780px, calc(100vh - 48px)); border: 0; border-radius: 16px; padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
-.landmark-dialog::backdrop { background: rgba(15, 32, 38, .56); }
-.dialog-heading { display: flex; justify-content: space-between; gap: 16px; }
-.dialog-heading h2 { margin: 0 0 6px; }
-.dialog-heading p { margin: 0 0 16px; color: var(--muted); }
-.dialog-heading button { min-width: 38px; height: 38px; font-size: 1.4rem; line-height: 1; }
-.dialog-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
-.choice-field > label, .lodging-field > label { display: inline-flex; gap: 6px; align-items: center; margin-right: 16px; font-weight: 400; }
-.choice-field p { color: var(--muted); font-size: .85rem; margin: 8px 0 0; }
-.choice-row { display: flex; flex-wrap: wrap; gap: 8px 16px; }
-.choice-row label { font-weight: 400 !important; display: inline-flex !important; gap: 5px; align-items: center; }
-.lodging-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
-.lodging-inputs label { display: grid; gap: 6px; font-weight: 700; font-size: .9rem; }
-.lodging-row { display: grid; grid-template-columns: 1fr 1.4fr 1.8fr auto; gap: 10px; align-items: end; margin: 10px 0; }
-.lodging-row label { display: grid; gap: 6px; }
-.lodging-row button, .lodging-inputs > button { border: 1px solid var(--accent); background: var(--surface); color: var(--accent); border-radius: 8px; padding: 9px 12px; font: inherit; cursor: pointer; }
-.form-error { color: var(--danger); grid-column: 1/-1; margin: 0; }
-.confirmation-panel { margin-top: 24px; padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
-.confirmation-panel h2 { margin-top: 0; }
-.choice-card { margin: 14px 0; padding: 16px; border: 1px solid var(--border); border-radius: 12px; }
-.choice-card legend { padding: 0 6px; font-weight: 700; }
-.choice-card > label, .choice-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; font-weight: 400; }
-.choice-card input[type="number"] { width: 120px; }
-.choice-card strong { margin-left: auto; color: var(--accent-warm); font-weight: 700; }
-.price-legend { color: var(--muted); font-size: .9rem; line-height: 1.6; }
-.custom-transport, .custom-lodging { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; width: 100%; padding: 12px; margin: 4px 0 0 26px; border-radius: 8px; background: var(--background); }
-.custom-transport[hidden], .custom-lodging[hidden] { display: none; }
-.custom-transport label, .custom-lodging label { display: grid; gap: 5px; font-size: .9rem; }
-.choice-line label { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; }
-.choice-line select { width: auto; padding: 6px; }
-.confirmation-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
-.confirmation-actions > button:first-child { border: 1px solid var(--accent); background: var(--surface); color: var(--accent); border-radius: 8px; padding: 11px 16px; font: inherit; cursor: pointer; }
-.export-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
-.export-actions a { color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 12px; text-decoration: none; font-weight: 700; }
-.trip-summary { margin: 18px 0; border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: var(--surface); }
-.trip-summary h2 { margin: 0 0 8px; font-size: 1.1rem; }
-.trip-summary p { margin: 6px 0; color: var(--muted); }
-.trip-summary .price-notice { color: var(--accent-warm); font-weight: 700; }
-.trip-summary .transport-leg { padding-top: 7px; border-top: 1px solid var(--border-soft); }
-.supplemental-items { margin: 14px 0 18px; padding: 12px 14px; border-radius: 10px; background: #f7faf7; border: 1px solid var(--border-soft); }
-.supplemental-items h3 { margin: 0 0 6px; font-size: 1rem; }
-.supplemental-items ul { margin: 0; padding-left: 20px; }
-.supplemental-items li { margin: 6px 0; }
-.supplemental-items span { color: var(--muted); font-size: .9rem; }
-.day-travel-context { margin: 12px 0; padding: 10px 14px; border-radius: 10px; background: #f5f8fb; border: 1px solid var(--border-soft); }
-.day-travel-context p { margin: 5px 0; color: var(--muted); font-size: .92rem; }
-.meituan-timeline { margin-top: 16px; }
-.meituan-timeline .timeline-card { background: #fffdf7; border-color: #ead5ad; }
-.ip-landmark-reference { margin-top: 16px; border-top: 1px dashed var(--border-strong); padding-top: 12px; }
-.ip-landmark-reference > summary { cursor: pointer; color: var(--muted); font-size: .9rem; margin-bottom: 12px; }
+/* 山河印迹 · 行程页（规划 / 草案列表 / 行程详情） */
+.page-title{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:4px}
 
-.map-section { margin: 20px 0; }
-#itinerary-map { height: min(56vh, 520px); min-height: 320px; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--map-bg); }
-.map-notice { color: var(--muted); font-size: .85rem; margin-top: 8px; }
+/* ---------- 行程列表（票据夹） ---------- */
+.itinerary-list{display:grid;gap:14px;margin-top:20px}
+.itinerary-list article{
+  border:1.5px solid var(--line);border-radius:10px;background:var(--paper3);
+  padding:16px 20px;transition:border-color .16s,transform .16s;position:relative;overflow:hidden;
+}
+.itinerary-list article:before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--cinnabar);opacity:.75;
+}
+.itinerary-list article:hover{border-color:var(--cinnabar);transform:translateX(2px)}
+.itinerary-list article>p:first-child{margin:0;font-size:11.5px;color:var(--muted);letter-spacing:.12em}
+.itinerary-list h2{font-size:19px;font-weight:900;letter-spacing:.08em;margin:4px 0 2px}
+.itinerary-list h2 a{text-decoration:none;color:var(--ink)}
+.itinerary-list h2 a:hover{color:var(--cinnabar)}
+.itinerary-list article>p:last-child{margin:0;font-size:12px;color:var(--muted)}
 
-.itinerary-day { margin-top: 22px; border: 1px solid var(--border); border-radius: 16px; padding: 22px; background: var(--surface); }
-.day-heading { display: flex; align-items: baseline; gap: 12px; margin: 0 0 6px; }
-.day-number { color: var(--text); }
-.day-date { color: var(--muted); font-size: .95rem; font-weight: 400; }
-.day-summary { color: var(--muted); margin: 0 0 18px; }
+/* ---------- 行程表单（开票） ---------- */
+.domestic-notice{
+  margin:12px 0 18px;padding:13px 17px;font-size:13px;color:var(--ink2);line-height:2;
+  border:1.5px dashed rgba(169,129,47,.55);border-left:4px solid var(--gold);
+  border-radius:0 10px 10px 0;background:rgba(169,129,47,.07);
+}
+.domestic-notice strong{font-family:var(--serif);letter-spacing:.06em}
+.itinerary-form{display:grid;grid-template-columns:1fr 1fr;gap:15px 18px;margin-top:6px}
+.itinerary-form label{display:flex;flex-direction:column;gap:6px}
+.itinerary-form .wide{grid-column:1/-1}
+.landmark-summary{
+  grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  border:1.5px dashed rgba(51,86,91,.5);border-radius:10px;background:rgba(51,86,91,.05);
+  padding:14px 18px;margin:0;
+}
+.landmark-summary h2{font-size:14.5px;letter-spacing:.14em}
+.landmark-summary h2:before{content:"❖";color:var(--indigo);font-size:12px;margin-right:8px}
+.landmark-summary p{margin:4px 0 0;font-size:12.5px;color:var(--muted)}
+.landmark-summary>div{flex:1;min-width:220px}
+.landmark-summary button{
+  flex:0 0 auto;font-family:var(--serif);font-weight:700;font-size:13px;letter-spacing:.14em;
+  color:var(--indigo);border:1.5px solid var(--indigo);border-radius:8px;padding:9px 20px;
+  background:var(--paper2);transition:.2s;
+}
+.landmark-summary button:hover{color:var(--paper2);background:var(--indigo)}
+.choice-field{border:1.5px dashed var(--line2);border-radius:10px;padding:14px 18px 16px;margin:0}
+.choice-field legend{font-family:var(--serif);font-weight:700;font-size:12.5px;letter-spacing:.14em;color:var(--ink2);padding:0 8px}
+.choice-row{display:flex;flex-wrap:wrap;gap:9px 20px;margin-top:6px}
+.choice-row label{display:inline-flex;align-items:center;gap:7px;font-size:13px;flex-direction:row}
+.itinerary-form textarea{min-height:88px;resize:vertical}
+.itinerary-form .primary-button{grid-column:1/-1;justify-self:start;margin-top:4px}
+.form-error{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--cinnabar);letter-spacing:.04em}
 
-.timeline { list-style: none; margin: 0; padding: 0; }
-.timeline-item { display: grid; grid-template-columns: 52px 22px 1fr; gap: 10px; }
-.timeline-time { text-align: right; font-weight: 700; color: var(--accent); font-size: .88rem; padding-top: 2px; white-space: nowrap; }
-.timeline-rail { position: relative; display: flex; justify-content: center; }
-.timeline-rail::before { content: ''; position: absolute; top: 0; bottom: -20px; left: 50%; width: 2px; background: var(--border-soft); transform: translateX(-50%); }
-.timeline-item:last-child .timeline-rail::before { bottom: auto; height: 18px; }
-.timeline-dot { position: relative; z-index: 1; width: 12px; height: 12px; border-radius: 50%; background: var(--accent-warm); margin-top: 5px; box-shadow: 0 0 0 3px var(--surface); }
-.timeline-card { border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; background: var(--surface); margin-bottom: 20px; }
-.timeline-item:last-child .timeline-card { margin-bottom: 0; }
-.timeline-meta { margin: 0 0 4px; color: var(--accent-warm); font-size: .8rem; font-weight: 700; }
-.timeline-card h3 { margin: 0 0 6px; font-size: 1.1rem; }
-.timeline-card h3 a { color: var(--text); text-decoration: none; }
-.timeline-card h3 a:hover { text-decoration: underline; }
-.timeline-address { margin: 0 0 4px; color: var(--muted); font-size: .9rem; }
-.timeline-transit { margin: 0 0 6px; color: var(--text-strong); font-size: .9rem; line-height: 1.6; }
-.reason { margin: 6px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.6; }
-.disclaimer { color: var(--muted); line-height: 1.6; margin-top: 24px; }
+/* ---------- 选点弹窗 ---------- */
+.landmark-dialog{
+  width:min(560px,94vw);border:1.5px solid var(--ink);border-radius:12px;
+  background:var(--paper2);padding:22px 24px;box-shadow:0 24px 60px rgba(38,34,28,.3);
+}
+.landmark-dialog::backdrop{background:rgba(38,34,28,.55)}
+.dialog-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+.dialog-heading h2{font-size:17px;font-weight:900;letter-spacing:.12em}
+.dialog-heading p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+.dialog-heading button{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line2);
+  font-size:17px;color:var(--muted);line-height:1;transition:.2s;
+}
+.dialog-heading button:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.landmark-search{display:flex;gap:10px;margin-bottom:12px}
+.landmark-search input{flex:1;min-width:0;padding:10px 13px;font-size:13px}
+.landmark-search button{
+  flex:0 0 auto;font-family:var(--serif);font-size:12.5px;letter-spacing:.12em;
+  border:1.5px solid var(--ink);border-radius:8px;padding:0 20px;background:var(--ink);color:var(--paper2);
+}
+.landmark-search button:hover{background:var(--cinnabar);border-color:var(--cinnabar)}
+.landmark-options{max-height:300px;overflow-y:auto;border:1.5px solid var(--line);border-radius:8px;background:var(--paper3)}
+.landmark-option{
+  display:flex;align-items:center;gap:11px;margin:0;padding:11px 14px;
+  border-bottom:1px dashed var(--line);font-size:13px;font-weight:400;letter-spacing:0;color:var(--ink2);
+  cursor:pointer;transition:background .15s;
+}
+.landmark-option:hover{background:rgba(181,56,42,.05)}
+.landmark-option:last-child{border-bottom:0}
+.dialog-actions{display:flex;justify-content:flex-end;margin-top:16px}
 
-@media (max-width: 720px) {
-  .itinerary-shell { padding: 28px 16px 48px; }
-  .itinerary-list, .itinerary-form { grid-template-columns: 1fr; }
-  .landmark-options, .lodging-inputs { grid-template-columns: 1fr; }
-  .landmark-summary { align-items: flex-start; flex-direction: column; }
-  .lodging-row { grid-template-columns: 1fr; }
-  .page-title { align-items: flex-start; flex-direction: column; }
-  .itinerary-day { padding: 16px; }
-  .timeline-item { grid-template-columns: 44px 18px 1fr; gap: 8px; }
-  .timeline-time { font-size: .78rem; }
-  #itinerary-map { min-height: 360px; border-radius: 12px; }
+/* ---------- 行程详情（卷轴） ---------- */
+.trip-summary{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0;
+  border:1.5px solid var(--line2);border-radius:10px;overflow:hidden;margin:20px 0;
+  background:var(--paper3);
+}
+.trip-summary>*{padding:14px 18px;border-right:1.5px dashed var(--line);margin:0}
+.trip-summary>*:last-child{border-right:0}
+.trip-summary dt{font-family:var(--serif);font-size:11px;color:var(--muted);letter-spacing:.22em;margin:0 0 4px}
+.trip-summary dd{font-family:var(--serif);font-weight:900;font-size:16px;margin:0;letter-spacing:.04em}
+.trip-summary dd small{font-weight:500;font-size:11px;color:var(--muted);margin-left:5px}
+.export-actions{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 8px}
+.itinerary-day{margin-top:34px;padding-top:20px;border-top:1.5px solid var(--line)}
+.day-heading{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap}
+.day-number{
+  font-family:var(--serif);font-weight:900;font-size:15px;letter-spacing:.16em;
+  color:var(--paper2);background:var(--cinnabar);border-radius:6px;padding:4px 14px;
+}
+.day-date{font-family:var(--serif);font-size:13px;color:var(--muted);letter-spacing:.14em}
+.day-summary{margin:10px 0 0;font-size:13px;color:var(--ink2);line-height:2}
+.day-travel-context{
+  margin:12px 0 0;padding:12px 16px;border:1.5px dashed rgba(51,86,91,.45);
+  border-radius:10px;background:rgba(51,86,91,.05);
+}
+.day-travel-context p{margin:3px 0;font-size:12.5px;color:var(--ink2)}
+.day-travel-context strong{font-family:var(--serif);color:var(--indigo)}
+.day-travel-context .day-travel-context{text-align:left}
+
+/* 时间轴 */
+.timeline{list-style:none;margin:16px 0 0;padding:0}
+.timeline-item{display:grid;grid-template-columns:72px 22px 1fr;gap:0 6px}
+.timeline-time{font-family:var(--serif);font-size:12px;color:var(--muted);letter-spacing:.06em;text-align:right;padding:14px 2px 0 0}
+.timeline-rail{position:relative}
+.timeline-rail:before{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:1.5px dashed var(--line2)}
+.timeline-item:first-child .timeline-rail:before{top:18px}
+.timeline-item:last-child .timeline-rail:before{bottom:auto;height:18px}
+.timeline-dot{
+  position:absolute;left:50%;top:18px;transform:translateX(-50%);
+  width:11px;height:11px;border-radius:50%;background:var(--cinnabar);
+  box-shadow:0 0 0 3px rgba(181,56,42,.15);
+}
+.timeline-card{
+  margin:0 0 14px;padding:13px 17px;background:var(--paper3);
+  border:1.5px solid var(--line);border-radius:10px;
+}
+.timeline-card:hover{border-color:var(--cinnabar)}
+.timeline-meta{margin:0 0 3px;font-size:11px;color:var(--gold);letter-spacing:.14em}
+.timeline-card h3{font-size:15.5px;font-weight:900;letter-spacing:.06em}
+.timeline-card h3 a{text-decoration:none;color:var(--ink)}
+.timeline-card h3 a:hover{color:var(--cinnabar)}
+.timeline-address{margin:3px 0 0;font-size:11.5px;color:var(--muted)}
+.timeline-transit{margin:5px 0 0;font-size:12px;color:var(--ink2);line-height:1.85}
+.reason{margin:7px 0 0;font-size:11.5px;color:var(--gold);line-height:1.8}
+.supplemental-items{margin-top:14px;padding:13px 16px;border:1.5px dashed var(--line2);border-radius:10px}
+.supplemental-items h3{font-size:13px;letter-spacing:.12em;margin-bottom:6px}
+.supplemental-items ul{margin:0;padding-left:18px}
+.supplemental-items li{font-size:12.5px;color:var(--ink2);line-height:2.1}
+.supplemental-items li span{color:var(--muted);font-size:11.5px}
+.supplemental-items a{color:var(--indigo);text-decoration:none;border-bottom:1px dashed rgba(51,86,91,.4)}
+.supplemental-items a:hover{color:var(--cinnabar)}
+.ip-landmark-reference{margin-top:14px}
+.ip-landmark-reference summary{
+  cursor:pointer;font-family:var(--serif);font-size:12.5px;font-weight:700;letter-spacing:.1em;
+  color:var(--muted);border:1.5px dashed var(--line2);border-radius:8px;padding:9px 15px;
+  display:inline-flex;align-items:center;gap:8px;transition:.2s;
+}
+.ip-landmark-reference summary:hover{color:var(--cinnabar);border-color:var(--cinnabar)}
+.ip-landmark-reference .timeline{margin-top:12px;padding-left:4px}
+.meituan-timeline .timeline-dot{background:var(--indigo);box-shadow:0 0 0 3px rgba(51,86,91,.14)}
+.transport-leg{font-size:12px;color:var(--ink2)}
+.price-notice{margin-top:10px;font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+.map-section{margin-top:26px}
+.map-section h2{font-size:16px;font-weight:900;letter-spacing:.14em;margin-bottom:10px}
+.map-section h2:before{content:"❖";color:var(--cinnabar);font-size:12px;margin-right:8px}
+#itinerary-map{height:400px;border:1.5px solid var(--ink);border-radius:10px;background:#EDE4CE;z-index:1}
+
+@media(max-width:760px){
+  .itinerary-form{grid-template-columns:1fr}
+  .timeline-item{grid-template-columns:56px 18px 1fr}
+  .timeline-time{font-size:11px}
+  .trip-summary>*{border-right:0;border-bottom:1.5px dashed var(--line)}
 }

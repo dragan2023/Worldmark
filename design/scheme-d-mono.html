@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>方案 D · 纯粹志 — Worldmark IP 地标旅游</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&family=Noto+Sans+SC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#FAFAF7; --ink:#141414; --gray:#737373; --gray2:#A3A3A0; --line:#E7E5DE; --orange:#FF4D00;
+  --card:#FFFFFF;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#EFEEE9;color:var(--ink);font-family:"Inter","Noto Sans SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+/* ====== 页头 ====== */
+.lab{max-width:1420px;margin:auto;padding:26px clamp(14px,4vw,52px) 10px}
+.lab-top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.lab-brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;color:#4A4A46}
+.lab-brand i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;background:var(--ink);color:#fff;font-weight:900;border-radius:2px}
+.back{color:#6B6B66;font-size:13px;text-decoration:none;border:1px solid #CFCDC4;border-radius:2px;padding:7px 14px;background:var(--bg)}
+.back:hover{border-color:var(--ink);color:var(--ink)}
+.lab h1{margin:16px 0 8px;font-size:clamp(30px,4.6vw,54px);letter-spacing:-.04em;font-weight:900}
+.lab h1 em{font-style:normal;color:var(--orange)}
+.lab-desc{max-width:760px;color:#5C5C57;font-size:14px;line-height:1.9;margin:0}
+.lab-desc b{color:var(--ink)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 6px}
+.tag{font-size:12px;color:#4A4A46;border:1px solid #CFCDC4;border-radius:2px;padding:5px 12px;background:var(--bg);letter-spacing:.04em}
+.tag.o{color:var(--orange);border-color:rgba(255,77,0,.4)}
+.swatches{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px}
+.sw{display:flex;align-items:center;gap:7px;font-size:11px;color:#6B6B66;font-family:"IBM Plex Mono",monospace}
+.sw i{width:20px;height:20px;border-radius:2px;border:1px solid rgba(20,20,20,.15)}
+
+/* ====== 舞台 ====== */
+.stage{max-width:1420px;margin:auto;padding:8px clamp(14px,4vw,52px) 30px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:34px;align-items:start}
+@media(max-width:1080px){.stage{grid-template-columns:1fr}}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chips button{font-size:12.5px;color:#6B6B66;border:1px solid #CFCDC4;border-radius:2px;padding:8px 16px;background:var(--bg);letter-spacing:.06em}
+.chips button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:700}
+.hint{color:#9A9A93;font-size:12px}
+
+/* ====== 手机 ====== */
+.phone{position:relative;width:390px;height:844px;max-width:96vw;border-radius:40px;background:var(--bg);border:8px solid #1A1A1A;box-shadow:0 0 0 1px rgba(20,20,20,.25),0 30px 80px rgba(20,20,20,.3);overflow:hidden}
+.phone:before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:110px;height:25px;border-radius:999px;background:#1A1A1A;z-index:60}
+.statusbar{position:absolute;z-index:55;top:12px;left:0;right:0;display:flex;justify-content:space-between;padding:6px 26px 0;font-size:12.5px;font-weight:600;color:var(--ink);font-family:"IBM Plex Mono",monospace}
+.screens{position:absolute;inset:0}
+.app-screen{position:absolute;inset:0;overflow-y:auto;padding:50px 0 92px;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .26s,transform .26s;scrollbar-width:none}
+.app-screen::-webkit-scrollbar{display:none}
+.app-screen.active{opacity:1;transform:none;pointer-events:auto}
+.pad{padding-left:20px;padding-right:20px}
+
+/* ====== 组件 ====== */
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.24em;color:var(--gray);text-transform:uppercase}
+.kicker b{color:var(--orange);font-weight:500}
+.hr{height:1px;background:var(--line);margin:18px 0}
+.btn{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;padding:14px;border-radius:999px;font-weight:800;font-size:14px;letter-spacing:.02em;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.dark{background:var(--ink);color:#fff}
+.btn.line{border:1px solid #D8D6CD;color:var(--ink);background:transparent}
+.prop{display:inline-flex;align-items:center;font-size:10px;letter-spacing:.08em;color:var(--gray);border:1px solid #D8D6CD;border-radius:2px;padding:1px 7px;vertical-align:2px;font-family:"IBM Plex Mono",monospace}
+
+/* ====== 发现页 ====== */
+.masthead{display:flex;justify-content:space-between;align-items:center}
+.masthead .mono{font-size:11px;color:var(--gray)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+.h-display{margin:16px 0 0;font-size:34px;line-height:1.16;letter-spacing:-.035em;font-weight:900}
+.h-display em{font-style:normal;color:var(--orange)}
+.searchline{display:flex;align-items:center;gap:10px;margin-top:18px;border-bottom:1.5px solid var(--ink);padding:10px 2px;color:var(--gray2);font-size:14px;width:100%;text-align:left}
+.searchline i{font-style:normal;color:var(--orange)}
+.cats{display:flex;gap:18px;margin-top:16px}
+.cats button{font-size:14px;font-weight:700;color:var(--gray2);padding:4px 0;border-bottom:2px solid transparent}
+.cats button sup{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--orange);margin-left:3px}
+.cats button.on{color:var(--ink);border-color:var(--ink)}
+.feat{position:relative;margin-top:18px;border-radius:4px;overflow:hidden;background:linear-gradient(165deg,#B9B2A0 0%,#8E8674 45%,#5C554A 100%)}
+.feat svg{display:block;width:100%}
+.feat .cap{position:absolute;left:16px;bottom:14px;color:#fff}
+.feat .cap .mono{font-size:9.5px;letter-spacing:.22em;opacity:.85}
+.feat .cap h3{margin:5px 0 0;font-size:21px;font-weight:900;letter-spacing:-.02em;text-shadow:0 1px 12px rgba(20,20,20,.3)}
+.feat .cap p{margin:3px 0 0;font-size:11px;opacity:.85}
+.picks{margin-top:6px}
+.pick{display:flex;gap:14px;align-items:center;width:100%;text-align:left;padding:15px 2px;border-bottom:1px solid var(--line)}
+.pick:last-child{border-bottom:0}
+.pick .no{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--orange);flex:0 0 24px}
+.pick .th{flex:0 0 54px;height:54px;border-radius:3px}
+.pick h4{margin:0 0 3px;font-size:15px;font-weight:800;letter-spacing:-.01em}
+.pick p{margin:0;font-size:11.5px;color:var(--gray)}
+.pick .go{margin-left:auto;color:var(--gray2);font-size:15px}
+.th1{background:linear-gradient(150deg,#7FA5C9,#33506E)}
+.th2{background:linear-gradient(150deg,#D8B27A,#8A5A3A)}
+.th3{background:linear-gradient(150deg,#A8C0A0,#4E6A50)}
+.th4{background:linear-gradient(150deg,#C9A8B8,#6E4458)}
+.foot{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.18em;color:var(--gray2)}
+
+/* ====== 详情页 ====== */
+.crumb{display:flex;justify-content:space-between;align-items:center;padding:8px 20px 0}
+.crumb .iconbtn{width:32px;height:32px;border:1px solid var(--line);border-radius:2px;display:grid;place-items:center;font-size:14px;background:#fff}
+.lm-hero{position:relative;margin-top:14px}
+.lm-hero svg{display:block;width:100%}
+.lm-hero .tagline{position:absolute;left:20px;bottom:14px;color:#fff}
+.lm-hero .tagline .mono{font-size:9.5px;letter-spacing:.22em;opacity:.85}
+.lm-hero .tagline h2{margin:4px 0 0;font-size:30px;font-weight:900;letter-spacing:-.03em}
+.lm-body{padding:0 20px}
+.metagrid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-left:1px solid var(--line);margin-top:16px}
+.metagrid div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px 12px}
+.metagrid small{display:block;font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.2em;color:var(--gray);margin-bottom:4px}
+.metagrid b{font-size:12px;font-weight:700;line-height:1.6}
+.lm-desc{font-size:13.5px;line-height:1.95;color:#3E3E3A;margin:16px 0 0}
+.srcline{display:flex;gap:8px;align-items:baseline;margin-top:14px;font-size:11px;color:var(--gray)}
+.srcline i{font-style:normal;color:var(--orange);font-family:"IBM Plex Mono",monospace}
+.actions{display:flex;gap:10px;margin-top:18px}
+.actions .btn{flex:1}
+
+/* ====== 行程页 ====== */
+.itin-hero{padding:0 20px;margin-top:4px}
+.itin-hero h2{margin:12px 0 0;font-size:28px;letter-spacing:-.03em;font-weight:900;line-height:1.2}
+.itin-hero p{margin:8px 0 0;font-size:12.5px;color:var(--gray);line-height:1.8}
+.leg{display:flex;gap:14px;align-items:baseline;width:100%;text-align:left;padding:16px 20px;border-bottom:1px solid var(--line)}
+.leg .no{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--orange)}
+.leg h4{margin:0 0 3px;font-size:15.5px;font-weight:800;letter-spacing:-.01em}
+.leg p{margin:0;font-size:11.5px;color:var(--gray)}
+.leg .tm{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--gray2)}
+.leg.done h4{color:var(--gray2)}
+.leg.done .no:after{content:" ✓";color:var(--ink)}
+.minimap{margin:18px 20px 0;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:#F3F1EA}
+.minimap svg{display:block;width:100%}
+.minimap .cap{display:flex;justify-content:space-between;padding:9px 12px;font-size:11px;color:var(--gray);border-top:1px solid var(--line);background:#fff}
+.minimap .cap b{color:var(--ink)}
+.exrow{display:flex;gap:18px;padding:14px 20px 0}
+.exrow button{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;color:var(--gray);border-bottom:1px solid var(--gray2);padding-bottom:2px}
+.exrow button:hover{color:var(--orange);border-color:var(--orange)}
+.newitin{display:flex;justify-content:space-between;align-items:center;width:100%;padding:16px 20px;border-top:1px solid var(--line);margin-top:18px;color:var(--gray);font-size:13px}
+.newitin b{color:var(--ink)}
+
+/* ====== 我的页 ====== */
+.mehead{padding:0 20px;margin-top:6px}
+.mehead h2{margin:12px 0 2px;font-size:30px;font-weight:900;letter-spacing:-.03em}
+.mehead p{margin:0;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;color:var(--gray)}
+.rows{margin-top:18px;border-top:1px solid var(--line)}
+.row{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:15px 20px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600}
+.row small{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--gray2);margin-left:auto;margin-right:12px;font-weight:400}
+.row .arr{color:var(--gray2)}
+.row:hover .arr{color:var(--orange)}
+.problock{margin:18px 20px 0;background:var(--ink);color:#fff;border-radius:4px;padding:18px}
+.problock h4{margin:0;font-size:16px;font-weight:900;letter-spacing:-.01em}
+.problock h4 span{color:var(--orange)}
+.problock p{margin:7px 0 0;font-size:11.5px;color:#B9B9B2;line-height:1.8}
+.problock .free{display:inline-block;margin-top:10px;font-size:9.5px;letter-spacing:.16em;font-family:"IBM Plex Mono",monospace;border:1px solid rgba(255,255,255,.3);border-radius:2px;padding:3px 9px;color:#E6E6E0}
+.notice{font-size:10.5px;color:var(--gray2);line-height:1.8;margin:16px 20px 0}
+
+/* ====== 底部导航 ====== */
+.tabbar{position:absolute;z-index:50;left:0;right:0;bottom:0;display:flex;background:rgba(250,250,247,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px 8px 14px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--gray2);font-weight:600;letter-spacing:.06em;padding:6px 0}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--ink)}
+.tab.on svg{color:var(--orange)}
+
+/* ====== 规格栏 ====== */
+.spec{display:flex;flex-direction:column;gap:14px}
+.spec-block{border:1px solid #DDDAD0;border-radius:3px;background:var(--bg);padding:18px}
+.spec-block h3{margin:0 0 12px;font-size:12px;letter-spacing:.22em;color:var(--gray);font-family:"IBM Plex Mono",monospace}
+.spec-block h3 b{color:var(--orange)}
+.spec-block ul{margin:0;padding-left:18px;color:#4A4A46;font-size:13px;line-height:2.05}
+.spec-block ul b{color:var(--ink)}
+.kw{display:flex;gap:7px;flex-wrap:wrap}
+.clist{display:flex;flex-direction:column;gap:9px}
+.clist .c{display:flex;align-items:center;gap:9px;font-size:12px;color:#6B6B66;font-family:"IBM Plex Mono",monospace}
+.clist .c i{width:18px;height:18px;border-radius:2px;border:1px solid rgba(20,20,20,.2);flex:0 0 auto}
+.maplist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.maplist li{font-size:12.5px;color:#6B6B66;line-height:1.8}
+.maplist code{color:var(--ink);font-size:11px;background:#F0EEE6;border:1px solid var(--line);border-radius:2px;padding:1px 7px}
+.footnote{max-width:1420px;margin:auto;padding:0 clamp(14px,4vw,52px) 44px;color:#9A9A93;font-size:12px;line-height:1.9}
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);background:var(--ink);color:#fff;font-size:13px;padding:11px 18px;border-radius:3px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:82vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:460px){.phone{height:760px;border-radius:32px}}
+</style>
+</head>
+<body>
+
+<header class="lab">
+  <div class="lab-top">
+    <div class="lab-brand"><i>W</i> Worldmark · 移动端设计方案</div>
+    <a class="back" href="index.html">← 返回方案总览</a>
+  </div>
+  <h1>方案 D · 纯粹志 <em>MONO</em> EDITORIAL</h1>
+  <p class="lab-desc">一本<b>关于地点的极简杂志</b>：超大标题、编号列表、发丝分割线，黑白灰之上只保留一个国际橘。把「可核验」的专业感翻译成编辑部气质——克制、可信、耐看，适合设计与内容敏感人群，也最不容易过时。</p>
+  <div class="tags"><span class="tag">大留白</span><span class="tag">超大字排版</span><span class="tag o">单点亮色</span><span class="tag">编号索引</span><span class="tag">发丝线栅格</span><span class="tag">杂志编辑部</span></div>
+  <div class="swatches">
+    <span class="sw"><i style="background:#FAFAF7"></i>#FAFAF7 纸白</span>
+    <span class="sw"><i style="background:#141414"></i>#141414 墨黑</span>
+    <span class="sw"><i style="background:#FF4D00"></i>#FF4D00 国际橘</span>
+    <span class="sw"><i style="background:#737373"></i>#737373 中灰</span>
+    <span class="sw"><i style="background:#E7E5DE"></i>#E7E5DE 发丝线</span>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="phone-col">
+    <div class="chips">
+      <button class="on" data-go="scr-home">INDEX 发现</button>
+      <button data-go="scr-landmark">FEATURE 详情</button>
+      <button data-go="scr-trip">ITINERARY 行程</button>
+      <button data-go="scr-me">PROFILE 我的</button>
+    </div>
+
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span>84%</span></div>
+
+      <div class="screens">
+
+        <!-- ====== 发现 ====== -->
+        <section class="app-screen active" id="scr-home">
+          <div class="pad">
+            <div class="masthead">
+              <span class="mono">SAT — 10.24</span>
+              <span class="avatar">M</span>
+            </div>
+            <h1 class="h-display">周末，去有<br><em>故事</em>的地方。</h1>
+            <button class="searchline" data-toast="正式入口：GET /search?q=…（全站统一检索）"><i>⌕</i> 搜索作品或地标…</button>
+            <div class="cats">
+              <button class="on" data-toast="正式入口：/literature 目录">文学<sup>LN</sup></button>
+              <button data-toast="正式入口：/games 目录">游戏<sup>GM</sup></button>
+              <button data-toast="正式入口：/screen 目录">影视<sup>SC</sup></button>
+              <button data-toast="正式入口：/maps/games 静态参考地图">地图<sup>MAP</sup></button>
+            </div>
+          </div>
+
+          <div class="pad">
+            <div class="feat">
+              <svg viewBox="0 0 350 190" role="img" aria-label="极简海报：木塔与圆日">
+                <rect width="350" height="190" fill="url(#g1)"/>
+                <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C9C1AC"/><stop offset=".55" stop-color="#8E8674"/><stop offset="1" stop-color="#4E483E"/></linearGradient></defs>
+                <circle cx="268" cy="52" r="26" fill="#FF4D00"/>
+                <path d="M0 152 L86 96 L150 140 L226 84 L292 132 L350 104 V190 H0 Z" fill="#3A362E" opacity=".8"/>
+                <path d="M118 140 V96 H150 V140 M112 96 H156 M124 96 V66 H144 V96 M118 66 H150 M131 66 L135 50 L139 66" stroke="#F5F3EC" stroke-width="2" fill="none"/>
+                <text x="18" y="30" fill="#F5F3EC" font-size="9" letter-spacing="4" font-family="monospace">N°01 — FEATURE</text>
+              </svg>
+              <div class="cap">
+                <span class="mono">GAME · SHANXI · LIAO DYNASTY</span>
+                <h3>应县木塔</h3>
+                <p>《黑神话：悟空》古建取材的现实原型</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pad">
+            <div class="hr"></div>
+            <p class="kicker" style="margin:0 0 4px">EDITOR'S PICKS — <b>已审核发布</b></p>
+          </div>
+          <div class="picks">
+            <button class="pick" data-go="scr-landmark">
+              <span class="no">01</span><span class="th th1"></span>
+              <span><h4>应县木塔</h4><p>黑神话：悟空 · 山西朔州</p></span>
+              <span class="go">→</span>
+            </button>
+            <button class="pick" data-toast="正式入口：外白渡桥详情页（子夜 · 上海）">
+              <span class="no">02</span><span class="th th2"></span>
+              <span><h4>外白渡桥</h4><p>子夜 · 上海黄浦</p></span>
+              <span class="go">→</span>
+            </button>
+            <button class="pick" data-toast="正式入口：边城茶峒古镇详情页（边城 · 湘西）">
+              <span class="no">03</span><span class="th th3"></span>
+              <span><h4>边城茶峒古镇</h4><p>边城 · 湖南湘西</p></span>
+              <span class="go">→</span>
+            </button>
+            <button class="pick" data-toast="正式入口：黄河路详情页（繁花 · 上海）">
+              <span class="no">04</span><span class="th th4"></span>
+              <span><h4>黄河路</h4><p>繁花 · 上海黄浦</p></span>
+              <span class="go">→</span>
+            </button>
+          </div>
+          <div class="pad"><div class="foot"><span>WORLDMARK INDEX</span><span>VERIFIED ONLY</span></div></div>
+        </section>
+
+        <!-- ====== 详情 ====== -->
+        <section class="app-screen" id="scr-landmark">
+          <div class="crumb">
+            <button class="iconbtn" data-go="scr-home" aria-label="返回">←</button>
+            <span class="mono" style="font-size:10px;letter-spacing:.2em;color:var(--gray)">N°01 / FEATURE</span>
+            <button class="iconbtn" id="heart" data-toast="" aria-label="收藏">♡</button>
+          </div>
+          <div class="lm-hero">
+            <svg viewBox="0 0 390 240" role="img" aria-label="详情头图">
+              <defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D5CEBB"/><stop offset=".6" stop-color="#9A9180"/><stop offset="1" stop-color="#57503F"/></linearGradient></defs>
+              <rect width="390" height="240" fill="url(#g2)"/>
+              <circle cx="300" cy="64" r="30" fill="#FF4D00"/>
+              <path d="M0 192 L110 128 L190 176 L280 116 L390 172 V240 H0 Z" fill="#3A362E" opacity=".82"/>
+              <path d="M168 178 V124 H210 V178 M160 124 H218 M172 124 V86 H198 V124 M165 86 H205 M180 86 L185 66 L190 86" stroke="#F5F3EC" stroke-width="2.2" fill="none"/>
+              <text x="20" y="34" fill="#F5F3EC" font-size="9" letter-spacing="4" font-family="monospace">YINGXIAN WOODEN PAGODA</text>
+            </svg>
+          </div>
+          <div class="lm-body">
+            <p class="kicker" style="margin:14px 0 0">GAME · 黑神话：悟空 — <b>已核验</b></p>
+            <h2 style="margin:8px 0 0;font-size:32px;letter-spacing:-.03em;font-weight:900">应县木塔</h2>
+
+            <div class="metagrid">
+              <div><small>ADDRESS / 地址</small><b>山西省朔州市应县 佛宫寺内</b></div>
+              <div><small>TRANSIT / 行至</small><b>大同或朔州乘班线至应县</b></div>
+              <div><small>OPEN / 开放</small><b>以景区官方公告为准</b></div>
+              <div><small>MAP / 图谱</small><b>静态参考点位</b></div>
+            </div>
+
+            <p class="lm-desc">游戏山西古建取材中辨识度极高的原型之一，为场景的建筑尺度与木构细节提供现实参照。塔建于辽代，是现存著名木塔；登临与拍摄请遵守遗产保护安排。</p>
+
+            <div class="srcline"><i>①</i><span>信息来源登记于条目（官方 / 机构），更新于 2026-08 —— 出发前可逐条核验。</span></div>
+
+            <div class="actions">
+              <button class="btn dark" data-toast="已加入「山西 · 木构古建」行程（正式调用行程接口）">加入行程</button>
+              <button class="btn line" data-toast="正式入口：/maps/games 静态参考地图（会员可用）">静态地图</button>
+            </div>
+            <p class="notice">行程由已发布地标生成，仅限中国大陆境内；交通与开放信息以官方渠道为准。</p>
+          </div>
+
+          <div class="hr" style="margin:16px 20px"></div>
+          <div class="pad"><p class="kicker" style="margin:0 0 2px">RELATED — <b>同作品</b></p></div>
+          <div class="picks">
+            <button class="pick" data-toast="正式入口：小西天详情页（山西临汾隰县）">
+              <span class="no">02</span><span class="th th2" style="background:linear-gradient(150deg,#C9A87A,#7A5030)"></span>
+              <span><h4>小西天</h4><p>明代悬塑 · 山西临汾</p></span><span class="go">→</span>
+            </button>
+            <button class="pick" data-toast="正式入口：佛光寺详情页（山西忻州五台）">
+              <span class="no">03</span><span class="th th3"></span>
+              <span><h4>佛光寺</h4><p>唐代木构 · 山西忻州</p></span><span class="go">→</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ====== 行程 ====== -->
+        <section class="app-screen" id="scr-trip">
+          <div class="itin-hero">
+            <p class="kicker" style="margin:0">PERSONAL ITINERARY — <b>2 DAYS</b></p>
+            <h2>山西 · 木构古建</h2>
+            <p>由已发布地标编排 · 太原出发 · 2 人 · 可随时编辑</p>
+          </div>
+
+          <div style="margin-top:16px;border-top:1px solid var(--line)">
+            <button class="leg done" data-toast="第 1 站：小西天（已完成打卡演示）">
+              <span class="no">01</span>
+              <span><h4>小西天</h4><p>临汾隰县凤凰山 · 明代悬塑</p></span>
+              <span class="tm">D1 09:30</span>
+            </button>
+            <button class="leg done" data-toast="第 2 站：应县木塔（已完成打卡演示）">
+              <span class="no">02</span>
+              <span><h4>应县木塔</h4><p>朔州应县佛宫寺 · 辽代木塔</p></span>
+              <span class="tm">D1 15:00</span>
+            </button>
+            <button class="leg" data-go="scr-landmark">
+              <span class="no">03</span>
+              <span><h4>佛光寺</h4><p>忻州五台县豆村镇 · 唐代木构</p></span>
+              <span class="tm">D2 10:00</span>
+            </button>
+          </div>
+
+          <div class="minimap">
+            <svg viewBox="0 0 350 130" role="img" aria-label="行程静态参考小地图">
+              <rect width="350" height="130" fill="#F3F1EA"/>
+              <g stroke="#E0DCCF" stroke-width="1">
+                <path d="M0 32.5 H350 M0 65 H350 M0 97.5 H350 M58 0 V130 M117 0 V130 M175 0 V130 M233 0 V130 M292 0 V130"/>
+              </g>
+              <path d="M52 100 C90 74 120 92 168 66 S246 44 300 34" stroke="#141414" stroke-width="1.6" fill="none" stroke-dasharray="1 7" stroke-linecap="round"/>
+              <g font-family="monospace" font-size="9" fill="#737373">
+                <circle cx="52" cy="100" r="6" fill="#FF4D00"/><text x="62" y="104">隰县</text>
+                <circle cx="168" cy="66" r="6" fill="#FF4D00"/><text x="178" y="70">应县</text>
+                <circle cx="300" cy="34" r="6" fill="none" stroke="#FF4D00" stroke-width="1.6"/><text x="310" y="38">五台</text>
+              </g>
+            </svg>
+            <div class="cap"><span><b>静态参考</b> · 仅展示已发布点位</span><span class="mono" style="font-size:9px;letter-spacing:.14em">NOT LIVE NAVIGATION</span></div>
+          </div>
+
+          <div class="exrow">
+            <button data-toast="正式导出：行程 HTML">↧ HTML</button>
+            <button data-toast="正式导出：行程 DOCX">↧ DOCX</button>
+            <button data-toast="正式导出：行程 XLSX">↧ XLSX</button>
+            <button data-toast="正式入口：目录筛选与导出 API（免费）">↧ 目录 CSV</button>
+          </div>
+
+          <button class="newitin" data-toast="正式入口：POST /api/v1/itineraries/finalize"><span><b>+ 新建行程</b> · 选择必去地标与偏好</span><span>→</span></button>
+        </section>
+
+        <!-- ====== 我的 ====== -->
+        <section class="app-screen" id="scr-me">
+          <div class="mehead">
+            <p class="kicker" style="margin:0">PROFILE</p>
+            <h2>阿默</h2>
+            <p>UID 2026-0817 · MEMBER SINCE 2026.03</p>
+          </div>
+
+          <div class="rows">
+            <button class="row" data-toast="正式入口：个人收藏（如启用账号体系）"><span>收藏的地点</span><small>12</small><span class="arr">→</span></button>
+            <button class="row" data-toast="足迹统计（演示占位）"><span>去过的城市</span><small>6</small><span class="arr">→</span></button>
+            <button class="row" data-go="scr-trip"><span>我的行程</span><small>4</small><span class="arr">→</span></button>
+            <button class="row" data-toast="正式入口：/intake（入库 → 审核发布 → 署名）"><span>我的共创署名</span><small>2</small><span class="arr">→</span></button>
+          </div>
+
+          <div class="problock">
+            <h4>WORLDMARK <span>PRO</span></h4>
+            <p>解锁完整静态地图图层与成员权益。<b style="color:#fff">目录检索与导出对所有人免费</b>——这是产品的公共承诺。</p>
+            <span class="free">FREE FOREVER — CATALOG &amp; EXPORT</span>
+          </div>
+
+          <div class="rows">
+            <button class="row" data-toast="正式入口：/intake —— 一句话一键入库"><span>参与共创 · 提交地标条目</span><span class="arr">→</span></button>
+            <button class="row" data-toast="深色模式为提案项（当前预览为浅色基底）"><span>外观 · 深色模式</span><span class="prop">提案</span><span class="arr">→</span></button>
+          </div>
+          <p class="notice">页面中的数字为演示占位。地图为静态参考，不提供实时导航；目录与导出免费。</p>
+        </section>
+      </div>
+
+      <nav class="tabbar" aria-label="底部导航">
+        <button class="tab on" data-go="scr-home"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M8 9h8M8 13h5"/></svg>INDEX</button>
+        <button class="tab" data-go="scr-landmark"><svg viewBox="0 0 24 24"><path d="M12 21s-6.2-5.4-6.2-10.2A6.2 6.2 0 0 1 12 4.6a6.2 6.2 0 0 1 6.2 6.2C18.2 15.6 12 21 12 21z"/><circle cx="12" cy="10.8" r="2"/></svg>PLACE</button>
+        <button class="tab" data-go="scr-trip"><svg viewBox="0 0 24 24"><path d="M4 19h16M6 19V9l6-4 6 4v10"/><path d="M10 19v-5h4v5"/></svg>TRIP</button>
+        <button class="tab" data-go="scr-me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>ME</button>
+      </nav>
+    </div>
+
+    <p class="hint">可交互：底部标签 / 屏幕切换 / 编号精选行 / 收藏 ♡ 变色 / 行程段点击</p>
+  </div>
+
+  <aside class="spec">
+    <div class="spec-block">
+      <h3>DESIGN — <b>KEYWORDS</b></h3>
+      <div class="kw">
+        <span class="tag">编辑部气质</span><span class="tag">耐看</span><span class="tag o">单点亮色</span><span class="tag">信息层级靠排版</span><span class="tag">低装饰</span>
+      </div>
+    </div>
+    <div class="spec-block">
+      <h3>色板 — <b>TOKENS</b></h3>
+      <div class="clist">
+        <span class="c"><i style="background:#FAFAF7"></i>bg / #FAFAF7 纸白</span>
+        <span class="c"><i style="background:#141414"></i>ink / #141414 墨黑（标题与按钮）</span>
+        <span class="c"><i style="background:#FF4D00"></i>accent / #FF4D00 国际橘（唯一亮色）</span>
+        <span class="c"><i style="background:#737373"></i>gray / #737373 说明文字</span>
+        <span class="c"><i style="background:#E7E5DE"></i>line / #E7E5DE 发丝分割线</span>
+      </div>
+    </div>
+    <div class="spec-block">
+      <h3>字体 — <b>TYPE</b></h3>
+      <ul>
+        <li><b>展示标题</b>：Inter/Noto Sans 900，-0.03em 紧排，34px+</li>
+        <li><b>标注</b>：IBM Plex Mono 10px，全大写 + 0.2em 字距</li>
+        <li>层级完全由字号/字重/留白完成，不依赖装饰</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>签名组件 — <b>PARTS</b></h3>
+      <ul>
+        <li><b>编号索引行</b>：01/02/03 + 缩略色块 + 发丝线</li>
+        <li><b>海报式头图</b>：极简几何 + 圆日，呼应瑞士海报</li>
+        <li><b>元信息网格</b>：地址/行至/开放/图谱 四格发丝栅格</li>
+        <li><b>行程段列表</b>：时间右对齐 mono，完成态变灰</li>
+        <li><b>黑色 PRO 块</b>：免费承诺写成「公共条款」</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>映射 — <b>DATA</b></h3>
+      <ul class="maplist">
+        <li><code>GET /search?q=</code> 全站检索</li>
+        <li><code>/literature · /games · /screen</code> 目录</li>
+        <li><code>GET /landmarks/{id}</code> 详情 + 来源核验</li>
+        <li><code>POST /api/v1/itineraries/finalize</code> 行程</li>
+        <li><code>/maps/{module}</code> 会员静态地图</li>
+        <li><code>/intake</code> 共创与署名</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>适用 — <b>TRADEOFF</b></h3>
+      <ul>
+        <li>适合：内容/设计敏感用户、官方品牌感、长线演进</li>
+        <li>优势：组件最轻、落地成本最低、最不易过时</li>
+        <li>风险：情绪价值弱，需要靠摄影与文案补温度；游戏化扩展空间小</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<p class="footnote">数据说明：地标与文案取自 <code>data/seed/landmarks_verified.csv</code> 与 <code>landmark_content.json</code>；个人数字为演示占位。设计边界与现有系统一致：静态参考地图、不提供实时导航、目录与导出免费。</p>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+var toast=document.getElementById('toast'),timer;
+function tell(m){toast.textContent=m;toast.classList.add('show');clearTimeout(timer);timer=setTimeout(function(){toast.classList.remove('show')},2600)}
+function go(id){
+  var sc=document.querySelectorAll('.app-screen');
+  for(var i=0;i<sc.length;i++){sc[i].classList.toggle('active',sc[i].id===id)}
+  document.querySelectorAll('.tabbar .tab').forEach(function(t){t.classList.toggle('on',t.dataset.go===id)});
+  document.querySelectorAll('.chips button').forEach(function(c){c.classList.toggle('on',c.dataset.go===id)});
+}
+document.querySelectorAll('[data-go]').forEach(function(n){n.addEventListener('click',function(){go(n.dataset.go)})});
+document.querySelectorAll('[data-toast]').forEach(function(n){n.addEventListener('click',function(e){e.preventDefault();tell(n.dataset.toast||'已收藏（演示）')})});
+var heart=document.getElementById('heart');
+heart.addEventListener('click',function(){heart.textContent=heart.textContent==='♡'?'♥':'♡';heart.style.color=heart.textContent==='♥'?'#FF4D00':''});
+</script>
+</body>
+</html>

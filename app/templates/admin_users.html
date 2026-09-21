@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/auth.css"><link rel="stylesheet" href="/static/css/keys.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="page-shell auth-shell keys-shell">
+      <p class="eyebrow">管理员</p>
+      <h1>用户管理</h1>
+      <p class="page-lead">调整用户角色、封禁/解封账号。角色说明：管理员拥有全部权限；一级用户可使用个性化行程；二级用户可浏览与一键入库。</p>
+      <div class="key-actions">
+        <input id="users-search" class="auth-input key-input" type="search" placeholder="按邮箱搜索…" style="max-width:320px">
+      </div>
+      <div id="users-list" class="keys-list"><p class="keys-loading">正在加载…</p></div>
+      <p id="users-message" class="form-error" role="alert"></p>
+    </main>
+    {% include "_footer.html" %}
+    <script src="/static/js/admin_users.js"></script>
+  </body>
+</html>

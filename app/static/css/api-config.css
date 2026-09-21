@@ -1,0 +1,84 @@
+/* ============ API 配置页 ============ */
+.api-config-shell .page-lead{max-width:860px;color:var(--ink2)}
+
+.config-banner{
+  margin:18px 0 0;padding:14px 18px;border:1.5px solid var(--gold);
+  border-left:6px solid var(--gold);border-radius:10px;background:rgba(169,129,47,.10);
+  color:var(--ink);font-weight:500;
+}
+.config-banner.hidden{display:none}
+
+.client-list{display:grid;gap:22px;margin-top:26px}
+.config-loading{color:var(--muted);padding:30px 0;text-align:center}
+
+.config-card{
+  border:1.5px solid var(--line);border-radius:12px;background:var(--paper3);
+  padding:22px 26px;box-shadow:0 2px 0 rgba(38,34,28,.04);
+}
+.config-card.is-configured{border-color:rgba(51,86,91,.55)}
+.config-card.is-missing{border-style:dashed}
+
+.config-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.config-card-title h2{font-size:19px}
+.config-vendor{font-size:12px;color:var(--muted);letter-spacing:.08em}
+
+.config-badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{
+  font-size:12px;padding:3px 12px;border-radius:999px;border:1px solid var(--line2);
+  color:var(--ink2);background:var(--paper2);white-space:nowrap;
+}
+.badge.status-configured{background:rgba(51,86,91,.12);border-color:var(--indigo);color:var(--indigo);font-weight:700}
+.badge.status-missing{background:rgba(181,56,42,.08);border-color:rgba(181,56,42,.5);color:var(--cinnabar);font-weight:700}
+
+.config-purpose{margin:12px 0 4px;color:var(--ink2)}
+.config-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 2px}
+.chip{
+  font-size:12px;color:var(--indigo);background:rgba(51,86,91,.08);
+  border:1px solid rgba(51,86,91,.25);border-radius:6px;padding:2px 10px;
+}
+
+.config-fields{display:grid;gap:16px;margin-top:16px}
+.config-field-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.config-field-head label{font-weight:700;font-family:var(--serif)}
+.config-env{
+  font-size:12px;color:var(--gold);background:rgba(169,129,47,.10);
+  border:1px dashed var(--line2);border-radius:6px;padding:1px 8px;
+}
+.config-field-head .link-button{
+  font-size:12px;color:var(--cinnabar);text-decoration:underline;padding:0 4px;
+}
+.config-field input{
+  margin-top:6px;width:100%;max-width:520px;padding:10px 12px;font-size:14px;
+  border:1.5px solid var(--line2);border-radius:8px;background:var(--paper2);color:var(--ink);
+}
+.config-field input:focus{border-color:var(--indigo)}
+.config-hint{font-size:12px;color:var(--muted);margin:4px 0 0}
+
+.config-note{margin:14px 0 0;font-size:13px;color:var(--ink2);background:rgba(216,205,180,.28);border-radius:8px;padding:8px 12px}
+
+.config-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.config-actions .primary-button{
+  background:var(--cinnabar);color:var(--paper2);border-radius:8px;padding:9px 22px;font-weight:700;
+}
+.config-actions .primary-button:hover{background:#9a2f23}
+.config-actions .ghost-button{
+  border:1.5px solid var(--indigo);color:var(--indigo);border-radius:8px;padding:8px 18px;font-weight:700;
+}
+.config-actions .ghost-button:hover{background:rgba(51,86,91,.08)}
+.config-actions .ghost-button:disabled{opacity:.55;cursor:wait}
+.apply-link{
+  font-size:13px;color:var(--paper2);background:var(--indigo);text-decoration:none;
+  border-radius:8px;padding:8px 16px;font-weight:500;
+}
+.apply-link:hover{opacity:.88}
+.apply-link.secondary{background:transparent;color:var(--indigo);border:1px solid var(--indigo)}
+
+.verify-result{margin:10px 0 0;font-size:13px;min-height:1.4em}
+.verify-result.pending{color:var(--muted)}
+.verify-result.ok{color:#2e6b46;font-weight:600}
+.verify-result.fail{color:var(--cinnabar);font-weight:600}
+
+.config-help{margin-top:34px;border-top:1.5px dashed var(--line2);padding-top:22px}
+.config-help ol{padding-left:22px;color:var(--ink2)}
+.config-help code{background:rgba(216,205,180,.35);border-radius:4px;padding:1px 6px;font-size:13px}
+.config-warning{margin-top:12px;font-size:13px;color:var(--cinnabar);background:rgba(181,56,42,.07);border-radius:8px;padding:10px 14px}

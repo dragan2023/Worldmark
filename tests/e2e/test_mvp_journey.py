@@ -14,8 +14,8 @@ def test_mvp_journey_covers_three_ip_types_and_member_services(client, db_sessio
     game = create_landmark(db_session, work_title="黑神话：悟空", landmark_name="应县木塔", ip_type=IPType.GAME)
     screen = create_landmark(db_session, work_title="狂飙", landmark_name="江门骑楼", ip_type=IPType.SCREEN)
     free = create_member(db_session, MembershipTier.FREE)
-    lite = create_member(db_session, MembershipTier.LITE)
-    premium = create_member(db_session, MembershipTier.PREMIUM)
+    lite = create_member(db_session, MembershipTier.LITE, role="level1")
+    premium = create_member(db_session, MembershipTier.PREMIUM, role="level1")
 
     for ip_type, landmark_id in (("literature", literature.id), ("game", game.id), ("screen", screen.id)):
         catalog = client.get(f"/api/v1/landmarks?ip_type={ip_type}")

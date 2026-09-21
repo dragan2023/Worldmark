@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/auth.css"><link rel="stylesheet" href="/static/css/keys.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="page-shell auth-shell keys-shell admin-shell">
+      <p class="eyebrow">管理员</p>
+      <h1>管理后台</h1>
+      <p class="page-lead">在此执行用户管理与地标审核等管理工作。</p>
+
+      <nav class="admin-tabs">
+        <button class="admin-tab active" data-tab="users" type="button">用户管理</button>
+        <button class="admin-tab" data-tab="landmarks" type="button">地标审核</button>
+        <a class="admin-tab admin-tab-link" href="/settings/api">API 配置 ↗</a>
+      </nav>
+
+      <!-- 用户管理 -->
+      <section id="tab-users" class="admin-panel active">
+        <div class="key-actions">
+          <input id="users-search" class="auth-input key-input" type="search" placeholder="按用户名或邮箱搜索…" style="max-width:320px">
+          <span id="users-count" class="key-hint"></span>
+        </div>
+        <div id="users-list" class="keys-list"><p class="keys-loading">正在加载…</p></div>
+        <p id="users-message" class="form-error" role="alert"></p>
+      </section>
+
+      <!-- 地标审核 -->
+      <section id="tab-landmarks" class="admin-panel">
+        <div class="key-actions lm-filter-row">
+          <div class="lm-filters" id="lm-filters">
+            <button class="lm-filter active" data-status="pending" type="button">待审核</button>
+            <button class="lm-filter" data-status="verified" type="button">已核验</button>
+            <button class="lm-filter" data-status="rejected" type="button">已驳回</button>
+            <button class="lm-filter" data-status="published" type="button">已发布</button>
+            <button class="lm-filter" data-status="deleted" type="button">回收站</button>
+            <button class="lm-filter" data-status="all" type="button">全部</button>
+          </div>
+          <input id="lm-search" class="auth-input key-input" type="search" placeholder="按地标名称搜索…" style="max-width:240px">
+          <span id="lm-count" class="key-hint"></span>
+        </div>
+        <div id="landmarks-list" class="keys-list"><p class="keys-loading">正在加载…</p></div>
+        <p id="landmarks-message" class="form-error" role="alert"></p>
+      </section>
+    </main>
+    {% include "_footer.html" %}
+    <script src="/static/js/admin_dashboard.js"></script>
+  </body>
+</html>

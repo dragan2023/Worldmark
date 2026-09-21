@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web 方案 B · 山河印迹 — Worldmark IP 地标旅游</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@400;500;700&family=Ma+Shan+Zheng&display=swap');
+:root{
+  --paper:#F6F0E1; --paper2:#FBF6EA; --ink:#26221C; --ink2:#6B6152; --line:#D8CDB4;
+  --cinnabar:#B5382A; --indigo:#33565B; --gold:#A9812F;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;background:#E8E0CC;background-image:radial-gradient(rgba(169,129,47,.10) 1px,transparent 1.5px);background-size:26px 26px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2.5px solid var(--cinnabar);outline-offset:2px;border-radius:6px}
+.serif{font-family:"Noto Serif SC","Songti SC",serif}
+.hand{font-family:"Ma Shan Zheng","Noto Serif SC",serif}
+.wrap{max-width:1240px;margin:auto;padding:0 clamp(16px,4vw,44px)}
+
+/* ===== 实验室条 ===== */
+.labbar{background:#DDD3B8;border-bottom:1px solid #C9BC9C}
+.labbar .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:9px;padding-bottom:9px;font-size:12px;color:#7A6F55}
+.labbar b{color:var(--ink);font-weight:700}
+.labbar .links{display:flex;gap:14px}
+.labbar .links a{color:#7A6F55}
+.labbar .links a:hover{color:var(--cinnabar)}
+
+/* ===== 站点导航（玄墨横梁） ===== */
+.site-nav{position:sticky;top:0;z-index:60;background:rgba(38,34,28,.97);border-bottom:3px solid var(--cinnabar)}
+.site-nav .wrap{display:flex;align-items:center;gap:28px;height:64px}
+.logo{display:flex;align-items:center;gap:11px;color:var(--paper);font-family:"Noto Serif SC",serif;font-weight:900;font-size:19px;letter-spacing:.18em}
+.logo i{font-style:normal;width:34px;height:34px;display:grid;place-items:center;border:2px solid var(--cinnabar);border-radius:8px;color:var(--cinnabar);font-size:16px;transform:rotate(6deg)}
+.nav-links{display:flex;gap:6px}
+.nav-links a{font-family:"Noto Serif SC",serif;font-size:14px;letter-spacing:.2em;color:#B7AB90;padding:8px 15px;border-radius:8px;transition:.2s}
+.nav-links a:hover{color:#FBF6EA;background:rgba(251,246,234,.08)}
+.nav-links a.on{color:#FBF6EA;background:var(--cinnabar)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.nav-search{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#B7AB90;border:1px solid #55503F;border-radius:9px;padding:8px 16px;font-family:"Noto Serif SC",serif}
+.nav-search:hover{color:#FBF6EA;border-color:var(--gold)}
+.avatar{width:34px;height:34px;border-radius:8px;border:2px solid var(--gold);color:var(--gold);display:grid;place-items:center;font-family:"Noto Serif SC",serif;font-weight:900}
+
+/* ===== 视图 ===== */
+.view{display:none}
+.view.active{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ===== 通用 ===== */
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:36px 0 16px}
+.sec h3{margin:0;font-size:19px;font-family:"Noto Serif SC",serif;font-weight:900;letter-spacing:.1em}
+.sec h3:before{content:"❖";color:var(--cinnabar);margin-right:8px;font-size:13px}
+.sec span{font-size:11px;color:#8A7F68;letter-spacing:.16em}
+.card{background:var(--paper2);border:1px solid var(--line);border-radius:10px;padding:18px;box-shadow:0 2px 0 rgba(38,34,28,.05)}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:13px 30px;border-radius:10px;font-weight:700;font-size:14.5px;font-family:"Noto Serif SC",serif;letter-spacing:.16em;border:1.5px solid var(--ink);background:var(--paper2);transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--cinnabar);border-color:var(--cinnabar);color:#FBF6EA;box-shadow:3px 3px 0 rgba(181,56,42,.25)}
+.btn.ghost{border-style:dashed;color:var(--indigo);border-color:var(--indigo)}
+.prop{display:inline-flex;align-items:center;font-size:10px;letter-spacing:.1em;color:var(--gold);border:1px solid var(--gold);border-radius:4px;padding:1px 7px;font-family:"Noto Sans SC";vertical-align:2px}
+.pill{font-size:12.5px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);color:var(--ink);background:var(--paper2);font-family:"Noto Serif SC",serif;letter-spacing:.08em;transition:.2s}
+.pill:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.seal{display:inline-grid;place-items:center;width:38px;height:38px;border:2.5px solid var(--cinnabar);border-radius:8px;color:var(--cinnabar);font-family:"Noto Serif SC",serif;font-weight:900;font-size:15px;transform:rotate(6deg);line-height:1}
+.seal.indigo{border-color:var(--indigo);color:var(--indigo)}
+.seal.gold{border-color:var(--gold);color:var(--gold)}
+.vt{writing-mode:vertical-rl;letter-spacing:.34em;font-family:"Noto Serif SC",serif}
+
+/* ===== 览胜页 ===== */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:36px;padding:52px 0 14px;align-items:stretch}
+.hero-vt{display:flex;gap:16px;justify-content:center}
+.hero-vt .big{font-family:"Noto Serif SC",serif;font-weight:900;font-size:56px;letter-spacing:.3em;color:var(--ink);line-height:1}
+.hero-vt .side{font-size:12px;color:var(--indigo);border-left:1.5px solid var(--line);padding-left:12px}
+.hero-main{display:flex;flex-direction:column;gap:0}
+.shan{position:relative;border-radius:12px;overflow:hidden;border:1.5px solid var(--ink);flex:1}
+.shan svg{display:block;width:100%;height:100%}
+.shan-inner{position:absolute;left:20px;top:16px}
+.shan-inner small{display:block;font-size:10px;letter-spacing:.3em;color:var(--indigo);margin-bottom:5px}
+.shan-inner h2{margin:0;font-family:"Noto Serif SC",serif;font-size:26px;font-weight:900;letter-spacing:.12em}
+.shan .go{position:absolute;left:20px;bottom:16px;display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#FBF6EA;background:var(--cinnabar);border-radius:999px;padding:8px 18px;font-family:"Noto Serif SC",serif;letter-spacing:.14em}
+.hero-sub{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-top:18px;align-items:center}
+.poem{text-align:center;font-family:"Ma Shan Zheng",serif;font-size:26px;color:var(--ink);letter-spacing:.26em}
+.poem small{display:block;font-family:"Noto Sans SC";font-size:10px;color:#8A7F68;letter-spacing:.44em;margin-top:5px}
+.hero-search{display:flex;gap:10px}
+.hero-search input{flex:1;min-width:0;border:1.5px solid var(--ink);border-radius:10px;background:var(--paper2);padding:13px 16px;font-size:14px;font-family:"Noto Serif SC",serif;color:var(--ink)}
+.hero-search input::placeholder{color:#A79B7E}
+.hero-search button{border:1.5px solid var(--ink);border-radius:10px;padding:0 24px;font-family:"Noto Serif SC",serif;font-weight:700;letter-spacing:.14em;background:var(--ink);color:var(--paper)}
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:26px}
+.gate{border:1.5px solid var(--ink);border-radius:10px;background:var(--paper2);padding:20px 10px 16px;text-align:center;transition:transform .15s}
+.gate:hover{transform:translateY(-3px)}
+.gate b{display:block;font-family:"Noto Serif SC",serif;font-size:22px;letter-spacing:.3em;margin-bottom:5px}
+.gate small{font-size:10px;color:#8A7F68;letter-spacing:.2em}
+.gate.g1 b{color:var(--indigo)}.gate.g2 b{color:var(--cinnabar)}.gate.g3 b{color:var(--gold)}
+.scroll-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.scroll-card{border:1.5px solid var(--line);border-radius:10px;background:var(--paper2);overflow:hidden;text-align:left;padding:0;position:relative;transition:transform .15s}
+.scroll-card:hover{transform:translateY(-4px)}
+.scroll-card .art{height:150px;position:relative;display:block}
+.scroll-card .art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(38,34,28,.2),transparent 40%)}
+.scroll-card .seal{position:absolute;top:9px;right:9px;width:32px;height:32px;font-size:12px;background:rgba(251,246,234,.85);z-index:2}
+.scroll-card .body{display:block;padding:13px 15px 15px}
+.scroll-card h4{margin:0 0 3px;font-family:"Noto Serif SC",serif;font-size:17px;font-weight:900;letter-spacing:.08em}
+.scroll-card p{margin:0;font-size:12px;color:#8A7F68}
+.scroll-card .era{position:absolute;left:9px;top:9px;z-index:2;font-size:11px;font-family:"Noto Serif SC",serif;color:#FBF6EA;padding:3px 9px;border-radius:4px;letter-spacing:.16em}
+.a1{background:linear-gradient(150deg,#33565B,#6E8F7C 70%,#C9B87A)}
+.a2{background:linear-gradient(150deg,#7A4A3A,#B58B4C 65%,#D8C98F)}
+.a3{background:linear-gradient(150deg,#2E4057,#5F7A8C 70%,#C0CCC0)}
+.pillrow{display:flex;gap:10px;flex-wrap:wrap}
+.warn{margin-top:18px;padding:12px 15px;border:1.5px dashed var(--line);border-radius:10px;font-size:12px;color:#8A7F68;line-height:1.9}
+
+/* ===== 地标页 ===== */
+.crumb{padding:28px 0 0;font-size:12px;color:#8A7F68;letter-spacing:.28em;font-family:"Noto Serif SC",serif}
+.lm-grid{display:grid;grid-template-columns:auto 1fr;gap:34px;padding:16px 0 10px;align-items:start}
+.lm-side{display:flex;flex-direction:column;align-items:center;gap:14px}
+.lm-side .vt{font-size:13px;color:#8A7F68;border-left:1.5px solid var(--line);padding-left:10px;height:220px}
+.lm-side .bigseal{width:56px;height:56px;font-size:22px}
+.lm-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.lm-head h2{margin:0;font-family:"Noto Serif SC",serif;font-size:44px;font-weight:900;letter-spacing:.12em;line-height:1.1}
+.worktag{font-size:13px;color:#FBF6EA;background:var(--cinnabar);border-radius:7px;padding:5px 13px;font-family:"Noto Serif SC",serif;letter-spacing:.12em}
+.eratag{font-size:12px;color:var(--indigo);border:1.5px solid var(--indigo);border-radius:7px;padding:4px 11px;font-family:"Noto Serif SC",serif;letter-spacing:.16em}
+.lm-desc{font-size:14.5px;color:#4A4438;line-height:2.1;margin:20px 0 0;text-align:justify;max-width:720px}
+.couplet{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.couplet .half{border:1.5px solid var(--line);border-radius:10px;background:var(--paper2);padding:15px 14px;position:relative}
+.couplet .half:before{content:attr(data-cap);position:absolute;top:-9px;left:11px;background:var(--paper2);padding:0 8px;font-size:10px;color:var(--indigo);letter-spacing:.24em;font-family:"Noto Serif SC",serif}
+.couplet b{display:block;font-size:13px;font-family:"Noto Serif SC",serif;line-height:1.9;font-weight:700}
+.srcnote{margin-top:18px;padding:13px 16px;border-left:3px solid var(--gold);background:rgba(169,129,47,.07);font-size:12.5px;color:#6B6152;line-height:1.95;max-width:720px}
+.srcnote b{color:var(--ink)}
+.actions{display:flex;gap:14px;margin-top:26px}
+
+/* ===== 行路页 ===== */
+.trip-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:18px 0 10px;align-items:start}
+.daycard h4{margin:0 0 6px;font-family:"Noto Serif SC",serif;font-size:18px;font-weight:900;letter-spacing:.08em;display:flex;align-items:center;gap:10px}
+.daycard h4 .days{font-size:11px;color:var(--indigo);border:1.5px solid var(--indigo);border-radius:5px;padding:3px 10px;letter-spacing:.14em}
+.daycard h4 .draft{font-size:11px;color:var(--gold);border:1.5px dashed var(--gold);border-radius:5px;padding:3px 10px;letter-spacing:.14em}
+.roadmap{position:relative;padding-left:28px;margin-top:14px}
+.roadmap:before{content:"";position:absolute;left:9px;top:8px;bottom:14px;width:0;border-left:2px dashed #B9A87F}
+.stop{position:relative;padding-bottom:22px}
+.stop:before{content:"";position:absolute;left:-26px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--paper2);border:2.5px solid var(--cinnabar)}
+.stop.done:before{background:var(--cinnabar)}
+.stop h5{margin:0 0 4px;font-family:"Noto Serif SC",serif;font-size:17px;font-weight:900;letter-spacing:.1em}
+.stop h5 .d{font-size:10px;color:#FBF6EA;background:var(--indigo);border-radius:4px;padding:2px 8px;margin-right:8px;letter-spacing:.12em;vertical-align:3px}
+.stop h5 .ok{color:var(--indigo);font-size:12px;margin-left:8px}
+.stop p{margin:0;font-size:12px;color:#8A7F68;line-height:1.8}
+.trip-foot{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;margin-top:20px}
+.exports{display:flex;gap:10px}
+.exports button{font-size:12.5px;padding:11px 20px;border-radius:8px;border:1.5px solid var(--line);color:var(--ink2);background:var(--paper2);font-family:"Noto Serif SC",serif;letter-spacing:.1em}
+.exports button:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+
+/* ===== 集印册页 ===== */
+.book-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:22px;padding:18px 0 10px;align-items:start}
+.namecard{display:flex;gap:15px;align-items:center;margin-bottom:18px}
+.namecard .bigseal{width:56px;height:56px;font-size:22px}
+.namecard h3{margin:0;font-family:"Noto Serif SC",serif;font-size:19px;font-weight:900;letter-spacing:.12em}
+.namecard p{margin:5px 0 0;font-size:12px;color:#8A7F68;letter-spacing:.08em}
+.stampbook{border:1.5px solid var(--ink);border-radius:12px;background:var(--paper2);padding:24px;position:relative;overflow:hidden}
+.stampbook:before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(169,129,47,.13) 1px,transparent 1.4px);background-size:17px 17px;pointer-events:none}
+.stampbook h4{margin:0 0 3px;font-family:"Noto Serif SC",serif;font-size:21px;font-weight:900;letter-spacing:.2em;text-align:center;position:relative}
+.stampbook small{display:block;text-align:center;font-size:10px;color:#8A7F68;letter-spacing:.36em;margin-bottom:20px;position:relative}
+.stampgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;position:relative}
+.slot{display:flex;flex-direction:column;align-items:center;gap:6px}
+.slot .seal{width:50px;height:50px;font-size:13px;border-radius:10px}
+.slot.empty .seal{border-style:dashed;border-color:#C9BC9C;color:#C9BC9C;transform:rotate(-4deg)}
+.slot small{font-size:10px;color:#8A7F68;letter-spacing:.1em}
+.bookprog{margin-top:20px;text-align:center;font-family:"Ma Shan Zheng",serif;font-size:20px;color:var(--cinnabar);letter-spacing:.24em;position:relative}
+.member{border-radius:12px;padding:18px;border:1.5px solid var(--gold);background:linear-gradient(120deg,rgba(169,129,47,.10),rgba(181,56,42,.05))}
+.member h4{margin:0;font-family:"Noto Serif SC",serif;font-size:16px;letter-spacing:.14em}
+.member p{margin:8px 0 0;font-size:12px;color:#6B6152;line-height:1.85}
+.member .free{display:inline-block;margin-top:10px;font-size:10px;color:var(--indigo);border:1px solid var(--indigo);border-radius:99px;padding:3px 11px}
+.contribute{display:flex;gap:14px;align-items:center;margin-top:16px;width:100%;text-align:left}
+.contribute .ic{flex:0 0 46px;height:46px;border-radius:10px;display:grid;place-items:center;font-size:21px;border:1.5px solid var(--cinnabar);color:var(--cinnabar);background:rgba(181,56,42,.05)}
+.contribute h5{margin:0 0 4px;font-family:"Noto Serif SC",serif;font-size:14.5px;letter-spacing:.1em}
+.contribute p{margin:0;font-size:12px;color:#8A7F68;line-height:1.7}
+.contribute .arr{margin-left:auto;color:var(--cinnabar)}
+
+/* ===== 钤印弹层 ===== */
+.modal{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(38,34,28,.55);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.show{opacity:1;pointer-events:auto}
+.modal-box{width:min(330px,92vw);border-radius:14px;border:1.5px solid var(--ink);background:var(--paper2);padding:22px;text-align:center;transform:scale(.92);transition:transform .25s;box-shadow:0 24px 60px rgba(38,34,28,.35)}
+.modal.show .modal-box{transform:none}
+.paper-area{height:180px;border:1.5px dashed #C9BC9C;border-radius:10px;display:grid;place-items:center;background:var(--paper);position:relative;overflow:hidden}
+.paper-area .hint-ink{font-size:13px;color:#B9A87F;letter-spacing:.24em;font-family:"Noto Serif SC",serif;transition:opacity .3s}
+.bigseal-stamp{position:absolute;width:100px;height:100px;border:4px solid var(--cinnabar);border-radius:14px;color:var(--cinnabar);display:grid;place-items:center;font-family:"Noto Serif SC",serif;font-weight:900;font-size:26px;letter-spacing:.06em;line-height:1.2;transform:rotate(-14deg) scale(2.4);opacity:0;box-shadow:inset 0 0 18px rgba(181,56,42,.22),0 10px 30px rgba(181,56,42,.25)}
+.modal-box.done .bigseal-stamp{animation:stampdown .5s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes stampdown{to{transform:rotate(-14deg) scale(1);opacity:1}}
+.modal-box h4{margin:16px 0 4px;font-family:"Noto Serif SC",serif;font-size:18px;letter-spacing:.16em}
+.modal-box p{margin:0;font-size:12px;color:#8A7F68;line-height:1.8;min-height:36px}
+.modal-box p b{color:var(--gold)}
+.modal-close{margin-top:15px;width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--ink);color:var(--ink);font-weight:700;font-family:"Noto Serif SC",serif;letter-spacing:.16em}
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);background:var(--ink);color:var(--paper);font-size:13px;padding:11px 18px;border-radius:10px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:82vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.site-foot{margin-top:56px;border-top:1px solid #C9BC9C;padding:22px 0 42px;display:flex;justify-content:space-between;gap:16px;font-size:11.5px;color:#8A7F68;letter-spacing:.1em;flex-wrap:wrap}
+
+@media(max-width:1140px){.nav-search{display:none}}
+@media(max-width:980px){
+  .hero,.hero-sub,.lm-grid,.trip-grid,.book-grid{grid-template-columns:1fr}
+  .couplet{grid-template-columns:1fr 1fr}
+  .scroll-grid{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+  .hero-vt .big{writing-mode:horizontal-tb;font-size:40px}
+  .stampgrid{grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:600px){.scroll-grid,.couplet{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="labbar"><div class="wrap">
+  <span><b>Web 桌面版</b> · 方案 B 山河印迹 · 新国潮</span>
+  <span class="links"><a href="index.html">← 方案总览</a><a href="scheme-b-guochao.html">移动版预览</a></span>
+</div></div>
+
+<header class="site-nav"><div class="wrap">
+  <a class="logo" href="#" data-go="view-home"><i>印</i>山河印迹</a>
+  <nav class="nav-links">
+    <a href="#" class="on" data-go="view-home">览胜</a>
+    <a href="#" data-go="view-landmark">地标</a>
+    <a href="#" data-go="view-trip">行路</a>
+    <a href="#" data-go="view-me">集印册</a>
+  </nav>
+  <div class="nav-right">
+    <button class="nav-search" data-toast="正式入口：GET /search?q=…（全站统一检索）">⌕ 检索作品或地标</button>
+    <span class="avatar" data-go="view-me">默</span>
+  </div>
+</div></header>
+
+<main class="wrap">
+
+  <!-- ====== 览胜 ====== -->
+  <section class="view active" id="view-home">
+    <div class="hero">
+      <div class="hero-vt">
+        <span class="side vt">已核验 · 方可入册</span>
+        <span class="big vt">山河印迹</span>
+      </div>
+      <div class="hero-main">
+        <div class="shan">
+          <svg viewBox="0 0 880 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="山水横幅：层峦与朱日">
+            <rect width="880" height="260" fill="#EDE4CE"/>
+            <circle cx="726" cy="76" r="34" fill="#B5382A" opacity=".88"/>
+            <circle cx="726" cy="76" r="43" fill="none" stroke="#B5382A" stroke-width="1" opacity=".35"/>
+            <path d="M-10 208 Q150 92 320 176 T560 156 Q680 108 820 172 T900 156 V266 H-10 Z" fill="#33565B" opacity=".20"/>
+            <path d="M-10 222 Q180 128 400 204 T680 188 Q780 148 900 204 V268 H-10 Z" fill="#33565B" opacity=".38"/>
+            <path d="M-10 238 Q240 172 480 234 T900 228 V272 H-10 Z" fill="#26221C" opacity=".62"/>
+            <g stroke="#26221C" stroke-width="2" fill="none" opacity=".8">
+              <path d="M300 176 L300 142 M290 152 L300 142 L310 152 M286 162 L300 148 L314 162"/>
+            </g>
+            <path d="M40 218 q14 -7 28 0 t28 0 M120 232 q14 -7 28 0 t28 0 M600 226 q14 -7 28 0 t28 0 M680 238 q14 -7 28 0 t28 0" stroke="#33565B" stroke-width="1.6" fill="none" opacity=".5"/>
+          </svg>
+          <div class="shan-inner"><small>PRINT OF THE DAY</small><h2>今日印迹 · 应县木塔</h2></div>
+          <button class="go" data-go="view-landmark">观此印 →</button>
+        </div>
+        <div class="hero-sub">
+          <p class="poem">一步一印 · 走进书里的山河<small>WORLD IN BOOKS · MARKS ON MAPS</small></p>
+          <form class="hero-search" id="hero-search">
+            <input placeholder="检索作品或地标，如「边城」「佛光寺」" aria-label="搜索">
+            <button type="submit">检 索</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="gates">
+      <button class="gate g1" data-toast="正式入口：/literature 文学地标目录"><b>文 学</b><small>LITERATURE</small></button>
+      <button class="gate g2" data-toast="正式入口：/games 游戏地标目录"><b>游 戏</b><small>GAMES</small></button>
+      <button class="gate g3" data-toast="正式入口：/screen 影视地标目录"><b>影 视</b><small>SCREEN</small></button>
+    </div>
+
+    <div class="sec"><h3>入册推荐</h3><span>已审核发布</span></div>
+    <div class="scroll-grid">
+      <button class="scroll-card" data-go="view-landmark">
+        <span class="art a1"><span class="era" style="background:var(--cinnabar)">辽</span><span class="seal">塔</span></span>
+        <span class="body"><h4>应县木塔</h4><p>黑神话：悟空 · 山西朔州 · 佛宫寺内</p></span>
+      </button>
+      <button class="scroll-card" data-toast="正式入口：边城茶峒古镇详情页（湘西花垣县）">
+        <span class="art a2"><span class="era" style="background:var(--indigo)">渡</span><span class="seal indigo">边</span></span>
+        <span class="body"><h4>边城茶峒古镇</h4><p>边城 · 湖南湘西 · 清水江渡口</p></span>
+      </button>
+      <button class="scroll-card" data-toast="正式入口：外白渡桥详情页（上海）">
+        <span class="art a3"><span class="era" style="background:var(--gold)">桥</span><span class="seal gold">子</span></span>
+        <span class="body"><h4>外白渡桥</h4><p>子夜 · 上海黄浦 · 苏州河河口</p></span>
+      </button>
+    </div>
+
+    <div class="sec"><h3>新近入册</h3><span>FRESH</span></div>
+    <div class="pillrow">
+      <button class="pill" data-toast="正式入口：地坛公园详情页（我与地坛 · 北京）">地坛公园 · 我与地坛</button>
+      <button class="pill" data-toast="正式入口：开封府详情页（燕云十六声 · 河南）">开封府 · 燕云十六声</button>
+      <button class="pill" data-toast="正式入口：纯真博物馆详情页（帕慕克 · 伊斯坦布尔）">纯真博物馆 · 伊斯坦布尔</button>
+      <button class="pill" data-toast="正式入口：百草园与三味书屋详情页（朝花夕拾 · 绍兴）">百草园与三味书屋 · 绍兴</button>
+    </div>
+    <div class="warn">所有地点均经人工审核后发布，并保留作品关联、现实地址与信息来源，方便出发前逐条核验。</div>
+  </section>
+
+  <!-- ====== 地标 ====== -->
+  <section class="view" id="view-landmark">
+    <p class="crumb">地标 · 第二印 · 应县木塔</p>
+    <div class="lm-grid">
+      <div class="lm-side">
+        <span class="vt">山西 · 朔州 · 应县</span>
+        <span class="seal bigseal">塔</span>
+      </div>
+      <div>
+        <div class="lm-head">
+          <h2>应县木塔</h2>
+          <span class="worktag">黑神话：悟空 · 游戏</span>
+          <span class="eratag">辽代木构</span>
+        </div>
+        <p class="lm-desc">应县木塔是游戏山西古建取材中辨识度极高的原型之一，为建筑尺度与木构细节提供现实参照。塔建于辽代，位于应县佛宫寺内，是现存著名木塔；登临与拍摄须遵守遗产保护安排。</p>
+        <div class="couplet">
+          <div class="half" data-cap="地址"><b>山西省朔州市应县<br>佛宫寺内</b></div>
+          <div class="half" data-cap="行至"><b>大同或朔州乘班线<br>至应县县城</b></div>
+          <div class="half" data-cap="开放"><b>以景区官方公告为准</b></div>
+          <div class="half" data-cap="图谱"><b>静态参考点位<br>不提供实时导航</b></div>
+        </div>
+        <div class="srcnote">① 信息来源：条目登记官方 / 机构来源与更新时间，详情页可逐条核验——<b>这是本产品的底线体验</b>。</div>
+        <div class="actions">
+          <button class="btn primary" data-toast="已纳入「晋北木构行路图」（正式调用行程接口）">纳入行路图</button>
+          <button class="btn ghost" onclick="openStamp()">钤 印 <span class="prop">提案</span></button>
+          <button class="btn" style="border-style:dashed;border-color:var(--line);color:var(--ink2)" data-toast="正式入口：/maps/games 静态参考地图（会员可用）">观其图谱</button>
+        </div>
+        <div class="sec" style="margin:34px 0 14px"><h3 style="font-size:17px">同卷地标</h3><span>同 · 黑神话：悟空</span></div>
+        <div class="pillrow">
+          <button class="pill" data-toast="正式入口：小西天详情页（山西临汾隰县）">小西天 · 明代悬塑</button>
+          <button class="pill" data-toast="正式入口：佛光寺详情页（山西忻州五台）">佛光寺 · 唐代木构</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== 行路 ====== -->
+  <section class="view" id="view-trip">
+    <div class="sec" style="margin-top:34px"><h3>行路图</h3><span>两卷在手 · 可编辑</span></div>
+    <div class="trip-grid">
+      <div class="card daycard">
+        <h4>晋北木构行路图 <span class="days">两日</span></h4>
+        <div class="roadmap">
+          <div class="stop done"><h5><span class="d">初日</span>小西天<span class="ok">✓ 已钤印</span></h5><p>临汾市隰县凤凰山 · 明代悬塑艺术</p></div>
+          <div class="stop done"><h5><span class="d">初日</span>应县木塔<span class="ok">✓ 已钤印</span></h5><p>朔州市应县佛宫寺 · 辽代木塔</p></div>
+          <div class="stop"><h5><span class="d">次日</span>佛光寺</h5><p>忻州市五台县豆村镇 · 唐代木构东大殿</p></div>
+        </div>
+      </div>
+      <div class="card daycard">
+        <h4>汴京寻宋录 <span class="draft">草稿</span></h4>
+        <div class="roadmap">
+          <div class="stop"><h5><span class="d">一日</span>开封府</h5><p>河南开封 · 《燕云十六声》城市想象的现实参考</p></div>
+          <div class="stop"><h5><span class="d">一日</span>候选 · 待补</h5><p>可从目录继续添加已发布地标</p></div>
+        </div>
+        <div class="warn" style="margin-top:16px">行路由已发布地标编排而成；交通、票价、开放与预约信息请以官方渠道为准。行程生成后可在详情页继续编辑与导出。</div>
+      </div>
+    </div>
+    <div class="trip-foot">
+      <div class="exports">
+        <button data-toast="正式导出：行程 HTML">文牒 HTML</button>
+        <button data-toast="正式导出：行程 DOCX">DOCX</button>
+        <button data-toast="正式导出：行程 XLSX">XLSX</button>
+      </div>
+      <button class="btn primary" data-toast="正式入口：POST /api/v1/itineraries/finalize（仅限中国大陆境内）">另起一行路</button>
+    </div>
+  </section>
+
+  <!-- ====== 集印册 ====== -->
+  <section class="view" id="view-me">
+    <div class="sec" style="margin-top:34px"><h3>山河集印册</h3><span>COLLECTOR · 五印在册</span></div>
+    <div class="book-grid">
+      <div>
+        <div class="namecard">
+          <span class="seal bigseal">默</span>
+          <div><h3>行者 · 阿默</h3><p>入册 142 天 · 共创署名 2 条 · 足迹 23 地标</p></div>
+        </div>
+        <div class="stampbook">
+          <h4>印 谱</h4>
+          <small>FIVE MARKS COLLECTED</small>
+          <div class="stampgrid">
+            <span class="slot"><span class="seal" style="font-size:12px">佛光寺</span><small>佛光寺</small></span>
+            <span class="slot"><span class="seal" style="font-size:13px;line-height:1.25">应县<br>木塔</span><small>应县木塔</small></span>
+            <span class="slot"><span class="seal indigo" style="font-size:12px">地坛</span><small>地坛公园</small></span>
+            <span class="slot"><span class="seal indigo" style="font-size:12px">茶峒</span><small>边城茶峒</small></span>
+            <span class="slot"><span class="seal gold" style="font-size:13px;line-height:1.25">外白<br>渡桥</span><small>外白渡桥</small></span>
+            <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+            <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+            <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+            <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+            <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+            <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+            <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+          </div>
+          <p class="bookprog">已得五印 · 行至水穷处</p>
+        </div>
+      </div>
+      <aside>
+        <div class="member">
+          <h4>◈ 藏馆通行证</h4>
+          <p>解锁完整静态地图图层与成员权益；<b>目录检索与导出（CSV / XLSX）对所有人免费</b>。</p>
+          <span class="free">免费承诺 · 目录与导出</span>
+        </div>
+        <button class="card contribute" data-toast="正式入口：/intake —— 一句话一键入库；审核发布后署名">
+          <span class="ic">墨</span>
+          <span style="text-align:left;flex:1"><h5>投新印 · 共创条目</h5><p>把新发现的取景地写成条目：登录后一句话一键入库，审核发布后署名。</p></span>
+          <span class="arr">→</span>
+        </button>
+        <div class="warn">「集印册 / 钤印」为视觉提案：当前后端尚未提供打卡与收集接口，落地时需新增服务并保持与「已核验发布」数据一致。</div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot wrap"><span>WORLDMARK · 山河印迹 — WEB CONCEPT</span><span>数据：data/seed · 静态参考地图 · 目录与导出免费</span></footer>
+
+<div class="modal" id="stamp-modal" role="dialog" aria-modal="true" aria-label="钤印演示">
+  <div class="modal-box" id="stamp-box">
+    <div class="paper-area">
+      <span class="hint-ink" id="stamp-hint">按 印 为 记 · 落 印 有 声</span>
+      <span class="bigseal-stamp">应县<br>木塔</span>
+    </div>
+    <h4>钤印 · 应县木塔</h4>
+    <p id="stamp-msg">即将落于「山河集印册」<br><b>提案功能</b>：正式版需新增打卡接口</p>
+    <button class="modal-close" onclick="closeStamp()">收起</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+var toast=document.getElementById('toast'),timer;
+function tell(m){toast.textContent=m;toast.classList.add('show');clearTimeout(timer);timer=setTimeout(function(){toast.classList.remove('show')},2600)}
+function go(id){
+  var vs=document.querySelectorAll('.view');
+  for(var i=0;i<vs.length;i++){vs[i].classList.toggle('active',vs[i].id===id)}
+  document.querySelectorAll('.nav-links a').forEach(function(a){a.classList.toggle('on',a.dataset.go===id)});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('[data-go]').forEach(function(n){n.addEventListener('click',function(e){e.preventDefault();go(n.dataset.go)})});
+document.querySelectorAll('[data-toast]').forEach(function(n){n.addEventListener('click',function(e){e.preventDefault();tell(n.dataset.toast)})});
+document.getElementById('hero-search').addEventListener('submit',function(e){e.preventDefault();tell('正式入口：/search?q=…（全站统一检索）')});
+function openStamp(){
+  var m=document.getElementById('stamp-modal'),b=document.getElementById('stamp-box');
+  m.classList.add('show');b.classList.remove('done');
+  document.getElementById('stamp-hint').style.opacity=1;
+  setTimeout(function(){
+    b.classList.add('done');
+    document.getElementById('stamp-hint').style.opacity=0;
+    document.getElementById('stamp-msg').innerHTML='已钤「应县木塔」印 · 集印 +1<br>（演示动效）';
+  },420);
+}
+function closeStamp(){document.getElementById('stamp-modal').classList.remove('show')}
+</script>
+</body>
+</html>

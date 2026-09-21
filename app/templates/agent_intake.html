@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/agent.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="page-shell agent-shell">
+      <p class="eyebrow">AI 助手 · 数据入口</p>
+      <h1>一键入库</h1>
+      <p class="page-lead">
+        用一句话描述「作品 + 地标」，例如 <em>「《黑神话：悟空》 小西天」</em>或<em>「金庸《射雕英雄传》 华山」</em>。
+        AI 会解析你的输入、联网核实现实资料、生成三段式简介并补全坐标，一键生成候选地标条目。
+        候选条目不会直接公开，需管理员审核发布后才会出现在目录中。
+      </p>
+      <form id="intake-form" class="intake-form">
+        <label class="intake-label" for="intake-input">作品与地标</label>
+        <textarea id="intake-input" name="input" rows="3" maxlength="500" required
+          placeholder="例如：《黑神话：悟空》 小西天&#10;也可只写作品名，AI 会选择其最具代表性的现实地标"></textarea>
+        <div class="intake-examples">
+          <span>试试：</span>
+          <button type="button" class="example-chip">《黑神话：悟空》 小西天</button>
+          <button type="button" class="example-chip">《情书》 小樽运河</button>
+          <button type="button" class="example-chip">《狂飙》 江门长堤历史街区</button>
+        </div>
+        <button id="intake-submit" class="primary-button" type="submit">AI 分析并入库</button>
+        <p id="intake-status" class="intake-status" role="status"></p>
+        <p id="intake-error" class="form-error" role="alert"></p>
+      </form>
+      <section id="intake-result" class="intake-result hidden"></section>
+    </main>
+    {% include "_footer.html" %}
+    <script src="/static/js/landmark-agent.js"></script>
+  </body>
+</html>

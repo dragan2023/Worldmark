@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>方案 B · 山河印迹 — Worldmark IP 地标旅游</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@400;500;700&family=Ma+Shan+Zheng&display=swap');
+:root{
+  --paper:#F6F0E1; --paper2:#FBF6EA; --ink:#26221C; --ink2:#6B6152; --line:#D8CDB4;
+  --cinnabar:#B5382A; --indigo:#33565B; --gold:#A9812F;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;background:#E8E0CC;background-image:radial-gradient(rgba(169,129,47,.10) 1px,transparent 1.5px);background-size:26px 26px;-webkit-font-smoothing:antialiased}
+a{color:inherit}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2.5px solid var(--cinnabar);outline-offset:2px;border-radius:6px}
+.serif{font-family:"Noto Serif SC","Songti SC",serif}
+.hand{font-family:"Ma Shan Zheng","Noto Serif SC",serif}
+
+/* ====== 实验室页头 ====== */
+.lab{max-width:1420px;margin:auto;padding:26px clamp(14px,4vw,52px) 10px}
+.lab-top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.lab-brand{display:flex;align-items:center;gap:10px;font-weight:700;color:#5C5342}
+.lab-brand i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;border-radius:7px;background:var(--ink);color:var(--paper);font-family:"Noto Serif SC",serif;font-weight:900}
+.back{color:#6B6152;font-size:13px;text-decoration:none;border:1px solid #C4B898;border-radius:999px;padding:7px 14px;background:var(--paper)}
+.back:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.lab h1{margin:16px 0 8px;font-size:clamp(30px,4.4vw,52px);font-family:"Noto Serif SC",serif;font-weight:900;letter-spacing:.06em}
+.lab h1 em{font-style:normal;font-size:.4em;letter-spacing:.3em;color:var(--cinnabar);vertical-align:.5em;border:1.5px solid var(--cinnabar);border-radius:6px;padding:2px 8px;margin-left:10px}
+.lab-desc{max-width:760px;color:#6B6152;font-size:14px;line-height:1.9;margin:0}
+.lab-desc b{color:var(--ink)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 6px}
+.tag{font-size:12px;color:var(--indigo);border:1px solid rgba(51,86,91,.45);border-radius:6px;padding:5px 12px;background:rgba(51,86,91,.06)}
+.tag.red{color:var(--cinnabar);border-color:rgba(181,56,42,.45);background:rgba(181,56,42,.06)}
+.tag.gold{color:var(--gold);border-color:rgba(169,129,47,.5);background:rgba(169,129,47,.07)}
+.swatches{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px}
+.sw{display:flex;align-items:center;gap:7px;font-size:11px;color:#6B6152}
+.sw i{width:20px;height:20px;border-radius:6px;border:1px solid rgba(38,34,28,.25)}
+
+/* ====== 舞台 ====== */
+.stage{max-width:1420px;margin:auto;padding:8px clamp(14px,4vw,52px) 30px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:34px;align-items:start}
+@media(max-width:1080px){.stage{grid-template-columns:1fr}}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chips button{font-size:12.5px;color:#6B6152;border:1px solid #C4B898;border-radius:8px;padding:8px 16px;background:var(--paper)}
+.chips button.on{color:#FBF6EA;background:var(--cinnabar);border-color:var(--cinnabar);font-weight:700}
+.hint{color:#8A7F68;font-size:12px}
+
+/* ====== 手机 ====== */
+.phone{position:relative;width:390px;height:844px;max-width:96vw;border-radius:44px;background:var(--paper);border:9px solid #2A251E;box-shadow:0 0 0 1px rgba(38,34,28,.35),0 30px 80px rgba(38,34,28,.4);overflow:hidden}
+.phone:before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:112px;height:26px;border-radius:999px;background:#2A251E;z-index:60}
+.statusbar{position:absolute;z-index:55;top:12px;left:0;right:0;display:flex;justify-content:space-between;padding:6px 26px 0;font-size:13px;font-weight:700;color:var(--ink);font-family:"Noto Serif SC",serif}
+.screens{position:absolute;inset:0}
+.app-screen{position:absolute;inset:0;overflow-y:auto;padding:54px 16px 96px;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .3s,transform .3s;scrollbar-width:none}
+.app-screen::-webkit-scrollbar{display:none}
+.app-screen.active{opacity:1;transform:none;pointer-events:auto}
+
+/* ====== 组件 ====== */
+.card{background:var(--paper2);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:0 2px 0 rgba(38,34,28,.05)}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:20px 2px 10px}
+.sec h3{margin:0;font-size:16px;font-family:"Noto Serif SC",serif;font-weight:900;letter-spacing:.08em}
+.sec h3:before{content:"❖";color:var(--cinnabar);margin-right:7px;font-size:12px}
+.sec span{font-size:11px;color:#8A7F68;letter-spacing:.12em}
+.seal{display:inline-grid;place-items:center;width:36px;height:36px;border:2.5px solid var(--cinnabar);border-radius:8px;color:var(--cinnabar);font-family:"Noto Serif SC",serif;font-weight:900;font-size:15px;transform:rotate(6deg);line-height:1}
+.seal.indigo{border-color:var(--indigo);color:var(--indigo)}
+.seal.gold{border-color:var(--gold);color:var(--gold)}
+.btn{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;padding:13px;border-radius:10px;font-weight:700;font-size:14.5px;font-family:"Noto Serif SC",serif;letter-spacing:.14em;border:1.5px solid var(--ink);background:var(--paper2);transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--cinnabar);border-color:var(--cinnabar);color:#FBF6EA;box-shadow:3px 3px 0 rgba(181,56,42,.25)}
+.btn.ghost{border-style:dashed;color:var(--indigo);border-color:var(--indigo)}
+.prop{display:inline-flex;align-items:center;font-size:10px;letter-spacing:.1em;color:var(--gold);border:1px solid var(--gold);border-radius:4px;padding:1px 6px;font-family:"Noto Sans SC";vertical-align:2px}
+.pillrow{display:flex;gap:8px;overflow-x:auto;padding:2px;scrollbar-width:none}
+.pillrow::-webkit-scrollbar{display:none}
+.pill{flex:0 0 auto;font-size:12.5px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);color:var(--ink);background:var(--paper2);white-space:nowrap;font-family:"Noto Serif SC",serif}
+.pill.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.vt{writing-mode:vertical-rl;letter-spacing:.3em;font-family:"Noto Serif SC",serif}
+
+/* ====== 发现页 ====== */
+.toprow{display:flex;justify-content:space-between;align-items:center}
+.toprow .date{font-size:12px;color:#8A7F68;letter-spacing:.1em}
+.jieqi{display:flex;align-items:center;gap:8px;font-family:"Noto Serif SC",serif;font-weight:700;color:var(--cinnabar);font-size:14px}
+.jieqi i{font-style:normal;display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid var(--cinnabar);border-radius:6px;font-size:12px;transform:rotate(4deg)}
+.search{display:flex;align-items:center;gap:9px;background:var(--paper2);border:1.5px solid var(--ink);border-radius:10px;padding:12px 14px;color:#8A7F68;font-size:13.5px;width:100%;margin-top:12px;font-family:"Noto Serif SC",serif}
+.search i{font-style:normal;color:var(--cinnabar)}
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.gate{border:1.5px solid var(--ink);border-radius:10px;background:var(--paper2);padding:13px 8px 11px;text-align:center;transition:transform .15s}
+.gate:hover{transform:translateY(-2px)}
+.gate b{display:block;font-family:"Noto Serif SC",serif;font-size:17px;letter-spacing:.2em;margin-bottom:3px}
+.gate small{font-size:10px;color:#8A7F68;letter-spacing:.16em}
+.gate.g1 b{color:var(--indigo)}.gate.g2 b{color:var(--cinnabar)}.gate.g3 b{color:var(--gold)}
+.shan{position:relative;margin-top:14px;border-radius:12px;overflow:hidden;border:1.5px solid var(--ink)}
+.shan svg{display:block;width:100%}
+.shan-inner{position:absolute;left:14px;top:12px}
+.shan-inner small{display:block;font-size:10px;letter-spacing:.28em;color:var(--indigo);margin-bottom:4px}
+.shan-inner h2{margin:0;font-family:"Noto Serif SC",serif;font-size:21px;font-weight:900;letter-spacing:.1em}
+.shan-inner .go{position:absolute;left:0;top:66px}
+.shan .go{display:inline-flex;align-items:center;gap:6px;margin-top:9px;font-size:12px;color:var(--cinnabar);border:1.5px solid var(--cinnabar);border-radius:999px;padding:5px 13px;background:rgba(246,240,225,.9);font-family:"Noto Serif SC",serif;letter-spacing:.1em}
+.poem{margin-top:12px;text-align:center;font-family:"Ma Shan Zheng",serif;font-size:19px;color:var(--ink);letter-spacing:.24em}
+.poem small{display:block;font-family:"Noto Sans SC";font-size:10px;color:#8A7F68;letter-spacing:.4em;margin-top:3px}
+.cloudline{display:block;width:100%;margin:10px 0 0}
+.hlist{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.hlist::-webkit-scrollbar{display:none}
+.scroll-card{flex:0 0 172px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper2);overflow:hidden;text-align:left;padding:0;position:relative;transition:transform .15s}
+.scroll-card:hover{transform:translateY(-3px)}
+.scroll-card .art{height:96px;position:relative;display:block}
+.scroll-card .art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(38,34,28,.18),transparent 40%)}
+.scroll-card .seal{position:absolute;top:7px;right:7px;width:28px;height:28px;font-size:11px;background:rgba(251,246,234,.85);z-index:2}
+.scroll-card .body{display:block;padding:10px 12px 12px}
+.scroll-card h4{margin:0 0 3px;font-family:"Noto Serif SC",serif;font-size:15px;font-weight:900;letter-spacing:.06em}
+.scroll-card p{margin:0;font-size:11px;color:#8A7F68}
+.scroll-card .era{position:absolute;left:7px;top:7px;z-index:2;font-size:10px;font-family:"Noto Serif SC",serif;color:#FBF6EA;padding:2px 7px;border-radius:4px;letter-spacing:.14em}
+.a1{background:linear-gradient(150deg,#33565B,#6E8F7C 70%,#C9B87A)}
+.a2{background:linear-gradient(150deg,#7A4A3A,#B58B4C 65%,#D8C98F)}
+.a3{background:linear-gradient(150deg,#2E4057,#5F7A8C 70%,#C0CCC0)}
+
+/* ====== 详情页 ====== */
+.navrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.iconbtn{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--ink);background:var(--paper2);display:grid;place-items:center;font-size:15px}
+.lm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.lm-head h2{margin:0;font-family:"Noto Serif SC",serif;font-size:30px;font-weight:900;letter-spacing:.1em;line-height:1.25}
+.lm-head .vt{font-size:11px;color:#8A7F68;border-left:1.5px solid var(--line);padding-left:8px;height:74px}
+.workrow{display:flex;align-items:center;gap:9px;margin:10px 2px 0}
+.worktag{font-size:12px;color:#FBF6EA;background:var(--cinnabar);border-radius:6px;padding:4px 10px;font-family:"Noto Serif SC",serif;letter-spacing:.1em}
+.eratag{font-size:11px;color:var(--indigo);border:1.5px solid var(--indigo);border-radius:6px;padding:3px 9px;font-family:"Noto Serif SC",serif;letter-spacing:.14em}
+.lm-desc{font-size:13px;color:#4A4438;line-height:2.05;margin:14px 2px 0;text-align:justify}
+.couplet{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.couplet .half{border:1.5px solid var(--line);border-radius:10px;background:var(--paper2);padding:12px;position:relative}
+.couplet .half:before{content:attr(data-cap);position:absolute;top:-9px;left:10px;background:var(--paper2);padding:0 7px;font-size:10px;color:var(--indigo);letter-spacing:.2em;font-family:"Noto Serif SC",serif}
+.couplet b{display:block;font-size:12.5px;font-family:"Noto Serif SC",serif;line-height:1.8;font-weight:700}
+.srcnote{margin-top:14px;padding:11px 13px;border-left:3px solid var(--gold);background:rgba(169,129,47,.07);font-size:11.5px;color:#6B6152;line-height:1.9}
+.srcnote b{color:var(--ink)}
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+
+/* ====== 行路页 ====== */
+.roadmap{position:relative;padding-left:26px;margin-top:6px}
+.roadmap:before{content:"";position:absolute;left:8px;top:8px;bottom:12px;width:0;border-left:2px dashed #B9A87F}
+.stop{position:relative;padding-bottom:20px}
+.stop:before{content:"";position:absolute;left:-23px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--paper2);border:2.5px solid var(--cinnabar)}
+.stop.done:before{background:var(--cinnabar)}
+.stop h5{margin:0 0 4px;font-family:"Noto Serif SC",serif;font-size:16px;font-weight:900;letter-spacing:.08em}
+.stop h5 .d{font-size:10px;color:#FBF6EA;background:var(--indigo);border-radius:4px;padding:2px 7px;margin-right:7px;letter-spacing:.1em;vertical-align:2px}
+.stop h5 .ok{color:var(--indigo);font-size:11px;margin-left:7px}
+.stop p{margin:0;font-size:11.5px;color:#8A7F68;line-height:1.8}
+.daycard{margin-bottom:14px}
+.daycard h4{margin:0 0 4px;font-family:"Noto Serif SC",serif;font-size:16px;font-weight:900;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+.daycard h4 .days{font-size:10px;color:var(--indigo);border:1.5px solid var(--indigo);border-radius:5px;padding:2px 8px;letter-spacing:.12em}
+.daycard h4 .draft{font-size:10px;color:var(--gold);border:1.5px dashed var(--gold);border-radius:5px;padding:2px 8px;letter-spacing:.12em}
+.exports{display:flex;gap:8px;margin-top:12px}
+.exports button{flex:1;font-size:12px;padding:9px 4px;border-radius:8px;border:1.5px solid var(--line);color:var(--ink2);background:var(--paper2);font-family:"Noto Serif SC",serif;letter-spacing:.08em}
+.exports button:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.warn{margin-top:14px;padding:11px 13px;border:1.5px dashed var(--line);border-radius:10px;font-size:11px;color:#8A7F68;line-height:1.9}
+
+/* ====== 集印册页 ====== */
+.me-card{display:flex;gap:13px;align-items:center;padding:15px}
+.me-card .bigseal{width:54px;height:54px;font-size:22px}
+.me-card h3{margin:0;font-family:"Noto Serif SC",serif;font-size:17px;font-weight:900;letter-spacing:.1em}
+.me-card p{margin:4px 0 0;font-size:11.5px;color:#8A7F68;letter-spacing:.06em}
+.stampbook{margin-top:14px;border:1.5px solid var(--ink);border-radius:12px;background:var(--paper2);padding:16px;position:relative;overflow:hidden}
+.stampbook:before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(169,129,47,.13) 1px,transparent 1.4px);background-size:17px 17px;pointer-events:none}
+.stampbook h4{margin:0 0 2px;font-family:"Noto Serif SC",serif;font-size:17px;font-weight:900;letter-spacing:.16em;text-align:center;position:relative}
+.stampbook small{display:block;text-align:center;font-size:10px;color:#8A7F68;letter-spacing:.3em;margin-bottom:14px;position:relative}
+.stampgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;position:relative}
+.slot{display:flex;flex-direction:column;align-items:center;gap:5px}
+.slot .seal{width:44px;height:44px;font-size:13px;border-radius:9px}
+.slot.empty .seal{border-style:dashed;border-color:#C9BC9C;color:#C9BC9C;transform:rotate(-4deg)}
+.slot small{font-size:9.5px;color:#8A7F68;letter-spacing:.08em}
+.bookprog{margin-top:14px;text-align:center;font-family:"Ma Shan Zheng",serif;font-size:16px;color:var(--cinnabar);letter-spacing:.2em;position:relative}
+.member{margin-top:14px;border-radius:12px;padding:14px;border:1.5px solid var(--gold);background:linear-gradient(120deg,rgba(169,129,47,.10),rgba(181,56,42,.05))}
+.member h4{margin:0;font-family:"Noto Serif SC",serif;font-size:14.5px;letter-spacing:.12em}
+.member p{margin:6px 0 0;font-size:11.5px;color:#6B6152;line-height:1.8}
+.member .free{display:inline-block;margin-top:8px;font-size:10px;color:var(--indigo);border:1px solid var(--indigo);border-radius:99px;padding:2px 9px}
+.contribute{display:flex;gap:12px;align-items:center;margin-top:14px}
+.contribute .ic{flex:0 0 42px;height:42px;border-radius:10px;display:grid;place-items:center;font-size:19px;border:1.5px solid var(--cinnabar);color:var(--cinnabar);background:rgba(181,56,42,.05)}
+.contribute h5{margin:0 0 3px;font-family:"Noto Serif SC",serif;font-size:13.5px;letter-spacing:.08em}
+.contribute p{margin:0;font-size:11.5px;color:#8A7F68;line-height:1.7}
+.contribute .arr{margin-left:auto;color:var(--cinnabar)}
+
+/* ====== 底部标签栏 ====== */
+.tabbar{position:absolute;z-index:50;left:12px;right:12px;bottom:12px;display:flex;border-radius:14px;border:1.5px solid var(--ink);background:rgba(42,37,30,.96);padding:7px;box-shadow:0 8px 22px rgba(38,34,28,.28)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 5px;font-size:10.5px;color:#B7AB90;font-family:"Noto Serif SC",serif;letter-spacing:.14em;border-radius:9px;position:relative}
+.tab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:#FBF6EA;font-weight:700}
+.tab.on:before{content:"";position:absolute;inset:0;border-radius:9px;background:var(--cinnabar)}
+
+/* ====== 钤印弹层 ====== */
+.modal{position:absolute;inset:0;z-index:70;display:grid;place-items:center;background:rgba(38,34,28,.55);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.show{opacity:1;pointer-events:auto}
+.modal-box{width:300px;border-radius:14px;border:1.5px solid var(--ink);background:var(--paper2);padding:20px;text-align:center;transform:scale(.92);transition:transform .25s;box-shadow:0 24px 60px rgba(38,34,28,.35)}
+.modal.show .modal-box{transform:none}
+.paper-area{height:170px;border:1.5px dashed #C9BC9C;border-radius:10px;display:grid;place-items:center;background:var(--paper);position:relative;overflow:hidden}
+.paper-area .hint-ink{font-size:12px;color:#B9A87F;letter-spacing:.2em;font-family:"Noto Serif SC",serif}
+.bigseal-stamp{position:absolute;width:96px;height:96px;border:4px solid var(--cinnabar);border-radius:14px;color:var(--cinnabar);display:grid;place-items:center;font-family:"Noto Serif SC",serif;font-weight:900;font-size:26px;letter-spacing:.06em;line-height:1.15;transform:rotate(-14deg) scale(2.4);opacity:0;box-shadow:inset 0 0 18px rgba(181,56,42,.22),0 10px 30px rgba(181,56,42,.25)}
+.modal-box.done .bigseal-stamp{animation:stampdown .5s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes stampdown{to{transform:rotate(-14deg) scale(1);opacity:1}}
+.modal-box h4{margin:14px 0 4px;font-family:"Noto Serif SC",serif;font-size:17px;letter-spacing:.14em}
+.modal-box p{margin:0;font-size:12px;color:#8A7F68;line-height:1.8;min-height:36px}
+.modal-box p b{color:var(--gold)}
+.modal-close{margin-top:14px;width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--ink);color:var(--ink);font-weight:700;font-family:"Noto Serif SC",serif;letter-spacing:.14em}
+
+/* ====== 规格栏 ====== */
+.spec{display:flex;flex-direction:column;gap:14px}
+.spec-block{border:1px solid #C9BC9C;border-radius:12px;background:var(--paper);padding:18px;box-shadow:3px 3px 0 rgba(38,34,28,.06)}
+.spec-block h3{margin:0 0 12px;font-size:13px;letter-spacing:.2em;color:var(--cinnabar);font-family:"Noto Serif SC",serif;font-weight:900}
+.spec-block ul{margin:0;padding-left:18px;color:#4A4438;font-size:13px;line-height:2.05}
+.spec-block ul b{color:var(--ink)}
+.kw{display:flex;gap:7px;flex-wrap:wrap}
+.clist{display:flex;flex-direction:column;gap:9px}
+.clist .c{display:flex;align-items:center;gap:9px;font-size:12px;color:#6B6152}
+.clist .c i{width:18px;height:18px;border-radius:5px;border:1px solid rgba(38,34,28,.3);flex:0 0 auto}
+.maplist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.maplist li{font-size:12.5px;color:#6B6152;line-height:1.8}
+.maplist code{color:var(--indigo);font-size:11.5px;background:rgba(51,86,91,.08);border:1px solid rgba(51,86,91,.3);border-radius:5px;padding:1px 7px}
+.footnote{max-width:1420px;margin:auto;padding:0 clamp(14px,4vw,52px) 44px;color:#8A7F68;font-size:12px;line-height:1.9}
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);background:var(--ink);color:var(--paper);font-size:13px;padding:11px 18px;border-radius:10px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:82vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:460px){.phone{height:760px;border-radius:36px}}
+</style>
+</head>
+<body>
+
+<header class="lab">
+  <div class="lab-top">
+    <div class="lab-brand"><i>W</i> Worldmark · 移动端设计方案</div>
+    <a class="back" href="index.html">← 返回方案总览</a>
+  </div>
+  <h1>方案 B · 山河印迹 <em>新国潮</em></h1>
+  <p class="lab-desc">把每一处地标做成一枚<b>可以盖进册子的朱砂印</b>：宣纸底、朱砂与黛青、宋体大标题、竖排批注与洒金纹理。传统文化的重量由当代排版来化解——方正栅格、大留白、克制配色，国潮而不复古。</p>
+  <div class="tags"><span class="tag red">朱砂印章</span><span class="tag">宣纸质感</span><span class="tag">宋体标题</span><span class="tag">竖排批注</span><span class="tag gold">洒金纹理</span><span class="tag">节气叙事</span></div>
+  <div class="swatches">
+    <span class="sw"><i style="background:#F6F0E1"></i>#F6F0E1 宣纸</span>
+    <span class="sw"><i style="background:#B5382A"></i>#B5382A 朱砂</span>
+    <span class="sw"><i style="background:#33565B"></i>#33565B 黛青</span>
+    <span class="sw"><i style="background:#A9812F"></i>#A9812F 鎏金</span>
+    <span class="sw"><i style="background:#26221C"></i>#26221C 玄墨</span>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="phone-col">
+    <div class="chips">
+      <button class="on" data-go="scr-home">览胜</button>
+      <button data-go="scr-landmark">地标详情</button>
+      <button data-go="scr-trip">行路图</button>
+      <button data-go="scr-me">集印册</button>
+    </div>
+
+    <div class="phone">
+      <div class="statusbar"><span>霜降 · 9:41</span><span>信号 满 格</span></div>
+
+      <div class="screens">
+
+        <!-- ====== 发现 ====== -->
+        <section class="app-screen active" id="scr-home">
+          <div class="toprow">
+            <span class="date">岁次丙午 · 十月初二</span>
+            <span class="jieqi"><i>霜降</i>登高觅古建</span>
+          </div>
+          <button class="search" data-toast="正式入口：GET /search?q=…（全站统一检索）"><i>⌕</i> 检索作品或地标，如「边城」「佛光寺」</button>
+
+          <div class="gates">
+            <button class="gate g1" data-toast="正式入口：/literature 文学地标目录"><b>文 学</b><small>LITERATURE</small></button>
+            <button class="gate g2" data-toast="正式入口：/games 游戏地标目录"><b>游 戏</b><small>GAMES</small></button>
+            <button class="gate g3" data-toast="正式入口：/screen 影视地标目录"><b>影 视</b><small>SCREEN</small></button>
+          </div>
+
+          <div class="shan">
+            <svg viewBox="0 0 358 176" role="img" aria-label="山水插画：层峦与朱日">
+              <rect width="358" height="176" fill="#EDE4CE"/>
+              <circle cx="292" cy="52" r="26" fill="#B5382A" opacity=".88"/>
+              <circle cx="292" cy="52" r="33" fill="none" stroke="#B5382A" stroke-width="1" opacity=".35"/>
+              <path d="M-10 150 Q60 66 128 132 T210 118 Q262 82 310 130 T370 118 V178 H-10 Z" fill="#33565B" opacity=".20"/>
+              <path d="M-10 158 Q70 92 150 148 T260 136 Q312 106 370 148 V180 H-10 Z" fill="#33565B" opacity=".38"/>
+              <path d="M-10 168 Q90 120 190 164 T370 160 V182 H-10 Z" fill="#26221C" opacity=".62"/>
+              <g stroke="#26221C" stroke-width="1.6" fill="none" opacity=".8">
+                <path d="M118 129 L118 108 M112 113 L118 108 L124 113 M110 119 L118 112 L126 119"/>
+              </g>
+              <path d="M20 158 q10 -5 20 0 t20 0 M60 166 q10 -5 20 0 t20 0 M250 162 q10 -5 20 0 t20 0" stroke="#33565B" stroke-width="1.4" fill="none" opacity=".5"/>
+            </svg>
+            <div class="shan-inner">
+              <small>PRINT OF THE DAY</small>
+              <h2>今日印迹</h2>
+              <button class="go" data-go="scr-landmark">应县木塔 · 辽 →</button>
+            </div>
+          </div>
+
+          <p class="poem">读万卷书 · 行万里路<small>WORLD IN BOOKS, MARKS ON MAPS</small></p>
+
+          <svg class="cloudline" viewBox="0 0 358 14" height="14" aria-hidden="true"><path d="M0 7 q12 -8 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0" fill="none" stroke="#C9BC9C" stroke-width="1.6"/></svg>
+
+          <div class="sec"><h3>入册推荐</h3><span>已审核发布</span></div>
+          <div class="hlist">
+            <button class="scroll-card" data-go="scr-landmark">
+              <span class="art a1"><span class="era" style="background:var(--cinnabar)">辽</span><span class="seal">塔</span></span>
+              <span class="body"><h4>应县木塔</h4><p>黑神话：悟空 · 山西朔州</p></span>
+            </button>
+            <button class="scroll-card" data-toast="正式入口：边城茶峒古镇详情页（湘西花垣县）">
+              <span class="art a2"><span class="era" style="background:var(--indigo)">渡</span><span class="seal indigo">边</span></span>
+              <span class="body"><h4>边城茶峒古镇</h4><p>边城 · 湖南湘西</p></span>
+            </button>
+            <button class="scroll-card" data-toast="正式入口：外白渡桥详情页（上海）">
+              <span class="art a3"><span class="era" style="background:var(--gold)">桥</span><span class="seal gold">子</span></span>
+              <span class="body"><h4>外白渡桥</h4><p>子夜 · 上海黄浦</p></span>
+            </button>
+          </div>
+
+          <div class="sec"><h3>新近入册</h3><span>FRESH</span></div>
+          <div class="pillrow">
+            <button class="pill" data-toast="正式入口：地坛公园详情页（我与地坛 · 北京）">地坛公园 · 我与地坛</button>
+            <button class="pill" data-toast="正式入口：开封府详情页（燕云十六声 · 河南）">开封府 · 燕云十六声</button>
+            <button class="pill" data-toast="正式入口：纯真博物馆详情页（帕慕克 · 伊斯坦布尔）">纯真博物馆 · 伊斯坦布尔</button>
+          </div>
+          <div class="warn">所有地点均经人工审核后发布，并保留作品关联、现实地址与信息来源，方便出发前核验。</div>
+        </section>
+
+        <!-- ====== 详情 ====== -->
+        <section class="app-screen" id="scr-landmark">
+          <div class="navrow">
+            <button class="iconbtn" data-go="scr-home" aria-label="返回">←</button>
+            <span style="font-size:11px;color:#8A7F68;letter-spacing:.24em;font-family:'Noto Serif SC',serif">地标 · 第二印</span>
+            <button class="iconbtn" data-toast="已收入书签（演示）" aria-label="收藏">♡</button>
+          </div>
+
+          <div class="lm-head">
+            <h2>应县木塔</h2>
+            <span class="vt">山西 · 朔州 · 应县</span>
+          </div>
+          <div class="workrow">
+            <span class="worktag">黑神话：悟空 · 游戏</span>
+            <span class="eratag">辽代木构</span>
+          </div>
+
+          <p class="lm-desc">应县木塔是游戏山西古建取材中辨识度极高的原型之一，为建筑尺度与木构细节提供现实参照。塔建于辽代，位于应县佛宫寺内，是现存著名木塔；登临与拍摄须遵守遗产保护安排。</p>
+
+          <div class="couplet">
+            <div class="half" data-cap="地址"><b>山西省朔州市应县<br>佛宫寺内</b></div>
+            <div class="half" data-cap="行至"><b>大同或朔州乘班线<br>至应县县城</b></div>
+            <div class="half" data-cap="开放"><b>以景区官方公告为准</b></div>
+            <div class="half" data-cap="图谱"><b>静态参考点位<br>不提供实时导航</b></div>
+          </div>
+
+          <div class="srcnote">① 信息来源：条目登记官方 / 机构来源与更新时间，详情页可逐条核验——<b>这是本产品的底线体验</b>。</div>
+
+          <div class="actions">
+            <button class="btn primary" data-toast="已纳入「晋北木构行路图」（正式调用行程接口）">纳入行路图</button>
+            <button class="btn ghost" onclick="openStamp()">钤 印 <span class="prop" style="color:var(--gold)">提案</span></button>
+          </div>
+
+          <div class="sec"><h3>同卷地标</h3><span>同 · 黑神话：悟空</span></div>
+          <div class="pillrow">
+            <button class="pill" data-toast="正式入口：小西天详情页（山西临汾隰县）">小西天 · 明代悬塑</button>
+            <button class="pill" data-toast="正式入口：佛光寺详情页（山西忻州五台）">佛光寺 · 唐代木构</button>
+          </div>
+        </section>
+
+        <!-- ====== 行路图 ====== -->
+        <section class="app-screen" id="scr-trip">
+          <div class="sec" style="margin-top:2px"><h3>行路图</h3><span>两卷在手</span></div>
+
+          <div class="card daycard">
+            <h4>晋北木构行路图 <span class="days">两日</span></h4>
+            <div class="roadmap">
+              <div class="stop done">
+                <h5><span class="d">初日</span>小西天<span class="ok">✓ 已钤印</span></h5>
+                <p>临汾市隰县凤凰山 · 明代悬塑艺术</p>
+              </div>
+              <div class="stop done">
+                <h5><span class="d">初日</span>应县木塔<span class="ok">✓ 已钤印</span></h5>
+                <p>朔州市应县佛宫寺 · 辽代木塔</p>
+              </div>
+              <div class="stop">
+                <h5><span class="d">次日</span>佛光寺</h5>
+                <p>忻州市五台县豆村镇 · 唐代木构东大殿</p>
+              </div>
+            </div>
+            <div class="exports">
+              <button data-toast="正式导出：行程 HTML">文牒 HTML</button>
+              <button data-toast="正式导出：行程 DOCX">DOCX</button>
+              <button data-toast="正式导出：行程 XLSX">XLSX</button>
+            </div>
+          </div>
+
+          <div class="card daycard">
+            <h4>汴京寻宋录 <span class="draft">草稿</span></h4>
+            <div class="roadmap">
+              <div class="stop">
+                <h5><span class="d">一日</span>开封府</h5>
+                <p>河南开封 · 《燕云十六声》城市想象的现实参考</p>
+              </div>
+              <div class="stop">
+                <h5><span class="d">一日</span>候选 · 待补</h5>
+                <p>可从目录继续添加已发布地标</p>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn primary" data-toast="正式入口：POST /api/v1/itineraries/finalize（仅限中国大陆境内）">另起一行路</button>
+          <div class="warn">行路由已发布地标编排而成；交通、票价、开放与预约信息请以官方渠道为准。行程生成后可在详情页继续编辑。</div>
+        </section>
+
+        <!-- ====== 集印册 ====== -->
+        <section class="app-screen" id="scr-me">
+          <div class="sec" style="margin-top:2px"><h3>藏家名帖</h3><span>COLLECTOR</span></div>
+          <div class="card me-card">
+            <span class="seal bigseal">默</span>
+            <div>
+              <h3>行者 · 阿默</h3>
+              <p>入册 142 天 · 共创署名 2 条</p>
+            </div>
+          </div>
+
+          <div class="stampbook">
+            <h4>山河集印册</h4>
+            <small>FIVE MARKS COLLECTED</small>
+            <div class="stampgrid">
+              <span class="slot"><span class="seal" style="font-size:12px">佛光寺</span><small>佛光寺</small></span>
+              <span class="slot"><span class="seal" style="font-size:11.5px;line-height:1.25">应县<br>木塔</span><small>应县木塔</small></span>
+              <span class="slot"><span class="seal indigo" style="font-size:12px">地坛</span><small>地坛公园</small></span>
+              <span class="slot"><span class="seal indigo" style="font-size:12px">茶峒</span><small>边城茶峒</small></span>
+              <span class="slot"><span class="seal gold" style="font-size:11.5px;line-height:1.25">外白<br>渡桥</span><small>外白渡桥</small></span>
+              <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+              <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+              <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+              <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+              <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+              <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+              <span class="slot empty"><span class="seal">未</span><small>待钤</small></span>
+            </div>
+            <p class="bookprog">已得五印 · 行至水穷处</p>
+          </div>
+
+          <div class="member">
+            <h4>◈ 藏馆通行证</h4>
+            <p>解锁完整静态地图图层与成员权益；<b>目录检索与导出（CSV / XLSX）对所有人免费</b>。</p>
+            <span class="free">免费承诺 · 目录与导出</span>
+          </div>
+
+          <div class="sec"><h3>投新印</h3><span>共创</span></div>
+          <button class="card contribute" style="width:100%;text-align:left" data-toast="正式入口：/intake —— 一句话一键入库；审核发布后署名">
+            <span class="ic">墨</span>
+            <span style="text-align:left">
+              <h5>把新地标写成一条目</h5>
+              <p>登录后一句话一键入库；审核发布后展示共创者署名。</p>
+            </span>
+            <span class="arr">→</span>
+          </button>
+          <div class="warn">「集印册 / 钤印」为视觉提案：当前后端尚未提供打卡与收集接口，落地时需新增服务并保持与「已核验发布」数据一致。</div>
+        </section>
+      </div>
+
+      <nav class="tabbar" aria-label="底部导航">
+        <button class="tab on" data-go="scr-home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10.5V20h11v-9.5"/></svg>览胜</button>
+        <button class="tab" data-go="scr-landmark"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="12" height="15" rx="2"/><path d="M9 8.5h6M9 12h6M9 15.5h3.5"/></svg>地标</button>
+        <button class="tab" data-go="scr-trip"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="5.5" r="2"/><path d="M7.5 18.5h7a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8"/></svg>行路</button>
+        <button class="tab" data-go="scr-me"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 15.5 12 8l3.5 7.5M9.8 13h4.4"/></svg>集印</button>
+      </nav>
+
+      <div class="modal" id="stamp-modal" role="dialog" aria-modal="true" aria-label="钤印演示">
+        <div class="modal-box" id="stamp-box">
+          <div class="paper-area">
+            <span class="hint-ink" id="stamp-hint">按 印 为 记 · 落 印 有 声</span>
+            <span class="bigseal-stamp">应县<br>木塔</span>
+          </div>
+          <h4>钤印 · 应县木塔</h4>
+          <p id="stamp-msg">即将落于「山河集印册」<br><b>提案功能</b>：正式版需新增打卡接口</p>
+          <button class="modal-close" onclick="closeStamp()">收起</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">可交互：底部标签 / 顶部屏幕切换 / 山水横幅与卡片点击 /「钤印」落印动效</p>
+  </div>
+
+  <aside class="spec">
+    <div class="spec-block">
+      <h3>设计关键词</h3>
+      <div class="kw">
+        <span class="tag red">集印驱动</span><span class="tag">文献感</span><span class="tag">节气与诗意</span><span class="tag">可核验的严谨</span><span class="tag gold">当代国潮</span>
+      </div>
+    </div>
+    <div class="spec-block">
+      <h3>色板 · TOKENS</h3>
+      <div class="clist">
+        <span class="c"><i style="background:#F6F0E1"></i>paper / #F6F0E1 宣纸底</span>
+        <span class="c"><i style="background:#26221C"></i>ink / #26221C 玄墨（正文与描边）</span>
+        <span class="c"><i style="background:#B5382A"></i>cinnabar / #B5382A 朱砂（印章与主按钮）</span>
+        <span class="c"><i style="background:#33565B"></i>indigo / #33565B 黛青（辅助与文学类）</span>
+        <span class="c"><i style="background:#A9812F"></i>gold / #A9812F 鎏金（来源注脚与点缀）</span>
+      </div>
+    </div>
+    <div class="spec-block">
+      <h3>字体系统</h3>
+      <ul>
+        <li><b>标题</b>：Noto Serif SC 900，大字距（.06–.16em）立风骨</li>
+        <li><b>诗句 / 批注</b>：Ma Shan Zheng 手写体，只作点睛</li>
+        <li><b>正文</b>：Noto Sans SC，行高 2.0，两端对齐仿书页</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>签名组件</h3>
+      <ul>
+        <li><b>印章体系</b>：门类用色对应印色（游戏朱砂 / 文学黛青 / 影视鎏金）</li>
+        <li><b>集印册</b>：4×4 印格，已钤朱印 / 未钤虚格</li>
+        <li><b>楹联信息卡</b>：地址 / 行至 / 开放 / 图谱 对仗排布</li>
+        <li><b>山水横幅</b>：SVG 层峦 + 朱日 + 云纹分隔线</li>
+        <li><b>钤印动效</b>：落印回弹 + 印泥晕影</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>数据映射 · 真实能力</h3>
+      <ul class="maplist">
+        <li><code>GET /search?q=</code> 全站检索</li>
+        <li><code>/literature · /games · /screen</code> 三扇门类</li>
+        <li><code>GET /landmarks/{id}</code> 三段式详情 + 来源核验</li>
+        <li><code>POST /api/v1/itineraries/finalize</code> 行路生成</li>
+        <li><code>/maps/{module}</code> 会员静态地图</li>
+        <li><code>/intake</code> 一键入库投条目</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>适用与取舍</h3>
+      <ul>
+        <li>适合：文学与古建 IP、博物馆/文旅联动、徽章收集运营</li>
+        <li>优势：与「已核验」的严谨气质天然契合，老年/年轻用户都不排斥</li>
+        <li>风险：装饰密度高，需控制每屏一个焦点；影视/潮流 IP 气质稍弱</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<p class="footnote">数据说明：地标与文案取自 <code>data/seed/landmarks_verified.csv</code> 与 <code>landmark_content.json</code>；「集印 / 钤印」为提案功能（后端暂无打卡接口），其余入口均对应现有路由。地图为静态参考，不提供实时导航。</p>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+var toast=document.getElementById('toast'),timer;
+function tell(m){toast.textContent=m;toast.classList.add('show');clearTimeout(timer);timer=setTimeout(function(){toast.classList.remove('show')},2600)}
+function go(id){
+  var sc=document.querySelectorAll('.app-screen');
+  for(var i=0;i<sc.length;i++){sc[i].classList.toggle('active',sc[i].id===id)}
+  document.querySelectorAll('.tabbar .tab').forEach(function(t){t.classList.toggle('on',t.dataset.go===id)});
+  document.querySelectorAll('.chips button').forEach(function(c){c.classList.toggle('on',c.dataset.go===id)});
+}
+document.querySelectorAll('[data-go]').forEach(function(n){n.addEventListener('click',function(){go(n.dataset.go)})});
+document.querySelectorAll('[data-toast]').forEach(function(n){n.addEventListener('click',function(e){e.preventDefault();tell(n.dataset.toast)})});
+function openStamp(){
+  var m=document.getElementById('stamp-modal'),b=document.getElementById('stamp-box');
+  m.classList.add('show');b.classList.remove('done');
+  document.getElementById('stamp-hint').style.opacity=1;
+  setTimeout(function(){
+    b.classList.add('done');
+    document.getElementById('stamp-hint').style.opacity=0;
+    document.getElementById('stamp-msg').innerHTML='已钤「应县木塔」印 · 集印 +1<br>（演示动效）';
+  },420);
+}
+function closeStamp(){document.getElementById('stamp-modal').classList.remove('show')}
+</script>
+</body>
+</html>

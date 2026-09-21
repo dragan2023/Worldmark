@@ -330,6 +330,32 @@
         "license": "CC BY-SA 4.0",
         "source_url": "https://commons.wikimedia.org/wiki/File:%E9%9A%B0%E5%8E%BF%E5%B0%8F%E8%A5%BF%E5%A4%A9_%E4%B8%8A%E9%99%A2%E4%B8%8B%E9%99%A2.JPG"
       }
+    ],
+    "screen:长堤历史文化街区": [
+      {
+        "file": "screen/landmark-36/upload-d77b70424f.jpg",
+        "alt": "长堤历史文化街区实景",
+        "caption": null,
+        "credit": null,
+        "license": "用户自传，自行确认版权",
+        "source_url": null
+      },
+      {
+        "file": "screen/landmark-36/ai-5ee1ccdb5a.jpg",
+        "alt": "长堤历史文化街区实景",
+        "caption": "Jiangmen001.jpg",
+        "credit": "长夜无风",
+        "license": "CC BY-SA 3.0",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Jiangmen001.jpg"
+      },
+      {
+        "file": "screen/landmark-36/upload-34cdf8d71e.jpg",
+        "alt": "长堤历史文化街区实景",
+        "caption": null,
+        "credit": null,
+        "license": "用户自传，自行确认版权",
+        "source_url": null
+      }
     ]
   }
 }

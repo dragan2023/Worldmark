@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>方案 A · 霓虹巡礼 — Worldmark IP 地标旅游</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{
+  --bg:#070B14; --panel:#0C1322; --card:rgba(148,178,255,.055); --card2:rgba(148,178,255,.10);
+  --line:rgba(140,180,255,.16); --line2:rgba(140,180,255,.30);
+  --cyan:#26E0FF; --pink:#FF3D8F; --violet:#8B5CFF; --amber:#FFC53D;
+  --text:#EAF2FF; --muted:#8A97BA;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1100px 620px at 82% -8%,#12204a 0%,rgba(18,32,74,0) 55%),radial-gradient(900px 500px at -10% 110%,#241040 0%,rgba(36,16,64,0) 50%),#070B14;color:var(--text);font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:8px}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+
+/* ====== 实验室页头 ====== */
+.lab{max-width:1420px;margin:auto;padding:26px clamp(14px,4vw,52px) 10px}
+.lab-top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.lab-brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em;color:#B9C6E8}
+.lab-brand i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#04101c;font-weight:900}
+.back{color:#8fa0c8;font-size:13px;text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:7px 14px}
+.back:hover{color:#fff;border-color:var(--cyan)}
+.lab h1{margin:16px 0 8px;font-size:clamp(30px,4.4vw,52px);letter-spacing:.02em;font-weight:900}
+.lab h1 em{font-style:normal;font-size:.42em;letter-spacing:.32em;color:var(--cyan);vertical-align:.5em;font-family:"JetBrains Mono",monospace}
+.lab-desc{max-width:760px;color:var(--muted);font-size:14px;line-height:1.85;margin:0}
+.lab-desc b{color:#CFE0FF}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 6px}
+.tag{font-size:12px;color:#9fd9ff;border:1px solid rgba(38,224,255,.35);border-radius:999px;padding:5px 12px;background:rgba(38,224,255,.06)}
+.tag.pink{color:#ffb3d1;border-color:rgba(255,61,143,.4);background:rgba(255,61,143,.07)}
+.tag.violet{color:#cbb8ff;border-color:rgba(139,92,255,.4);background:rgba(139,92,255,.08)}
+.swatches{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px}
+.sw{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);font-family:"JetBrains Mono",monospace}
+.sw i{width:20px;height:20px;border-radius:6px;border:1px solid rgba(255,255,255,.18)}
+
+/* ====== 舞台布局 ====== */
+.stage{max-width:1420px;margin:auto;padding:8px clamp(14px,4vw,52px) 30px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:34px;align-items:start}
+@media(max-width:1080px){.stage{grid-template-columns:1fr}}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chips button{font-size:12.5px;color:#9db1dd;border:1px solid var(--line2);border-radius:999px;padding:8px 16px;background:rgba(148,178,255,.05)}
+.chips button.on{color:#04101c;background:linear-gradient(90deg,var(--cyan),#7fe9ff);border-color:transparent;font-weight:700}
+.hint{color:#63739c;font-size:12px}
+
+/* ====== 手机 ====== */
+.phone{position:relative;width:390px;height:844px;max-width:96vw;border-radius:46px;background:#05080f;border:9px solid #131a2b;box-shadow:0 0 0 1px rgba(140,180,255,.25),0 30px 80px rgba(0,0,0,.65),0 0 90px rgba(38,224,255,.13);overflow:hidden}
+.phone:before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:112px;height:26px;border-radius:999px;background:#05080f;z-index:60;border:1px solid #1b2438}
+.statusbar{position:absolute;z-index:55;top:12px;left:0;right:0;display:flex;justify-content:space-between;padding:6px 26px 0;font-size:13px;font-weight:700;color:#dbe6ff;font-family:"JetBrains Mono",monospace}
+.statusbar svg{display:block}
+.screens{position:absolute;inset:0}
+.app-screen{position:absolute;inset:0;overflow-y:auto;padding:52px 16px 96px;opacity:0;transform:translateX(16px);pointer-events:none;transition:opacity .28s ease,transform .28s ease;scrollbar-width:none}
+.app-screen::-webkit-scrollbar{display:none}
+.app-screen.active{opacity:1;transform:none;pointer-events:auto}
+
+/* ====== 通用组件 ====== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px}
+.card.glow{transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.card.glow:hover{transform:translateY(-2px);border-color:rgba(38,224,255,.55);box-shadow:0 8px 30px rgba(38,224,255,.12)}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:20px 2px 10px}
+.sec h3{margin:0;font-size:16px;font-weight:900;letter-spacing:.02em}
+.sec span{font-size:11.5px;color:var(--muted);font-family:"JetBrains Mono",monospace}
+.pillrow{display:flex;gap:8px;overflow-x:auto;padding:2px;scrollbar-width:none}
+.pillrow::-webkit-scrollbar{display:none}
+.pill{flex:0 0 auto;font-size:12.5px;padding:8px 13px;border-radius:999px;border:1px solid var(--line2);color:#B9C6E8;background:rgba(148,178,255,.05);white-space:nowrap}
+.pill.on{background:linear-gradient(90deg,rgba(38,224,255,.18),rgba(139,92,255,.18));border-color:rgba(38,224,255,.6);color:#fff}
+.prop{display:inline-flex;align-items:center;font-size:10px;letter-spacing:.08em;color:var(--amber);border:1px solid rgba(255,197,61,.45);border-radius:5px;padding:1.5px 6px;font-family:"JetBrains Mono",monospace;vertical-align:2px}
+.btn{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;padding:13px;border-radius:14px;font-weight:800;font-size:14.5px;border:1px solid var(--line2);color:#CFE0FF;background:rgba(148,178,255,.07);transition:transform .15s ease}
+.btn:active{transform:scale(.97)}
+.btn.primary{border:0;color:#031019;background:linear-gradient(90deg,var(--cyan),#59b8ff 60%,var(--violet));box-shadow:0 0 24px rgba(38,224,255,.35);animation:breath 2.6s ease-in-out infinite}
+@keyframes breath{50%{box-shadow:0 0 40px rgba(38,224,255,.55)}}
+.btn.neon{border-color:rgba(255,61,143,.55);color:#ffd7e7;background:rgba(255,61,143,.10)}
+
+/* ====== 首页 ====== */
+.toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.loc{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;color:#CFE0FF}
+.loc i{font-style:normal;color:var(--cyan)}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--violet));display:grid;place-items:center;font-weight:900;color:#fff;font-size:13px;border:2px solid rgba(255,255,255,.25)}
+.search{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--muted);font-size:13.5px;width:100%}
+.search i{font-style:normal;color:var(--cyan)}
+.banner{position:relative;margin-top:14px;border-radius:20px;overflow:hidden;border:1px solid rgba(38,224,255,.4);background:#0A1226}
+.banner svg{display:block;width:100%;height:auto}
+.banner-inner{position:absolute;left:14px;bottom:12px;right:14px;display:flex;justify-content:space-between;align-items:end;gap:10px}
+.banner-inner h2{margin:0;font-size:18px;font-weight:900;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.banner-inner small{display:block;color:#9fd9ff;font-size:11px;letter-spacing:.14em;font-family:"JetBrains Mono",monospace;margin-bottom:4px}
+.prog{margin-top:8px}
+.prog small{display:flex;justify-content:space-between;color:#9db1dd;font-size:11px;font-family:"JetBrains Mono",monospace;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:rgba(148,178,255,.14);overflow:hidden}
+.bar i{display:block;height:100%;width:43%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--pink));box-shadow:0 0 12px rgba(38,224,255,.8);animation:charge 3s ease-in-out infinite alternate}
+@keyframes charge{to{width:52%}}
+.danmu{position:relative;margin:12px 0 0;height:34px;border-radius:12px;border:1px solid var(--line);background:rgba(255,61,143,.05);overflow:hidden}
+.danmu-track{position:absolute;display:flex;gap:34px;white-space:nowrap;align-items:center;height:100%;animation:dm 20s linear infinite;font-size:12px;color:#ffb9d4}
+.danmu-track span b{color:#fff;font-weight:700}
+@keyframes dm{from{transform:translateX(58%)}to{transform:translateX(-100%)}}
+.hlist{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.hlist::-webkit-scrollbar{display:none}
+.hot{flex:0 0 168px;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--card);text-align:left;padding:0}
+.hot .thumb{height:104px;position:relative;display:block}
+.hot .thumb:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 4px);mix-blend-mode:overlay}
+.hot .thumb em{position:absolute;top:8px;left:8px;font-style:normal;font-size:10px;font-family:"JetBrains Mono",monospace;letter-spacing:.1em;padding:3px 7px;border-radius:6px;background:rgba(5,8,15,.6);border:1px solid var(--line2);color:#9fe8ff}
+.hot .body{padding:10px 12px 12px}
+.hot h4{margin:0 0 3px;font-size:14px;font-weight:800}
+.hot p{margin:0;font-size:11px;color:var(--muted)}
+.hot .meta{display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:#8fa0c8;font-family:"JetBrains Mono",monospace}
+.t1{background:linear-gradient(140deg,#12275c,#0a4a5e 55%,#7a2f66)}
+.t2{background:linear-gradient(140deg,#3d1d5e,#123a66 60%,#0c5f66)}
+.t3{background:linear-gradient(140deg,#5e1d38,#662d12 55%,#8a6a1c)}
+.tonight{display:flex;gap:12px;align-items:center}
+.tonight .moonart{flex:0 0 74px;height:74px;border-radius:16px;background:radial-gradient(circle at 62% 38%,#31456e 0 26%,#141d33 60%),#0d1526;display:grid;place-items:center;color:#ffd76a;font-size:26px}
+.tonight h4{margin:0 0 4px;font-size:14.5px;font-weight:800}
+.tonight p{margin:0;font-size:12px;color:var(--muted);line-height:1.6}
+
+/* ====== 详情页 ====== */
+.navrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.iconbtn{width:34px;height:34px;border-radius:11px;border:1px solid var(--line2);background:rgba(148,178,255,.06);display:grid;place-items:center;color:#CFE0FF}
+.lm-hero{border-radius:20px;overflow:hidden;border:1px solid rgba(38,224,255,.4);position:relative}
+.lm-hero svg{display:block;width:100%}
+.lm-hero .cover{position:absolute;inset:auto 0 0 0;padding:26px 14px 10px;background:linear-gradient(transparent,rgba(5,8,15,.85))}
+.lm-hero .cover em{font-style:normal;font-size:10px;letter-spacing:.16em;color:#9fd9ff;font-family:"JetBrains Mono",monospace}
+.lm-title{display:flex;align-items:center;gap:10px;margin:14px 2px 6px}
+.lm-title h2{margin:0;font-size:22px;font-weight:900}
+.workchip{font-size:11px;color:#ffc7de;border:1px solid rgba(255,61,143,.5);background:rgba(255,61,143,.10);border-radius:8px;padding:4px 9px;white-space:nowrap}
+.verified{display:flex;gap:9px;align-items:flex-start;margin:12px 0;padding:11px 12px;border-radius:14px;border:1px dashed rgba(38,224,255,.45);background:rgba(38,224,255,.05);font-size:12px;color:#a9d9ff;line-height:1.65}
+.verified b{color:#fff}
+.verified i{font-style:normal;color:var(--cyan)}
+.lm-desc{font-size:13px;color:#B9C6E8;line-height:1.9;margin:0 2px}
+.more{color:var(--cyan);font-size:12px;margin:6px 2px 0;display:inline-block}
+.inforow{display:flex;gap:10px;margin-top:14px}
+.info{flex:1;padding:11px 12px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.info small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;font-family:"JetBrains Mono",monospace;margin-bottom:4px}
+.info b{font-size:12.5px;font-weight:700;color:#E4EDFF;line-height:1.5;display:block}
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+
+/* ====== 路线页 ====== */
+.route{margin-bottom:14px}
+.route-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.route h4{margin:0;font-size:15.5px;font-weight:900}
+.route .days{font-size:11px;color:#9fd9ff;font-family:"JetBrains Mono",monospace;border:1px solid rgba(38,224,255,.4);border-radius:7px;padding:2px 8px}
+.timeline{margin:14px 0 4px;position:relative;padding-left:20px}
+.timeline:before{content:"";position:absolute;left:6px;top:6px;bottom:14px;width:2px;background:linear-gradient(var(--cyan),var(--violet));opacity:.5}
+.stop{position:relative;padding:0 0 16px}
+.stop:before{content:"";position:absolute;left:-19px;top:4px;width:10px;height:10px;border-radius:50%;background:#0A1226;border:2px solid var(--cyan);box-shadow:0 0 10px rgba(38,224,255,.7)}
+.stop.done:before{background:var(--cyan)}
+.stop h5{margin:0 0 3px;font-size:13.5px;font-weight:800}
+.stop p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.6}
+.stop .d{font-size:10px;color:var(--pink);font-family:"JetBrains Mono",monospace;letter-spacing:.1em;margin-right:6px}
+.exports{display:flex;gap:8px;margin-top:10px}
+.exports button{flex:1;font-size:11.5px;font-family:"JetBrains Mono",monospace;padding:8px 4px;border-radius:10px;border:1px solid var(--line2);color:#9db1dd;background:rgba(148,178,255,.05)}
+.exports button:hover{color:#fff;border-color:var(--cyan)}
+.notice{font-size:11px;color:#6b7ba3;line-height:1.7;margin:14px 2px 0}
+
+/* ====== 我的页 ====== */
+.me-card{display:flex;gap:13px;align-items:center;padding:16px}
+.me-card .avatar{width:52px;height:52px;font-size:19px}
+.me-card h3{margin:0;font-size:17px;font-weight:900}
+.me-card p{margin:3px 0 0;font-size:11.5px;color:#9fd9ff;font-family:"JetBrains Mono",monospace}
+.lv{margin-left:auto;text-align:right}
+.lv b{display:block;font-size:19px;color:var(--amber);font-family:"JetBrains Mono",monospace}
+.lv small{font-size:10px;color:var(--muted);letter-spacing:.12em}
+.procard{margin-top:14px;border-radius:18px;padding:16px;border:1px solid rgba(255,197,61,.4);background:linear-gradient(120deg,rgba(255,197,61,.12),rgba(255,61,143,.10))}
+.procard h4{margin:0;font-size:15px}
+.procard p{margin:6px 0 0;font-size:11.5px;color:#e8d9b0;line-height:1.7}
+.procard .free{display:inline-block;margin-top:8px;font-size:10px;color:#9fd9ff;border:1px solid rgba(38,224,255,.4);border-radius:99px;padding:2px 9px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.stat{padding:12px 8px;text-align:center;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.stat b{display:block;font-size:19px;font-family:"JetBrains Mono",monospace;color:#fff}
+.stat small{font-size:10.5px;color:var(--muted)}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.badge{aspect-ratio:1;border-radius:16px;display:grid;place-items:center;font-size:24px;background:var(--card);border:1px solid var(--line)}
+.badge.on{border-color:rgba(38,224,255,.55);box-shadow:0 0 16px rgba(38,224,255,.18) inset,0 0 14px rgba(38,224,255,.15)}
+.badge.off{opacity:.35;filter:grayscale(1)}
+.contribute{display:flex;gap:12px;align-items:center;margin-top:14px}
+.contribute .ic{flex:0 0 42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;background:rgba(139,92,255,.14);border:1px solid rgba(139,92,255,.45)}
+.contribute h5{margin:0 0 3px;font-size:13.5px}
+.contribute p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.6}
+.contribute .arr{margin-left:auto;color:var(--violet)}
+
+/* ====== 底部标签栏 ====== */
+.tabbar{position:absolute;z-index:50;left:12px;right:12px;bottom:12px;display:flex;border-radius:22px;border:1px solid var(--line2);background:rgba(8,12,22,.88);backdrop-filter:blur(14px);padding:8px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 6px;font-size:10.5px;color:#7d8cb4;border-radius:15px;position:relative;transition:color .2s}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:#04101c;font-weight:800}
+.tab.on:before{content:"";position:absolute;inset:0;border-radius:15px;background:linear-gradient(90deg,var(--cyan),#6fd8ff);box-shadow:0 0 22px rgba(38,224,255,.5)}
+
+/* ====== 打卡弹层 ====== */
+.modal{position:absolute;inset:0;z-index:70;display:grid;place-items:center;background:rgba(3,5,10,.72);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.show{opacity:1;pointer-events:auto}
+.modal-box{width:300px;border-radius:22px;border:1px solid rgba(38,224,255,.5);background:#0B1222;padding:18px;text-align:center;transform:scale(.9);transition:transform .25s}
+.modal.show .modal-box{transform:none}
+.scanbox{position:relative;height:190px;border-radius:16px;overflow:hidden;border:1px solid var(--line2);background:linear-gradient(150deg,#10254d,#0d3a4a 60%,#4d1d44);display:grid;place-items:center;margin-bottom:14px}
+.scanbox .pagoda{font-size:54px;filter:drop-shadow(0 0 14px rgba(38,224,255,.8))}
+.scanline{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 18px 4px rgba(38,224,255,.55);top:8%;display:none}
+.modal-box.scanning .scanline{display:block;animation:scan 1.5s ease-in-out infinite}
+@keyframes scan{0%{top:8%}50%{top:88%}100%{top:8%}}
+.corner{position:absolute;width:18px;height:18px;border:2px solid var(--cyan)}
+.c1{top:8px;left:8px;border-right:0;border-bottom:0}.c2{top:8px;right:8px;border-left:0;border-bottom:0}
+.c3{bottom:8px;left:8px;border-right:0;border-top:0}.c4{bottom:8px;right:8px;border-left:0;border-top:0}
+.modal-box h4{margin:0 0 4px;font-size:16px}
+.modal-box p{margin:0;font-size:12px;color:var(--muted);line-height:1.7;min-height:38px}
+.modal-box p b{color:var(--amber)}
+.stamp{display:none;margin:10px auto 0;width:86px;height:86px;border-radius:50%;border:3px solid var(--pink);color:var(--pink);font-weight:900;display:none;place-items:center;font-size:15px;transform:rotate(-12deg) scale(2);opacity:0;box-shadow:0 0 24px rgba(255,61,143,.4)}
+.modal-box.done .stamp{display:grid;animation:stampin .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes stampin{to{transform:rotate(-12deg) scale(1);opacity:1}}
+.modal-close{margin-top:12px;width:100%;padding:11px;border-radius:12px;border:1px solid var(--line2);color:#CFE0FF;font-weight:700}
+
+/* ====== 规格说明栏 ====== */
+.spec{display:flex;flex-direction:column;gap:14px}
+.spec-block{border:1px solid var(--line);border-radius:18px;background:rgba(148,178,255,.035);padding:18px}
+.spec-block h3{margin:0 0 12px;font-size:13px;letter-spacing:.18em;color:#9fd9ff;font-family:"JetBrains Mono",monospace}
+.spec-block ul{margin:0;padding-left:18px;color:#B9C6E8;font-size:13px;line-height:2}
+.spec-block ul b{color:#fff}
+.kw{display:flex;gap:7px;flex-wrap:wrap}
+.clist{display:flex;flex-direction:column;gap:9px}
+.clist .c{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);font-family:"JetBrains Mono",monospace}
+.clist .c i{width:18px;height:18px;border-radius:5px;border:1px solid rgba(255,255,255,.2);flex:0 0 auto}
+.maplist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.maplist li{font-size:12.5px;color:var(--muted);line-height:1.7}
+.maplist code{font-family:"JetBrains Mono",monospace;color:#9fe8ff;font-size:11.5px;background:rgba(38,224,255,.08);border:1px solid rgba(38,224,255,.25);border-radius:6px;padding:1px 7px}
+.footnote{max-width:1420px;margin:auto;padding:0 clamp(14px,4vw,52px) 44px;color:#5f6f99;font-size:12px;line-height:1.9}
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);background:#132039;border:1px solid var(--line2);color:#E4EDFF;font-size:13px;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:82vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:460px){.phone{height:760px;border-radius:38px}}
+</style>
+</head>
+<body>
+
+<header class="lab">
+  <div class="lab-top">
+    <div class="lab-brand"><i>W</i> Worldmark · 移动端设计方案</div>
+    <a class="back" href="index.html">← 返回方案总览</a>
+  </div>
+  <h1>方案 A · 霓虹巡礼 <em>NEON PILGRIM</em></h1>
+  <p class="lab-desc">把「圣地巡礼」的夜行氛围搬进产品：<b>深色底 + 电子荧光 + 玻璃拟态</b>，面向游戏 / 影视 IP 人群，强化打卡、路线与收集的游戏化动线。信息密度高、夜间可读性好，气质贴近玩家社区而非传统文旅官网。</p>
+  <div class="tags"><span class="tag">暗色模式</span><span class="tag">霓虹荧光</span><span class="tag pink">游戏化打卡</span><span class="tag pink">弹幕氛围</span><span class="tag violet">玻璃拟态</span><span class="tag violet">夜间出行</span></div>
+  <div class="swatches">
+    <span class="sw"><i style="background:#070B14"></i>#070B14 深空</span>
+    <span class="sw"><i style="background:#26E0FF"></i>#26E0FF 电子青</span>
+    <span class="sw"><i style="background:#FF3D8F"></i>#FF3D8F 巡礼粉</span>
+    <span class="sw"><i style="background:#8B5CFF"></i>#8B5CFF 能量紫</span>
+    <span class="sw"><i style="background:#FFC53D"></i>#FFC53D 提示金</span>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="phone-col">
+    <div class="chips">
+      <button class="on" data-go="scr-home">发现</button>
+      <button data-go="scr-landmark">地标详情</button>
+      <button data-go="scr-trip">巡礼路线</button>
+      <button data-go="scr-me">我的</button>
+    </div>
+
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span>●●●● ⚡ 84%</span></div>
+
+      <div class="screens">
+
+        <!-- ============ 发现 ============ -->
+        <section class="app-screen active" id="scr-home">
+          <div class="toprow">
+            <span class="loc"><i>◈</i> 上海 · 静安</span>
+            <span class="avatar" data-toast="对应现有登录态与 /itineraries 个人数据">M</span>
+          </div>
+          <button class="search" data-toast="正式入口：GET /search?q=…（统一目录检索）"><i>⌕</i> 搜作品 / 地标，如「黑神话」「外白渡桥」</button>
+
+          <div class="banner">
+            <svg viewBox="0 0 358 168" role="img" aria-label="霓虹木塔插画">
+              <defs>
+                <filter id="ng" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <rect width="358" height="168" fill="#0A1226"/>
+              <circle cx="298" cy="42" r="17" fill="none" stroke="#FF3D8F" stroke-width="2" filter="url(#ng)" opacity=".9"/>
+              <circle cx="52" cy="30" r="1.6" fill="#26E0FF" opacity=".8"/><circle cx="120" cy="20" r="1.2" fill="#8B5CFF"/>
+              <circle cx="210" cy="34" r="1.4" fill="#26E0FF" opacity=".6"/><circle cx="330" cy="88" r="1.3" fill="#FF3D8F" opacity=".7"/>
+              <path d="M8 128 L52 96 L88 122 L128 88 L168 120" fill="none" stroke="#1C2C52" stroke-width="3" filter="url(#ng)"/>
+              <path d="M238 122 L272 92 L306 116 L352 84" fill="none" stroke="#1C2C52" stroke-width="3" filter="url(#ng)"/>
+              <g stroke="#26E0FF" stroke-width="2" fill="none" filter="url(#ng)">
+                <path d="M130 148 H198"/>
+                <path d="M136 148 V118 H192 V148"/>
+                <path d="M128 118 H200 L206 110 H122 Z"/>
+                <path d="M142 110 V88 H186 V110"/>
+                <path d="M136 88 H192 L197 81 H131 Z"/>
+                <path d="M147 81 V64 H181 V81"/>
+                <path d="M143 64 H185 L189 58 H139 Z"/>
+                <path d="M152 58 V46 H176 V58"/>
+                <path d="M149 46 H179 L182 41 H146 Z"/>
+                <path d="M160 41 L164 30 L168 41"/>
+              </g>
+              <g stroke="#FF3D8F" stroke-width="1.6" opacity=".85" filter="url(#ng)">
+                <path d="M222 148 V104 H250 V148"/><path d="M216 104 H256"/>
+                <path d="M282 148 V112 H316 V148"/><path d="M277 112 H321"/>
+              </g>
+              <g fill="#26E0FF" opacity=".9">
+                <rect x="227" y="112" width="4" height="5"/><rect x="238" y="122" width="4" height="5"/><rect x="288" y="120" width="4" height="5"/><rect x="300" y="132" width="4" height="5"/>
+              </g>
+              <path d="M0 149 H358" stroke="#22335E" stroke-width="2"/>
+            </svg>
+            <div class="banner-inner">
+              <div>
+                <small>SHANXI · ANCIENT TIMBER</small>
+                <h2>山西 · 木构古建巡礼线</h2>
+              </div>
+              <button class="pill on" data-go="scr-trip">继续 →</button>
+            </div>
+          </div>
+          <div class="prog">
+            <small><span>巡礼进度</span><span>3 / 7 处已打卡</span></small>
+            <div class="bar"><i></i></div>
+          </div>
+
+          <div class="danmu" aria-hidden="true">
+            <div class="danmu-track">
+              <span><b>阿岳</b> 木塔比想象里高太多了！</span><span><b>临汾小马</b> 小西天的悬塑真的会看哭</span><span><b>Momo</b> 外白渡桥夜景超出片 ✦</span><span><b>悟空不悟空</b> 佛光寺东大殿 震撼</span><span><b>茶峒渡口</b> 拉拉渡还在运营！</span>
+            </div>
+          </div>
+
+          <div class="sec"><h3>内容门类</h3><span>VERIFIED ONLY</span></div>
+          <div class="pillrow">
+            <button class="pill on" data-toast="正式入口：/literature 目录页">文学</button>
+            <button class="pill" data-toast="正式入口：/games 目录页">游戏</button>
+            <button class="pill" data-toast="正式入口：/screen 目录页">影视</button>
+            <button class="pill" data-toast="正式入口：/maps/games 静态参考地图">地图模式</button>
+          </div>
+
+          <div class="sec"><h3>热门巡礼</h3><span>HOT ROUTES</span></div>
+          <div class="hlist">
+            <button class="hot glow" data-go="scr-landmark">
+              <span class="thumb t1"><em>GAME</em></span>
+              <span class="body"><h4>应县木塔</h4><p>黑神话：悟空 · 山西朔州</p><span class="meta"><span>2.4k 打卡</span><span>1.2km</span></span></span>
+            </button>
+            <button class="hot glow" data-toast="正式入口：GET /landmarks/{id}（子夜 · 外白渡桥）">
+              <span class="thumb t2"><em>NOVEL</em></span>
+              <span class="body"><h4>外白渡桥</h4><p>子夜 · 上海黄浦</p><span class="meta"><span>1.8k 打卡</span><span>4.6km</span></span></span>
+            </button>
+            <button class="hot glow" data-toast="正式入口：GET /landmarks/{id}（繁花 · 黄河路）">
+              <span class="thumb t3"><em>SCREEN</em></span>
+              <span class="body"><h4>黄河路</h4><p>繁花 · 上海黄浦</p><span class="meta"><span>1.1k 打卡</span><span>5.3km</span></span></span>
+            </button>
+          </div>
+
+          <div class="sec"><h3>今晚出发</h3><span>NIGHT WALK</span></div>
+          <div class="card glow tonight">
+            <span class="moonart">☾</span>
+            <div>
+              <h4>地坛公园 · 夜读路线</h4>
+              <p>《我与地坛》题名之地。明清祭坛 + 古园夜色，适合安静的傍晚散步。</p>
+            </div>
+          </div>
+          <p class="notice">打卡数与距离为界面演示占位。正式版仅展示<b>已审核发布</b>的地标数据。</p>
+        </section>
+
+        <!-- ============ 地标详情 ============ -->
+        <section class="app-screen" id="scr-landmark">
+          <div class="navrow">
+            <button class="iconbtn" data-go="scr-home" aria-label="返回">←</button>
+            <span class="mono" style="font-size:11px;color:#8fa0c8">LANDMARK / 应县木塔</span>
+            <button class="iconbtn" data-toast="已加入收藏（演示）" aria-label="收藏">♡</button>
+          </div>
+
+          <div class="lm-hero">
+            <svg viewBox="0 0 358 200" role="img" aria-label="应县木塔霓虹线稿">
+              <rect width="358" height="200" fill="#0A1226"/>
+              <circle cx="60" cy="40" r="14" fill="none" stroke="#FF3D8F" stroke-width="2" filter="url(#ng)"/>
+              <path d="M0 150 L70 108 L130 142 L190 100 L250 138 L320 96 L358 128" fill="none" stroke="#182A50" stroke-width="3" filter="url(#ng)"/>
+              <g stroke="#26E0FF" stroke-width="2.2" fill="none" filter="url(#ng)">
+                <path d="M129 172 H229"/>
+                <path d="M139 172 V134 H219 V172"/>
+                <path d="M127 134 H231 L240 124 H118 Z"/>
+                <path d="M149 124 V96 H209 V124"/>
+                <path d="M139 96 H219 L227 87 H131 Z"/>
+                <path d="M158 87 V65 H200 V87"/>
+                <path d="M151 65 H207 L214 57 H144 Z"/>
+                <path d="M166 57 V42 H192 V57"/>
+                <path d="M160 42 H198 L203 36 H155 Z"/>
+                <path d="M173 36 L179 22 L185 36"/>
+              </g>
+              <g fill="#FF3D8F" opacity=".9"><rect x="168" y="102" width="5" height="7"/><rect x="182" y="102" width="5" height="7"/><rect x="168" y="142" width="5" height="7"/><rect x="190" y="146" width="5" height="7"/></g>
+              <path d="M0 173 H358" stroke="#22335E" stroke-width="2"/>
+              <text x="298" y="184" fill="#3D5390" font-size="9" font-family="monospace">39.56N 111.68E</text>
+            </svg>
+            <div class="cover"><em>GAME · SHANXI · 辽代木构</em></div>
+          </div>
+
+          <div class="lm-title">
+            <h2>应县木塔</h2>
+            <span class="workchip">黑神话：悟空 · 游戏</span>
+          </div>
+          <p class="lm-desc">游戏山西古建取材中辨识度极高的原型之一，为场景中的建筑尺度与木构细节提供了现实参照。现实中位于应县佛宫寺内，建于辽代，是现存著名木塔，游览须遵守遗产保护安排。</p>
+          <button class="more" data-toast="正式详情页展开「作品地位 / 出现情节 / 现实地标」三段式全文">展开三段式介绍 ▾</button>
+
+          <div class="verified"><i>✓</i><span><b>已核验</b> · 信息来源登记于详情页（来源类型：官方 / 机构），更新于 2026-08。地图为<b>静态参考</b>，不提供实时导航。</span></div>
+
+          <div class="inforow">
+            <div class="info"><small>ADDRESS</small><b>山西省朔州市应县 · 佛宫寺内</b></div>
+            <div class="info"><small>TRANSIT</small><b>大同/朔州出发 · 班线至应县</b></div>
+          </div>
+          <div class="inforow">
+            <div class="info"><small>OPEN</small><b>以景区官方公告为准</b></div>
+            <div class="info"><small>MAP</small><b>静态参考点位</b></div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" data-toast="已加入「山西 · 木构古建巡礼线」（正式调用行程接口）">＋ 加入巡礼路线</button>
+            <button class="btn neon" onclick="openCheck()">◉ AR 扫描打卡 <span class="prop">提案</span></button>
+          </div>
+
+          <div class="sec"><h3>同线巡礼</h3><span>NEXT STOPS</span></div>
+          <div class="pillrow">
+            <button class="pill" data-toast="正式入口：小西天详情页（山西临汾隰县）">小西天 · 悬塑</button>
+            <button class="pill" data-toast="正式入口：佛光寺详情页（山西忻州五台）">佛光寺 · 唐构</button>
+            <button class="pill" data-toast="正式入口：悬空寺相关条目（如已发布）">更多山西古建 →</button>
+          </div>
+        </section>
+
+        <!-- ============ 路线 ============ -->
+        <section class="app-screen" id="scr-trip">
+          <div class="sec" style="margin-top:2px"><h3>我的巡礼路线</h3><span>2 DRAFTS</span></div>
+
+          <div class="card route">
+            <div class="route-top">
+              <h4>山西 · 木构古建巡礼</h4>
+              <span class="days">2 DAYS</span>
+            </div>
+            <div class="timeline">
+              <div class="stop done">
+                <h5><span class="d">D1</span>小西天</h5>
+                <p>临汾市隰县凤凰山 · 明代悬塑 · 已打卡 ✓</p>
+              </div>
+              <div class="stop done">
+                <h5><span class="d">D1</span>应县木塔</h5>
+                <p>朔州市应县佛宫寺 · 辽代木塔 · 已打卡 ✓</p>
+              </div>
+              <div class="stop">
+                <h5><span class="d">D2</span>佛光寺</h5>
+                <p>忻州市五台县豆村镇 · 唐代木构东大殿</p>
+              </div>
+            </div>
+            <div class="exports">
+              <button data-toast="正式导出：行程 HTML（/itineraries/{id}）">HTML</button>
+              <button data-toast="正式导出：行程 DOCX">DOCX</button>
+              <button data-toast="正式导出：行程 XLSX">XLSX</button>
+            </div>
+          </div>
+
+          <div class="card route">
+            <div class="route-top">
+              <h4>开封 · 燕云十六声</h4>
+              <span class="days" style="border-color:rgba(255,197,61,.5);color:var(--amber)">DRAFT</span>
+            </div>
+            <div class="timeline">
+              <div class="stop">
+                <h5><span class="d">D1</span>开封府</h5>
+                <p>河南开封 · 五代至宋初城市想象的现实参考</p>
+              </div>
+              <div class="stop">
+                <h5><span class="d">D1</span>候选 · 待补</h5>
+                <p>可从目录继续添加已发布地标</p>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn" data-toast="正式入口：POST /api/v1/itineraries/finalize（仅限中国大陆境内）">＋ 新建巡礼路线</button>
+
+          <div class="sec"><h3>行前提示</h3><span>BEFORE GO</span></div>
+          <div class="card" style="font-size:12px;color:#9db1dd;line-height:1.9">路线由<b style="color:#fff">已发布地标</b>自动编排；交通、票价、开放与预约信息请出行前向官方渠道确认。行程可在详情页继续编辑。</div>
+        </section>
+
+        <!-- ============ 我的 ============ -->
+        <section class="app-screen" id="scr-me">
+          <div class="sec" style="margin-top:2px"><h3>我的</h3><span>PILOGRIM</span></div>
+          <div class="card me-card">
+            <span class="avatar">M</span>
+            <div>
+              <h3>夜行者 Momo</h3>
+              <p>UID 2026-0817 · 加入 142 天</p>
+            </div>
+            <div class="lv"><b>LV.7</b><small>NIGHT WALKER</small></div>
+          </div>
+
+          <div class="procard">
+            <h4>◈ 巡礼 PRO</h4>
+            <p>解锁完整地图图层与成员专属权益；<b>目录检索与导出（CSV / XLSX）对所有人免费</b>。</p>
+            <span class="free">FREE FOREVER · 目录与导出</span>
+          </div>
+
+          <div class="stats">
+            <div class="stat"><b>23</b><small>足迹地标</small></div>
+            <div class="stat"><b>6</b><small>足迹城市</small></div>
+            <div class="stat"><b>4</b><small>巡礼路线</small></div>
+          </div>
+
+          <div class="sec"><h3>徽章墙</h3><span class="prop" style="margin-left:6px">提案</span></div>
+          <div class="badges">
+            <span class="badge on" title="建筑巡礼者">🏯</span>
+            <span class="badge on" title="唐构见证">🏛️</span>
+            <span class="badge on" title="夜访人">🌙</span>
+            <span class="badge on" title="文学漫游">📖</span>
+            <span class="badge off" title="未解锁">🎬</span>
+            <span class="badge off" title="未解锁">🧭</span>
+            <span class="badge off" title="未解锁">⛩️</span>
+            <span class="badge off" title="未解锁">❓</span>
+          </div>
+
+          <div class="sec"><h3>共创计划</h3><span>CONTRIBUTE</span></div>
+          <button class="card glow contribute" style="width:100%;text-align:left" data-toast="正式入口：/intake（一句话一键入库，审核通过后署名）">
+            <span class="ic">📮</span>
+            <span style="text-align:left">
+              <h5>提交你发现的取景地</h5>
+              <p>登录后在「一键入库」用一句话提交地标：AI 联网核实并生成条目，审核发布后展示共创者署名。</p>
+            </span>
+            <span class="arr">→</span>
+          </button>
+          <p class="notice">「徽章 / 等级 / AR 打卡」为视觉提案：当前后端尚未提供对应接口，落地时需要新增打卡与成长体系服务。</p>
+        </section>
+      </div>
+
+      <nav class="tabbar" aria-label="底部导航">
+        <button class="tab on" data-go="scr-home"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2.2 5-4.8 1.5 2.2-5z"/></svg>发现</button>
+        <button class="tab" data-go="scr-landmark"><svg viewBox="0 0 24 24"><path d="M12 21s-6.2-5.4-6.2-10.2A6.2 6.2 0 0 1 12 4.6a6.2 6.2 0 0 1 6.2 6.2C18.2 15.6 12 21 12 21z"/><circle cx="12" cy="10.8" r="2.1"/></svg>地标</button>
+        <button class="tab" data-go="scr-trip"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="5.5" r="2"/><path d="M7.5 18.5h7a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8"/></svg>路线</button>
+        <button class="tab" data-go="scr-me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>我的</button>
+      </nav>
+
+      <div class="modal" id="checkin" role="dialog" aria-modal="true" aria-label="打卡演示">
+        <div class="modal-box" id="checkin-box">
+          <div class="scanbox">
+            <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
+            <span class="pagoda">🗼</span>
+            <span class="scanline"></span>
+          </div>
+          <h4>AR 扫描打卡</h4>
+          <p id="checkin-msg">对准木塔，保持稳定…<br><b>提案功能</b>：正式版需新增打卡接口</p>
+          <div class="stamp" id="checkin-stamp">打卡成功</div>
+          <button class="modal-close" onclick="closeCheck()">关闭演示</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">可交互：底部标签 / 顶部屏幕切换 / 卡片点击 /「AR 扫描打卡」动效 / 横滑列表</p>
+  </div>
+
+  <aside class="spec">
+    <div class="spec-block">
+      <h3>设计关键词</h3>
+      <div class="kw">
+        <span class="tag">夜巡氛围</span><span class="tag pink">收集驱动</span><span class="tag violet">社区感</span><span class="tag">沉浸暗色</span><span class="tag pink">玩家向</span>
+      </div>
+    </div>
+    <div class="spec-block">
+      <h3>色板 · TOKENS</h3>
+      <div class="clist">
+        <span class="c"><i style="background:#070B14"></i>bg / #070B14 深空底</span>
+        <span class="c"><i style="background:#101a30"></i>card / 玻璃拟态 rgba(148,178,255,.055)</span>
+        <span class="c"><i style="background:#26E0FF"></i>primary / #26E0FF 电子青（动作与高亮）</span>
+        <span class="c"><i style="background:#FF3D8F"></i>accent / #FF3D8F 巡礼粉（打卡与作品标签）</span>
+        <span class="c"><i style="background:#8B5CFF"></i>energy / #8B5CFF 能量紫（进度与共创）</span>
+        <span class="c"><i style="background:#FFC53D"></i>warn / #FFC53D 提示金（仅用于提案标记）</span>
+      </div>
+    </div>
+    <div class="spec-block">
+      <h3>字体系统</h3>
+      <ul>
+        <li><b>正文 / 标题</b>：Noto Sans SC，900 重标题制造张力</li>
+        <li><b>数字 / 坐标 / 标签</b>：JetBrains Mono —— 「设备读数」感</li>
+        <li>字号阶梯：22 / 16 / 14 / 12 / 10，标签一律大写英文小字距</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>签名组件</h3>
+      <ul>
+        <li><b>霓虹线稿插画</b>：SVG 发光描边，地标即「能量体」</li>
+        <li><b>弹幕条</b>：巡礼者短评滚动，营造社区在场感</li>
+        <li><b>能量进度条</b>：巡礼打卡进度呼吸充能</li>
+        <li><b>AR 扫描打卡</b>：扫描线动效 + 印章落定</li>
+        <li><b>玻璃底部导航</b>：青色胶囊指示器</li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>数据映射 · 真实能力</h3>
+      <ul class="maplist">
+        <li><code>GET /search?q=</code> 全站检索</li>
+        <li><code>/literature · /games · /screen</code> 三类目录</li>
+        <li><code>GET /landmarks/{id}</code> 三段式详情 + 来源核验</li>
+        <li><code>POST /api/v1/itineraries/finalize</code> 行程生成</li>
+        <li><code>/maps/{module}</code> 会员静态地图</li>
+        <li><code>/intake</code> 一键入库 · 共创流</li>
+        <li>导出 <code>HTML / DOCX / XLSX</code></li>
+      </ul>
+    </div>
+    <div class="spec-block">
+      <h3>适用与取舍</h3>
+      <ul>
+        <li>适合：游戏/影视 IP 受众、夜间出行场景、社区化运营</li>
+        <li>风险：白天的可读性需要亮色变体；文学类用户可能觉得「太酷」</li>
+        <li>徽章/AR/弹幕为<b>提案功能</b>，需新增后端接口</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<p class="footnote">数据说明：地标与文案取自 <code>data/seed/landmarks_verified.csv</code> 与 <code>landmark_content.json</code>（已审核种子数据）；页面中的打卡数、距离、等级为演示占位。设计边界与现有系统一致：地图为静态参考，不提供实时导航。</p>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+var toast=document.getElementById('toast'),timer;
+function tell(m){toast.textContent=m;toast.classList.add('show');clearTimeout(timer);timer=setTimeout(function(){toast.classList.remove('show')},2600)}
+function go(id){
+  var sc=document.querySelectorAll('.app-screen');
+  for(var i=0;i<sc.length;i++){sc[i].classList.toggle('active',sc[i].id===id)}
+  document.querySelectorAll('.tabbar .tab').forEach(function(t){t.classList.toggle('on',t.dataset.go===id)});
+  document.querySelectorAll('.chips button').forEach(function(c){c.classList.toggle('on',c.dataset.go===id)});
+  document.querySelector('.phone').scrollTop=0;
+}
+document.querySelectorAll('[data-go]').forEach(function(n){n.addEventListener('click',function(){go(n.dataset.go)})});
+document.querySelectorAll('[data-toast]').forEach(function(n){n.addEventListener('click',function(e){e.preventDefault();tell(n.dataset.toast)})});
+function openCheck(){
+  var m=document.getElementById('checkin'),b=document.getElementById('checkin-box');
+  m.classList.add('show');b.classList.remove('done');b.classList.add('scanning');
+  document.getElementById('checkin-msg').innerHTML='对准木塔，保持稳定…<br><b>扫描中</b>';
+  setTimeout(function(){b.classList.remove('scanning');b.classList.add('done');
+    document.getElementById('checkin-msg').innerHTML='已打卡 · 应县木塔 <br>巡礼进度 +1（演示）';
+  },1700);
+}
+function closeCheck(){document.getElementById('checkin').classList.remove('show')}
+</script>
+</body>
+</html>

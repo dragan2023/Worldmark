@@ -1,0 +1,116 @@
+/* 认证：登录/注册页 + Header 用户状态区（宣纸/朱砂/黛青/鎏金设计系统） */
+
+.auth-shell {
+  max-width: 460px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 26px;
+  background: var(--paper2, #faf6ee);
+  border: 1px solid var(--line, #e2d9c6);
+  border-radius: 14px;
+}
+
+.auth-label {
+  font-size: 13px;
+  color: var(--muted, #6f6353);
+}
+
+.auth-input {
+  padding: 10px 12px;
+  border: 1px solid var(--line, #e2d9c6);
+  border-radius: 8px;
+  background: #fff;
+  font-family: var(--sans, sans-serif);
+  font-size: 14px;
+}
+
+.auth-input:focus {
+  outline: 2px solid var(--cinnabar, #b03a2e);
+  outline-offset: 1px;
+}
+
+.auth-submit {
+  margin-top: 8px;
+}
+
+.form-error {
+  min-height: 18px;
+  margin: 0;
+  color: var(--cinnabar, #b03a2e);
+  font-size: 13px;
+}
+
+.auth-switch {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted, #6f6353);
+}
+
+.auth-switch a {
+  color: var(--indigo, #2f4b6e);
+}
+
+/* Header 用户状态区 */
+.auth-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 18px;
+}
+
+.auth-link {
+  font-size: 13px;
+  color: var(--ink, #2b2620);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--line2, #cfc4ad);
+}
+
+.auth-register {
+  color: var(--cinnabar, #b03a2e);
+  border-bottom-color: currentcolor;
+}
+
+.auth-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #fff;
+  background: var(--indigo, #2f4b6e);
+}
+
+.auth-badge.role-admin {
+  background: var(--cinnabar, #b03a2e);
+}
+
+.auth-badge.role-level1 {
+  background: var(--gold, #a8802c);
+}
+
+.auth-name {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--muted, #6f6353);
+}
+
+.auth-logout {
+  padding: 3px 10px;
+  border: 1px solid var(--line2, #cfc4ad);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--ink, #2b2620);
+}
+
+.auth-logout:hover {
+  border-color: var(--cinnabar, #b03a2e);
+  color: var(--cinnabar, #b03a2e);
+}

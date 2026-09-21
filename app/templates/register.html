@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/auth.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="page-shell auth-shell">
+      <p class="eyebrow">会员账户</p>
+      <h1>注册</h1>
+      <p class="page-lead">
+        注册即成为<strong>二级用户</strong>：可浏览地标条目、使用一键入库、管理相册与个人 API 密钥。
+        你贡献的地标被管理员审核发布后，将自动升级为<strong>一级用户</strong>，解锁个性化行程生成。
+      </p>
+      <form id="register-form" class="auth-form">
+        <label class="auth-label" for="register-username">用户名</label>
+        <input class="auth-input" type="text" id="register-username" name="username" required autocomplete="username"
+          pattern="[A-Za-z0-9_]{3,32}" title="3-32 位英文、数字或下划线" placeholder="用于登录，如 world_fan">
+        <label class="auth-label" for="register-email">邮箱</label>
+        <input class="auth-input" type="email" id="register-email" name="email" required autocomplete="email"
+          placeholder="you@example.com">
+        <label class="auth-label" for="register-password">密码</label>
+        <input class="auth-input" type="password" id="register-password" name="password" required minlength="8"
+          autocomplete="new-password" placeholder="至少 8 位">
+        <label class="auth-label" for="register-confirm">确认密码</label>
+        <input class="auth-input" type="password" id="register-confirm" name="confirm" required minlength="8"
+          autocomplete="new-password" placeholder="再输入一次">
+        <button type="submit" class="primary-button auth-submit">注册并登录</button>
+        <p id="register-error" class="form-error" role="alert"></p>
+        <p class="auth-switch">已有账号？<a href="/login">直接登录</a></p>
+      </form>
+    </main>
+    {% include "_footer.html" %}
+    <script src="/static/js/auth.js"></script>
+  </body>
+</html>

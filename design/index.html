@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Worldmark · 前端设计方案总览（移动端 4 方案）</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root{--ink:#1B1B18;--gray:#6E6E66;--line:#E2DFD5;--paper:#F6F4EC;--accent:#FF4D00}
+*{box-sizing:border-box}
+body{margin:0;background:#ECEAE0;color:var(--ink);font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1180px;margin:auto;padding:40px clamp(16px,4vw,48px) 60px}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:8px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:18px}
+.brand i{font-style:normal;width:32px;height:32px;display:grid;place-items:center;background:var(--ink);color:#fff;border-radius:3px}
+header.top .note{font-size:12px;color:var(--gray);max-width:520px;line-height:1.8}
+h1{margin:18px 0 6px;font-size:clamp(30px,4.6vw,48px);letter-spacing:-.03em;font-weight:900}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{color:var(--gray);font-size:14px;max-width:760px;line-height:1.9;margin:0 0 26px}
+.sub b{color:var(--ink)}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+@media(max-width:880px){.grid{grid-template-columns:1fr}}
+.scheme-card{display:flex;gap:18px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:20px;text-decoration:none;transition:transform .18s,box-shadow .18s;position:relative;overflow:hidden}
+.scheme-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(27,27,24,.12)}
+.mini{flex:0 0 92px;align-self:stretch;border-radius:14px;position:relative;overflow:hidden;border:3px solid rgba(27,27,24,.85)}
+.mini:after{content:"";position:absolute;left:50%;top:8px;transform:translateX(-50%);width:30px;height:8px;border-radius:99px;background:rgba(27,27,24,.85)}
+.mini .m1,.mini .m2,.mini .m3{position:absolute;left:8px;right:8px;border-radius:5px}
+.mini .m1{top:24px;height:34%}
+.mini .m2{top:calc(24px + 34% + 8px);height:18%}
+.mini .m3{bottom:10px;height:12%;left:50%;right:24px;transform:translateX(-50%)}
+.sc-info h2{margin:0 0 2px;font-size:21px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.sc-info h2 .badge{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;padding:2.5px 8px;border-radius:3px;color:#fff}
+.sc-info h2 small{font-size:11px;color:var(--gray);font-weight:500;letter-spacing:.14em}
+.sc-info p{margin:8px 0 10px;font-size:12.5px;color:#57574F;line-height:1.8}
+.kw{display:flex;gap:6px;flex-wrap:wrap}
+.kw span{font-size:10.5px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--gray);background:#fff}
+.open{position:absolute;right:16px;bottom:14px;font-size:12px;font-weight:700;color:var(--accent)}
+
+table{width:100%;border-collapse:collapse;margin-top:14px;background:var(--paper);border:1px solid var(--line);font-size:12.5px}
+th,td{padding:11px 13px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.7}
+th{font-size:11px;letter-spacing:.14em;color:var(--gray);font-weight:700;background:#EFEDE2;white-space:nowrap}
+td:first-child{font-weight:700;white-space:nowrap;color:#57574F}
+.dotrow{display:inline-flex;gap:4px;vertical-align:middle;margin-right:8px}
+.dot{width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.15);display:inline-block}
+
+section{margin-top:34px}
+section>h2{font-size:18px;letter-spacing:.02em;margin:0 0 4px}
+section>h2 span{color:var(--accent)}
+section>.desc{font-size:12.5px;color:var(--gray);margin:0 0 12px;line-height:1.8}
+.guide{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:18px 20px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px 26px;font-size:13px;line-height:1.9}
+@media(max-width:760px){.guide{grid-template-columns:1fr}}
+.guide b{display:inline-block;margin-right:6px}
+.guide .ab{color:#26E0FF;-webkit-text-stroke:.4px #0a5f70}
+.mix{background:#141414;color:#EDEDE6;border-radius:6px;padding:18px 20px;font-size:12.5px;line-height:2}
+.mix b{color:#fff}
+.mix code{font-family:"IBM Plex Mono",monospace;color:#FFB38A;font-size:11px}
+.old{display:flex;gap:10px;flex-wrap:wrap}
+.old a{font-size:12px;text-decoration:none;border:1px solid var(--line);background:var(--paper);padding:9px 14px;border-radius:99px;color:#57574F}
+.old a:hover{border-color:var(--ink);color:var(--ink)}
+footer{margin-top:40px;font-size:11.5px;color:var(--gray);line-height:1.9;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><i>W</i> Worldmark · IP 地标旅游</div>
+    <p class="note">四套主题化方向稿，每套均有<b>移动端 App</b>（390×844 手机框）与<b>桌面 Web</b>（1240px 站点版式）两种可交互预览，内容映射真实种子数据与现有 FastAPI 路由。</p>
+  </header>
+
+  <h1>挑一套气质，<em>而不是</em>挑一个配色。</h1>
+  <p class="sub">四个方案在<b>布局骨架、组件体系、字体系统、交互隐喻</b>上互不相同：霓虹巡礼把地标做成「能量体」，山河印迹把它做成「一枚印」，手帐巡游把它做成「一页手帐」，纯粹志把它做成「一篇特稿」。全部基于同一批真实数据（黑神话：悟空 × 山西古建、边城、子夜、繁花、燕云十六声…），可直接横向对比。</p>
+
+  <div class="grid">
+    <a class="scheme-card" href="scheme-a-neon.html">
+      <span class="mini" style="background:#070B14">
+        <span class="m1" style="background:linear-gradient(135deg,#12275c,#7a2f66);border:1px solid rgba(38,224,255,.5)"></span>
+        <span class="m2" style="background:rgba(38,224,255,.15);border:1px solid rgba(38,224,255,.4)"></span>
+        <span class="m3" style="background:linear-gradient(90deg,#26E0FF,#8B5CFF)"></span>
+      </span>
+      <span class="sc-info">
+        <h2><span class="badge" style="background:#26E0FF;color:#04101c">方案 A</span>霓虹巡礼 <small>NEON PILGRIM</small></h2>
+        <p>深色玻璃拟态 + 电子荧光 + 弹幕氛围。为游戏/影视 IP 人群打造的「夜巡」体验：打卡、进度、徽章一应俱全，社区在场感最强。</p>
+        <span class="kw"><span>暗色</span><span>游戏化</span><span>弹幕</span><span>AR 打卡(提案)</span></span>
+      </span>
+      <span class="open">打开预览 →</span>
+    </a>
+
+    <a class="scheme-card" href="scheme-b-guochao.html">
+      <span class="mini" style="background:#F6F0E1">
+        <span class="m1" style="background:linear-gradient(135deg,#33565B,#C9B87A)"></span>
+        <span class="m2" style="background:#fff;border:1.5px solid #B5382A;color:#B5382A;font-size:8px;display:grid;place-items:center;font-weight:900">印</span>
+        <span class="m3" style="background:#B5382A"></span>
+      </span>
+      <span class="sc-info">
+        <h2><span class="badge" style="background:#B5382A">方案 B</span>山河印迹 <small>新国潮</small></h2>
+        <p>宣纸、朱砂、宋体大标题与集印册。把「已核验」的严谨做成文献气质，把打卡做成「钤印」。文旅联动与收藏运营的最佳载体，国潮而不复古。</p>
+        <span class="kw"><span>朱砂印章</span><span>集印册</span><span>节气诗意</span><span>竖排批注</span></span>
+      </span>
+      <span class="open">打开预览 →</span>
+    </a>
+
+    <a class="scheme-card" href="scheme-c-journal.html">
+      <span class="mini" style="background:#FBF6EC">
+        <span class="m1" style="background:linear-gradient(135deg,#7FA5C9,#C9D8E8);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15)"></span>
+        <span class="m2" style="background:#FFF9E8;border:1px solid #EAD9A8"></span>
+        <span class="m3" style="background:#E2704A"></span>
+      </span>
+      <span class="sc-info">
+        <h2><span class="badge" style="background:#E2704A">方案 C</span>手帐巡游 <small>TRAVELOGUE</small></h2>
+        <p>拍立得、和纸胶带、票根时间线与贴纸打卡。把规划—打卡—晒图做成记录生活的仪式感，天然适配出片攻略与社交分享场景。</p>
+        <span class="kw"><span>拍立得</span><span>票根</span><span>贴纸打卡(提案)</span><span>便签计划</span></span>
+      </span>
+      <span class="open">打开预览 →</span>
+    </a>
+
+    <a class="scheme-card" href="scheme-d-mono.html">
+      <span class="mini" style="background:#FAFAF7">
+        <span class="m1" style="background:linear-gradient(135deg,#C9C1AC,#57503F)"></span>
+        <span class="m2" style="background:#fff;border:1px solid #E7E5DE"></span>
+        <span class="m3" style="background:#141414"></span>
+      </span>
+      <span class="sc-info">
+        <h2><span class="badge" style="background:#141414">方案 D</span>纯粹志 <small>MONO EDITORIAL</small></h2>
+        <p>超大标题、编号索引、发丝线栅格，黑白灰之上只留一个国际橘。编辑部气质承载「可核验」的专业感——最克制、最耐看、落地成本最低。</p>
+        <span class="kw"><span>极简排版</span><span>编号索引</span><span>单点亮色</span><span>瑞士海报</span></span>
+      </span>
+      <span class="open">打开预览 →</span>
+    </a>
+  </div>
+
+  <section>
+    <h2>桌面 Web 版 <span>/</span> DESKTOP</h2>
+    <p class="desc">同一套设计语言的桌面版式：站点导航 + 四个页面视图（发现 / 地标详情 / 行程 / 我的），全部可交互，可与移动版并排对照。</p>
+    <div class="grid">
+      <a class="scheme-card" href="web-a-neon.html">
+        <span class="mini" style="background:#070B14">
+          <span class="m1" style="background:linear-gradient(135deg,#12275c,#7a2f66);border:1px solid rgba(38,224,255,.5)"></span>
+          <span class="m2" style="background:rgba(38,224,255,.15);border:1px solid rgba(38,224,255,.4)"></span>
+          <span class="m3" style="background:linear-gradient(90deg,#26E0FF,#8B5CFF)"></span>
+        </span>
+        <span class="sc-info">
+          <h2><span class="badge" style="background:#26E0FF;color:#04101c">Web A</span>霓虹巡礼 <small>DESKTOP</small></h2>
+          <p>玻璃拟态导航 + 左文右图大横幅 + 三列巡礼卡；地标详情为双栏图文版式，路线页带侧栏提示。</p>
+        </span>
+        <span class="open">打开桌面版 →</span>
+      </a>
+      <a class="scheme-card" href="web-b-guochao.html">
+        <span class="mini" style="background:#F6F0E1">
+          <span class="m1" style="background:linear-gradient(135deg,#33565B,#C9B87A)"></span>
+          <span class="m2" style="background:#fff;border:1.5px solid #B5382A;color:#B5382A;font-size:8px;display:grid;place-items:center;font-weight:900"></span>
+          <span class="m3" style="background:background:#B5382A"></span>
+        </span>
+        <span class="sc-info">
+          <h2><span class="badge" style="background:#B5382A">Web B</span>山河印迹 <small>DESKTOP</small></h2>
+          <p>玄墨横梁导航 + 竖排大标题与山水横幅；详情页「楹联四联」横排，集印册 6 列印谱。</p>
+        </span>
+        <span class="open">打开桌面版 →</span>
+      </a>
+      <a class="scheme-card" href="web-c-journal.html">
+        <span class="mini" style="background:#FBF6EC">
+          <span class="m1" style="background:linear-gradient(135deg,#7FA5C9,#C9D8E8);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15)"></span>
+          <span class="m2" style="background:#FFF9E8;border:1px solid #EAD9A8"></span>
+          <span class="m3" style="background:background:#E2704A"></span>
+        </span>
+        <span class="sc-info">
+          <h2><span class="badge" style="background:#E2704A">Web C</span>手帐巡游 <small>DESKTOP</small></h2>
+          <p>白胶带导航 + 手绘路线图横幅 + 四联拍立得网格；行程本双列票根，明信片共创入口。</p>
+        </span>
+        <span class="open">打开桌面版 →</span>
+      </a>
+      <a class="scheme-card" href="web-d-mono.html">
+        <span class="mini" style="background:#FAFAF7">
+          <span class="m1" style="background:linear-gradient(135deg,#C9C1AC,#57503F)"></span>
+          <span class="m2" style="background:#fff;border:1px solid #E7E5DE"></span>
+          <span class="m3" style="background:background:#141414"></span>
+        </span>
+        <span class="sc-info">
+          <h2><span class="badge" style="background:#141414">Web D</span>纯粹志 <small>DESKTOP</small></h2>
+          <p>发丝线导航 + 84px 展示级大标题 + 满幅特稿海报；元信息四格栅格，行程段全宽列表。</p>
+        </span>
+        <span class="open">打开桌面版 →</span>
+      </a>
+    </div>
+  </section>
+  <section>
+    <h2>逐项对比 <span>/</span> COMPARISON</h2>
+    <p class="desc">同一批种子数据下的四种回答。每行都是真实的差异点，不是换色。</p>
+    <table>
+      <tr><th style="width:96px">维度</th><th>A 霓虹巡礼</th><th>B 山河印迹</th><th>C 手帐巡游</th><th>D 纯粹志</th></tr>
+      <tr>
+        <td>色彩</td>
+        <td><span class="dotrow"><span class="dot" style="background:#070B14"></span><span class="dot" style="background:#26E0FF"></span><span class="dot" style="background:#FF3D8F"></span></span>深空底 + 电子青/巡礼粉</td>
+        <td><span class="dotrow"><span class="dot" style="background:#F6F0E1"></span><span class="dot" style="background:#B5382A"></span><span class="dot" style="background:#33565B"></span></span>宣纸底 + 朱砂/黛青/鎏金</td>
+        <td><span class="dotrow"><span class="dot" style="background:#FBF6EC"></span><span class="dot" style="background:#E2704A"></span><span class="dot" style="background:#4A6FA5"></span></span>米纸底 + 番茄橘/钴蓝/芥末</td>
+        <td><span class="dotrow"><span class="dot" style="background:#FAFAF7"></span><span class="dot" style="background:#141414"></span><span class="dot" style="background:#FF4D00"></span></span>纸白 + 墨黑 + 唯一国际橘</td>
+      </tr>
+      <tr>
+        <td>字体</td>
+        <td>Sans 900 重标题 + Mono 读数感</td>
+        <td>宋体 900 大字距 + 手写诗句点缀</td>
+        <td>Sans 正文 + 快乐体/Caveat 手写批注</td>
+        <td>Inter 900 紧排展示字 + Mono 全大写标注</td>
+      </tr>
+      <tr>
+        <td>布局骨架</td>
+        <td>横滑卡片流 + 发光横幅 + 玻璃底栏</td>
+        <td>画卷横滑 + 楹联双栏 + 印格网格</td>
+        <td>拍立得散点流 + 票根时间线 + 便签</td>
+        <td>编号索引行 + 满幅特稿 + 元信息栅格</td>
+      </tr>
+      <tr>
+        <td>招牌交互</td>
+        <td>AR 扫描打卡（扫描线→印章）</td>
+        <td>钤印落章（回弹 + 印泥晕）</td>
+        <td>贴纸打卡（闪光 + 贴纸弹出）</td>
+        <td>收藏 ♡ 变色 + 行程完成态</td>
+      </tr>
+      <tr>
+        <td>打卡隐喻</td>
+        <td>能量充能 · 巡礼进度条</td>
+        <td>集印成册 · 已得五印</td>
+        <td>手帐贴纸 · 相册一页页</td>
+        <td>足迹条目 · 克制的数字</td>
+      </tr>
+      <tr>
+        <td>最适合</td>
+        <td>游戏/影视 IP 人群、夜间场景、社区运营</td>
+        <td>文学古建 IP、文旅/博物馆联动、收藏运营</td>
+        <td>轻旅行周末游、社交分享、UGC 攻略</td>
+        <td>内容/设计敏感用户、品牌感、长线演进</td>
+      </tr>
+      <tr>
+        <td>需要注意</td>
+        <td>白天可读性需亮色变体；游戏化需新接口</td>
+        <td>装饰密度需克制；潮流 IP 气质偏弱</td>
+        <td>正式感弱；表单页需收敛成素纸样式</td>
+        <td>情绪价值弱；游戏化扩展空间小</td>
+      </tr>
+      <tr>
+        <td>落地成本</td>
+        <td>中（动效与插画风资产较多）</td>
+        <td>中高（印章/山水等定制资产）</td>
+        <td>中（组件多但都轻）</td>
+        <td><b>最低</b>（几乎纯排版）</td>
+      </tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>快速选择指南 <span>/</span> WHICH ONE</h2>
+    <div class="guide">
+      <div><b style="color:#26E0FF">A</b> 如果你的核心用户因《黑神话：悟空》而来，想运营打卡社区、夜间活动 —— 选 A。</div>
+      <div><b style="color:#B5382A">B</b> 如果主打文学/古建/博物馆联名，想把「已核验」卖成信任感、把成就卖成收藏 —— 选 B。</div>
+      <div><b style="color:#E2704A">C</b> 如果增长靠内容分享与「出片攻略」，用户以周末轻旅行为主 —— 选 C。</div>
+      <div><b> D</b> 如果要一个最快落地、最不容易看腻、方便日后叠加任何运营组件的底座 —— 选 D。</div>
+    </div>
+    <div class="mix" style="margin-top:14px">
+      <b>混搭建议</b>（组件可跨方案移植）：以 <b>D 纯粹志</b> 为全站骨架，把 <b>B 的印章集印体系</b>接入成就页，把 <b>C 的票根时间线</b>用于行程详情，把 <b>A 的弹幕条</b>只放在热门地标详情页做氛围 —— 单文件预览里的组件都是独立样式块，搬运成本低。现有 Jinja 模板（<code>app/templates/*</code>）可按此思路逐页替换：home → D、catalog → D+B、itinerary → C/D、contributors → B。
+    </div>
+  </section>
+
+  <section>
+    <h2>已有的桌面端方向 <span>/</span> PREVIOUS</h2>
+    <p class="desc">此前产出的 7 份桌面端预览仍然有效，可与本批移动端方案交叉组合（桌面框架 + 移动端气质）。</p>
+    <div class="old">
+      <a href="../IP地标旅游UI设计预览.html">桌面 · 叙事档案 / 图谱 / 行程规划器</a>
+      <a href="../IP地标旅游UI视觉方案_补充.html">桌面 · 城市刊物 / 图谱原生 / 旅行笔记</a>
+      <a href="../IP地标旅游3D探索入口预览.html">桌面 · 3D 探索入口</a>
+    </div>
+  </section>
+
+  <footer>
+    数据与边界：所有地标、地址与文案取自 <code>data/seed/landmarks_verified.csv</code> 与 <code>landmark_content.json</code>；带「提案」标记的功能（AR/钤印/贴纸打卡、徽章、弹幕、深色模式）当前后端尚未提供，落地需新增接口。地图始终为静态参考，不提供实时导航；目录检索与 CSV/XLSX 导出对所有人免费。预览中的数字（打卡数、距离、等级）为演示占位。
+  </footer>
+</div>
+</body>
+</html>

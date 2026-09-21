@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/album-editor.css">
+  </head>
+  <body data-landmark-id="{{ landmark_id }}">
+    {% include "_header.html" %}
+    <main class="page-shell album-editor-shell">
+      <a class="back-link" href="/landmarks/{{ landmark_id }}">← 返回地标详情</a>
+      <p class="eyebrow">地标 · 数据维护</p>
+      <h1>编辑地标：{{ landmark_name }}</h1>
+      {% if work_title %}<p class="editor-work">所属作品：{{ work_title }}</p>{% endif %}
+
+      <section id="content-editor" class="content-editor" style="display:none">
+        <h2 class="content-editor-title">✏️ 文字内容</h2>
+        <p class="key-hint">贡献者修改后将进入重新审核，重新审核通过前暂时下架；管理员修改即时生效。</p>
+        <form id="content-form" class="content-form">
+          <label>地标名称<input id="content-name" type="text" maxlength="255" required></label>
+          <label>简介<textarea id="content-description" rows="6" maxlength="20000" required></textarea></label>
+          <label>交通信息<input id="content-transit" type="text" maxlength="4000"></label>
+          <label>地标类型（选填，如 古建筑 / 街区 / 自然景观）<input id="content-kind" type="text" maxlength="100"></label>
+          <button id="content-save" type="submit" class="primary-button">保存文字内容</button>
+          <p id="content-status" class="editor-status" role="status"></p>
+          <p id="content-error" class="form-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="album-section">
+      <h2 class="content-editor-title">🖼️ 相册管理</h2>
+      <p class="page-lead">
+        上传或让 AI 检索的图片会先进入<strong>暂存区</strong>；确认无误后点「提交相册」才会正式展示。
+        点击小图可放大预览并编辑说明、署名与版权信息；点右上角 × 可移除图片。
+      </p>
+      <p class="editor-copyright">⚖️ 版权提示：AI 检索的网络图片默认标记「版权待确认」，请在提交前核实授权并填写署名；正式展示即代表确认可用。</p>
+
+      <div class="editor-toolbar">
+        <label class="upload-button primary-button">+ 上传图片<input id="album-upload-input" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple hidden></label>
+        <button id="album-ai-button" type="button" class="ghost-button">AI 找图</button>
+        <button id="album-submit-button" type="button" class="submit-button">提交相册</button>
+      </div>
+      <p id="album-status" class="editor-status" role="status"></p>
+      <p id="album-error" class="form-error" role="alert"></p>
+      <div id="album-grid" class="album-grid"><p class="editor-loading">正在加载相册工作集……</p></div>
+      </section>
+
+      <dialog id="album-lightbox" class="album-lightbox">
+        <div class="lightbox-body">
+          <img id="lightbox-image" src="" alt="">
+          <form id="lightbox-form" class="lightbox-form">
+            <h3>图片信息</h3>
+            <label>图片说明（必填）<textarea id="field-alt" rows="2" maxlength="300" required></textarea></label>
+            <label>图注（选填）<input id="field-caption" maxlength="500"></label>
+            <label>署名（选填）<input id="field-credit" maxlength="200" placeholder="摄影师 / 机构"></label>
+            <label>版权（选填）<input id="field-license" maxlength="200" placeholder="如 CC BY-SA 4.0 / 自有版权"></label>
+            <label>来源链接（选填）<input id="field-source" maxlength="1000" placeholder="https://"></label>
+            <div class="lightbox-actions">
+              <button id="lightbox-save" type="submit" class="primary-button">保存</button>
+              <button id="lightbox-close" type="button" class="ghost-button">关闭</button>
+            </div>
+          </form>
+        </div>
+      </dialog>
+    </main>
+    {% include "_footer.html" %}
+    <script src="/static/js/album-editor.js"></script>
+    <script src="/static/js/content_editor.js"></script>
+  </body>
+</html>

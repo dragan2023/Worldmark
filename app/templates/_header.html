@@ -1,10 +1,21 @@
 <header class="site-header">
-  <a class="brand" href="/">IP 地标旅游</a>
-  <nav class="site-nav" aria-label="主导航">
-    <a href="/literature">文学</a>
-    <a href="/games">游戏</a>
-    <a href="/screen">影视</a>
-    <a href="/contributors">共创者</a>
-    <a href="/itineraries">我的行程</a>
-  </nav>
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <i class="brand-seal" aria-hidden="true">印</i>
+      <span class="brand-name">山河印迹<small>WORLDMARK</small></span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="/literature">文学</a>
+      <a href="/games">游戏</a>
+      <a href="/screen">影视</a>
+      <a href="/itineraries">行路图</a>
+      <a href="/intake">一键入库</a>
+      <a href="/admin" class="admin-only" style="display:none">管理后台</a>
+    </nav>
+    <div class="auth-status" id="auth-status" aria-live="polite">
+      <a class="auth-link" href="/login">登录</a>
+      <a class="auth-link auth-register" href="/register">注册</a>
+    </div>
+  </div>
 </header>
+<script src="/static/js/auth.js" defer></script>

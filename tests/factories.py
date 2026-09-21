@@ -1,8 +1,9 @@
 from datetime import UTC, datetime
+from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
-from app.models.enums import IPType, PublicationStatus, VerificationStatus
+from app.models.enums import IPType, MembershipTier, PublicationStatus, VerificationStatus
 from app.models.ip_work import IPWork
 from app.models.landmark import Landmark
 from app.models.location import Location
@@ -65,11 +66,22 @@ def create_landmark(
     return landmark
 
 
-def create_member(db: Session, tier) -> User:
-    user = User(email=f"{tier}-{db.query(User).count()}@example.org", password_hash="test-only")
+def create_member(db: Session, tier, role: str = "level2") -> User:
+    serial = db.query(User).count()
+    user = User(
+        username=f"u{serial}_{uuid4().hex[:8]}",
+        email=f"{tier}-{serial}@example.org",
+        password_hash="test-only",
+        role=role,
+        status="active",
+    )
     db.add(user)
     db.flush()
     db.add(Membership(user_id=user.id, tier=tier))
     db.commit()
     db.refresh(user)
     return user
+
+
+def create_admin(db: Session) -> User:
+    return create_member(db, MembershipTier.FREE, role="admin")

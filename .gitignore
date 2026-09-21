@@ -26,3 +26,9 @@ docs/美团酒旅Skills驱动个性化行程重构/
 docs/运行手册.md
 docs/故障处理手册.md
 docs/上线前数据检查清单.md
+
+# 相册暂存区与运行时上传（不入库）
+uploads/
+
+# DSH 本地会话/项目记忆（不入库）
+.dsh-project-memory/

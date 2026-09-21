@@ -28,6 +28,7 @@ class Landmark(TimestampMixin, Base):
         nullable=False,
     )
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
 
     ip_work: Mapped["IPWork"] = relationship(back_populates="landmarks")
     location: Mapped["Location"] = relationship(back_populates="landmarks")

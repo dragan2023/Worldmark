@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/auth.css"><link rel="stylesheet" href="/static/css/keys.css">
+  </head>
+  <body>
+    {% include "_header.html" %}
+    <main class="page-shell auth-shell keys-shell">
+      <p class="eyebrow">会员账户</p>
+      <h1>个人密钥</h1>
+      <p class="page-lead">使用一键入库、个性化行程等功能需要配置你自己的服务密钥。密钥仅以加密形式保存在本系统，页面永远不显示完整内容。管理员若未自配，将回落使用系统密钥。</p>
+      <div id="keys-list" class="keys-list"><p class="keys-loading">正在加载…</p></div>
+      <p id="keys-message" class="form-error" role="alert"></p>
+    </main>
+    {% include "_footer.html" %}
+    <script src="/static/js/account_keys.js"></script>
+  </body>
+</html>

@@ -11,14 +11,33 @@
   <body>
     {% include "_header.html" %}
     <main class="page-shell">
-      <p class="eyebrow">IP LANDMARK TRAVEL</p>
-      <h1>从喜欢的故事，走到真实的地点。</h1>
-      <p class="intro">探索文学、游戏和影视作品中的地标，发现可核验的现实地点，规划你的 IP 打卡之旅。</p>
+      <section class="home-hero" aria-label="山河印迹">
+        <div class="hero-vt">
+          <span class="hero-title">山河印迹</span>
+          <span class="hero-side">读万卷书 · 行万里路</span>
+        </div>
+        <div class="hero-art">
+          <svg viewBox="0 0 880 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="山水横幅：层峦与朱日">
+            <rect width="880" height="260" fill="#EDE4CE"/>
+            <circle cx="726" cy="76" r="34" fill="#B5382A" opacity=".88"/>
+            <circle cx="726" cy="76" r="43" fill="none" stroke="#B5382A" stroke-width="1" opacity=".35"/>
+            <path d="M-10 208 Q150 92 320 176 T560 156 Q680 108 820 172 T900 156 V266 H-10 Z" fill="#33565B" opacity=".20"/>
+            <path d="M-10 222 Q180 128 400 204 T680 188 Q780 148 900 204 V268 H-10 Z" fill="#33565B" opacity=".38"/>
+            <path d="M-10 238 Q240 172 480 234 T900 228 V272 H-10 Z" fill="#26221C" opacity=".62"/>
+            <g stroke="#26221C" stroke-width="2" fill="none" opacity=".8">
+              <path d="M300 176 L300 142 M290 152 L300 142 L310 152 M286 162 L300 148 L314 162"/>
+            </g>
+            <path d="M40 218 q14 -7 28 0 t28 0 M120 232 q14 -7 28 0 t28 0 M600 226 q14 -7 28 0 t28 0 M680 238 q14 -7 28 0 t28 0" stroke="#33565B" stroke-width="1.6" fill="none" opacity=".5"/>
+          </svg>
+          <p class="hero-chip"><b>已核验</b> · 方可入册</p>
+        </div>
+      </section>
+      <p class="poem-line">一步一印 · 走进书里的山河<small>WORLD IN BOOKS · MARKS ON MAPS</small></p>
 
       <section class="home-search" aria-label="全局搜索">
         <form method="get" action="/search">
           <input name="q" value="{{ query or '' }}" maxlength="255" placeholder="搜索作品名或地标名，如「黑神话」「外白渡桥」" aria-label="搜索作品或地标">
-          <button type="submit">搜索</button>
+          <button type="submit">检 索</button>
         </form>
       </section>
 
@@ -47,5 +66,6 @@
       {% endif %}
 
     </main>
+    {% include "_footer.html" %}
   </body>
 </html>

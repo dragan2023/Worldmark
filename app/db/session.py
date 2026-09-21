@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+import app.db.soft_delete  # noqa: F401  注册 Landmark 软删全局过滤
 from app.core.config import get_settings
 
 
