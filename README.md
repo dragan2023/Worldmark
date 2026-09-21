@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-d71f00)
-![License](https://img.shields.io/badge/license-%E5%85%AC%E5%BC%80%E4%BB%93%E5%BA%93-2b6cb0)
+![License](https://img.shields.io/badge/license-%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93-2b6cb0)
 
 ---
 
@@ -283,5 +283,5 @@ GET /api/v1/exports/landmarks.xlsx
 
 ## 📄 License
 
-项目仓库当前为**公开仓库**，代码与数据对外可见。共创者提交的条目按 [共创贡献规范](docs/共创贡献规范.md) 审核、署名与发布；具体授权条款以仓库声明为准。
+项目仓库当前为**私有仓库**（仅维护者可见），不对外公开发布。共创者提交的条目按 [共创贡献规范](docs/共创贡献规范.md) 审核、署名与发布；具体授权条款以仓库声明为准。
 
