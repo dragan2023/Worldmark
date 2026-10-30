@@ -41,7 +41,7 @@
 .config-field-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .config-field-head label{font-weight:700;font-family:var(--serif)}
 .config-env{
-  font-size:12px;color:var(--gold);background:rgba(169,129,47,.10);
+  font-size:12px;color:var(--gold-ink);background:rgba(169,129,47,.10);
   border:1px dashed var(--line2);border-radius:6px;padding:1px 8px;
 }
 .config-field-head .link-button{

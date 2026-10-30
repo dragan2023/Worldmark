@@ -18,6 +18,9 @@ class MapMarkerResponse(BaseModel):
 
 class MapMarkerListResponse(BaseModel):
     items: list[MapMarkerResponse]
+    # 超过服务端点位上限时明确告知截断范围，不静默丢点
+    truncated: bool = False
+    limit: int = 1000
 
 
 class RouteStopResponse(BaseModel):

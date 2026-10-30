@@ -69,8 +69,8 @@
         statusEl.textContent = "";
         if (error.status === 503) {
           errorEl.textContent = error.message + " ";
-          var link = el("a", null, "前往 API 配置页");
-          link.href = "/settings/api";
+          var link = el("a", null, "前往个人密钥页");
+          link.href = "/account/api-keys";
           errorEl.appendChild(link);
         } else {
           errorEl.textContent = error.message;
@@ -154,6 +154,10 @@
     var albumLink = el("a", "ghost-button result-album-link", "管理相册");
     albumLink.href = "/landmarks/" + data.landmark_id + "/album/edit";
     actions.appendChild(albumLink);
+    // 共创闭环：直接进入自己的贡献记录，查看审核状态与反馈
+    var recordsLink = el("a", "ghost-button", "查看我的贡献");
+    recordsLink.href = "/contributions";
+    actions.appendChild(recordsLink);
     var againBtn = el("button", "ghost-button", "继续录入下一条");
     againBtn.type = "button";
     againBtn.addEventListener("click", function () {

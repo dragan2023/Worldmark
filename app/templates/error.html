@@ -1,21 +1,18 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ status_code }}｜IP 地标旅游</title>
-    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/css/site.css">
-    <link rel="stylesheet" href="/static/css/catalog.css">
-  </head>
-  <body>
-    {% include "_header.html" %}
+{% extends "base.html" %}
+{% block styles %}<link rel="stylesheet" href="/static/css/catalog.css">{% endblock %}
+{% block content %}
     <main class="page-shell error-page">
       <p class="eyebrow">ERROR {{ status_code }}</p>
       <h1>{{ title }}</h1>
       <p class="intro">{{ message }}</p>
-      <p><a class="contribution-link" href="/">← 返回首页</a></p>
+      <p class="error-actions">
+        {% if status_code == 403 %}
+        <a class="primary-button" href="/intake">参与共创</a>
+        <a class="secondary-button" href="/contributions">我的贡献</a>
+        {% elif status_code == 401 %}
+        <a class="primary-button" href="/login">去登录</a>
+        {% endif %}
+        <a class="contribution-link" href="/">← 返回首页</a>
+      </p>
     </main>
-  {% include "_footer.html" %}
-  </body>
-</html>
+{% endblock %}

@@ -1,20 +1,29 @@
+{% set current_path = request.url.path %}
 <header class="site-header">
   <div class="site-header-inner">
-    <a class="brand" href="/">
+    <a class="brand" href="/" aria-label="山河印迹首页">
       <i class="brand-seal" aria-hidden="true">印</i>
       <span class="brand-name">山河印迹<small>WORLDMARK</small></span>
     </a>
     <nav class="site-nav" aria-label="主导航">
-      <a href="/literature">文学</a>
-      <a href="/games">游戏</a>
-      <a href="/screen">影视</a>
-      <a href="/itineraries">行路图</a>
-      <a href="/intake">一键入库</a>
-      <a href="/admin" class="admin-only" style="display:none">管理后台</a>
+      <span class="site-nav-group-label">发现地标</span>
+      <a href="/literature"{% if current_path.startswith('/literature') %} aria-current="page"{% endif %}>文学</a>
+      <a href="/games"{% if current_path.startswith('/games') %} aria-current="page"{% endif %}>游戏</a>
+      <a href="/screen"{% if current_path.startswith('/screen') %} aria-current="page"{% endif %}>影视</a>
+      <a href="/search"{% if current_path.startswith('/search') %} aria-current="page"{% endif %}>搜索</a>
+      <a href="/maps/literature"{% if current_path.startswith('/maps') %} aria-current="page"{% endif %}>地图</a>
+      <span class="site-nav-sep" aria-hidden="true"></span>
+      <a href="/itineraries"{% if current_path.startswith('/itineraries') %} aria-current="page"{% endif %}>我的行程</a>
+      <a href="/intake"{% if current_path.startswith('/intake') %} aria-current="page"{% endif %}>参与共创</a>
     </nav>
-    <div class="auth-status" id="auth-status" aria-live="polite">
-      <a class="auth-link" href="/login">登录</a>
-      <a class="auth-link auth-register" href="/register">注册</a>
+    <div class="account-area">
+      <a class="auth-link account-link" href="/contributions">我的贡献</a>
+      <a class="auth-link account-link" href="/account/api-keys">个人密钥</a>
+      <a class="auth-link admin-only account-link" href="/admin" style="display:none">管理后台</a>
+      <div class="auth-status" id="auth-status" aria-live="polite">
+        <a class="auth-link" href="/login">登录</a>
+        <a class="auth-link auth-register" href="/register">注册</a>
+      </div>
     </div>
   </div>
 </header>

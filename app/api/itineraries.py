@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from app.core.auth import CurrentMember, require_entitlement, require_role, resolve_user_id
-from app.models.enums import UserRole
+from app.core.auth import CurrentMember, require_role
+from app.models.enums import PublicationStatus, UserRole
 from app.db.session import get_db
 from app.models.itinerary import Itinerary
 from app.schemas.itinerary import (
@@ -18,6 +18,8 @@ from app.schemas.itinerary import (
 from app.core.config import get_settings
 from app.services.itinerary_exports import ItineraryExportService
 from app.services.itinerary_planner import (
+    EnhancementUnavailable,
+    ItineraryConflict,
     ItineraryNotFound,
     ItineraryPlannerService,
 )
@@ -27,9 +29,32 @@ from app.services.key_resolution import KeyResolutionService
 router = APIRouter(prefix="/api/v1/itineraries", tags=["itineraries"])
 
 
-def _user_id(db: Session, member: CurrentMember) -> int:
-    """Return the member id; anonymous visitors share a persistent guest identity."""
-    return resolve_user_id(db, member)
+def _user_id(member: CurrentMember) -> int:
+    """已认证会员 id。
+
+    require_role(LEVEL1) 已保证 user_id 非空；不再为匿名访客创建共享 guest 身份。
+    """
+    assert member.user_id is not None  # 由权限依赖保证
+    return member.user_id
+
+
+UNAVAILABLE_LANDMARK_NAME = "地点已不可用"
+UNAVAILABLE_NOTE = "该地点已下架或删除；保留你的备注与时间安排，但不再展示地点内容。"
+
+
+def _generation_mode(itinerary: Itinerary) -> str:
+    version = (itinerary.generator_version or "").lower()
+    if "meituan" in version or "confirmed" in version:
+        return "enhanced"
+    if "deepseek" in version:
+        return "llm"
+    return "basic"
+
+
+def _enhancement_warnings(itinerary: Itinerary) -> list[str]:
+    summary = itinerary.budget_summary or {}
+    warning = summary.get("meituan_plan_warning")
+    return [str(warning)] if warning else []
 
 
 def _response(itinerary: Itinerary) -> ItineraryResponse:
@@ -59,6 +84,8 @@ def _response(itinerary: Itinerary) -> ItineraryResponse:
         destination_province=itinerary.destination_province,
         destination_city=itinerary.destination_city,
         generator_version=itinerary.generator_version,
+        generation_mode=_generation_mode(itinerary),
+        enhancement_warnings=_enhancement_warnings(itinerary),
         validation_error_summary=itinerary.validation_error_summary,
         created_at=itinerary.created_at,
         days=[
@@ -69,19 +96,7 @@ def _response(itinerary: Itinerary) -> ItineraryResponse:
                 supplemental_items=day.supplemental_items,
                 travel_context=day.travel_context,
                 stops=[
-                    ItineraryStopResponse(
-                        landmark_id=stop.landmark_id,
-                        stop_order=stop.stop_order,
-                        time_slot=stop.time_slot,
-                        planned_minutes=stop.planned_minutes,
-                        selection_reason=stop.selection_reason,
-                        user_note=stop.user_note,
-                        landmark_name=stop.landmark.name,
-                        work_title=stop.landmark.ip_work.title,
-                        normalized_address=stop.landmark.location.normalized_address,
-                        transit_text=stop.landmark.transit_text,
-                        data_updated_at=stop.landmark.updated_at,
-                    )
+                    _stop_response(stop)
                     for stop in sorted(day.stops, key=lambda value: value.stop_order)
                 ],
             )
@@ -91,44 +106,94 @@ def _response(itinerary: Itinerary) -> ItineraryResponse:
     )
 
 
+def _stop_response(stop) -> ItineraryStopResponse:
+    """把行程站点映射为响应；地点被软删或已撤回时给占位而不是 500。"""
+    landmark = stop.landmark
+    if landmark is None:
+        return ItineraryStopResponse(
+            landmark_id=stop.landmark_id,
+            stop_order=stop.stop_order,
+            time_slot=stop.time_slot,
+            planned_minutes=stop.planned_minutes,
+            selection_reason=stop.selection_reason,
+            user_note=stop.user_note,
+            landmark_name=UNAVAILABLE_LANDMARK_NAME,
+            work_title="",
+            availability="unavailable",
+            availability_note=UNAVAILABLE_NOTE,
+        )
+    public = (
+        landmark.published_at is not None
+        and landmark.ip_work is not None
+        and landmark.ip_work.status == PublicationStatus.PUBLISHED
+    )
+    return ItineraryStopResponse(
+        landmark_id=stop.landmark_id,
+        stop_order=stop.stop_order,
+        time_slot=stop.time_slot,
+        planned_minutes=stop.planned_minutes,
+        selection_reason=stop.selection_reason,
+        user_note=stop.user_note,
+        landmark_name=landmark.name,
+        work_title=landmark.ip_work.title if landmark.ip_work else "",
+        # 未公开时只保留用户看到过的名称，不再回传当前地址/交通内容
+        normalized_address=landmark.location.normalized_address if (public and landmark.location) else None,
+        transit_text=landmark.transit_text if public else None,
+        data_updated_at=landmark.updated_at if public else None,
+        availability="available" if public else "unavailable",
+        availability_note=None if public else "该地点当前未公开，内容可能仍在重新审核；出发前请以官方信息确认。",
+    )
+
+
 def _planner(db: Session, member: CurrentMember) -> ItineraryPlannerService:
     return ItineraryPlannerService(db, KeyResolutionService(db).effective_settings(member, get_settings()))
 
 
-@router.post("", response_model=ItineraryResponse, dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.post("", response_model=ItineraryResponse, dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def create_itinerary(
     payload: ItineraryCreateRequest,
-    member: CurrentMember = Depends(require_entitlement("personalized_itinerary")),
+    member: CurrentMember = Depends(require_role(UserRole.LEVEL1)),
     db: Session = Depends(get_db),
 ) -> ItineraryResponse:
     try:
-        itinerary = _planner(db, member).create(_user_id(db, member), payload)
+        itinerary = _planner(db, member).create(_user_id(member), payload)
     except ItineraryValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return _response(itinerary)
 
 
-@router.post("/finalize", response_model=ItineraryResponse, dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.post("/finalize", response_model=ItineraryResponse, dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def finalize_itinerary(
     payload: ItineraryCreateRequest,
-    member: CurrentMember = Depends(require_entitlement("personalized_itinerary")),
+    member: CurrentMember = Depends(require_role(UserRole.LEVEL1)),
     db: Session = Depends(get_db),
 ) -> ItineraryResponse:
     try:
-        itinerary = _planner(db, member).finalize(_user_id(db, member), payload)
+        itinerary = _planner(db, member).finalize(_user_id(member), payload)
+    except EnhancementUnavailable as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "enhancement_unavailable",
+                "reason": exc.reason,
+                "message": str(exc),
+                "config_url": exc.config_url,
+                "fallback": "取消「外部行程增强」即可使用基础规划生成行程。",
+            },
+        ) from exc
     except ItineraryValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return _response(itinerary)
 
 
-@router.post("/{itinerary_id}/reprocess-meituan", response_model=ItineraryResponse, dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.post("/{itinerary_id}/reprocess-meituan", response_model=ItineraryResponse, dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def reprocess_meituan_itinerary(
     itinerary_id: int,
-    member: CurrentMember = Depends(require_entitlement("personalized_itinerary")),
+    member: CurrentMember = Depends(require_role(UserRole.LEVEL1)),
     db: Session = Depends(get_db),
 ) -> ItineraryResponse:
     try:
-        itinerary = _planner(db, member).reprocess_meituan_plan(_user_id(db, member), itinerary_id)
+        itinerary = _planner(db, member).reprocess_meituan_plan(_user_id(member), itinerary_id)
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ItineraryValidationError as exc:
@@ -136,23 +201,24 @@ def reprocess_meituan_itinerary(
     return _response(itinerary)
 
 
-@router.post("/choice-preview", dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.post("/choice-preview", dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def preview_itinerary_choices(
     payload: ItineraryCreateRequest,
-    member: CurrentMember = Depends(require_entitlement("personalized_itinerary")),
+    member: CurrentMember = Depends(require_role(UserRole.LEVEL1)),
     db: Session = Depends(get_db),
 ) -> dict:
     try:
-        return ItineraryPlannerService(db).preview_choices(payload)
+        # 与 create/finalize 使用同一套用户密钥注入，绝不回落到系统密钥。
+        return _planner(db, member).preview_choices(payload)
     except ItineraryValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
-@router.get("", response_model=ItineraryListResponse, dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.get("", response_model=ItineraryListResponse, dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def list_itineraries(
-    member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db)
+    member: CurrentMember = Depends(require_role(UserRole.LEVEL1)), db: Session = Depends(get_db)
 ) -> ItineraryListResponse:
-    items = _planner(db, member).list_owned(_user_id(db, member))
+    items = _planner(db, member).list_owned(_user_id(member))
     return ItineraryListResponse(
         items=[
             ItineraryListItem(
@@ -164,48 +230,56 @@ def list_itineraries(
     )
 
 
-@router.get("/{itinerary_id}", response_model=ItineraryResponse, dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.get("/{itinerary_id}", response_model=ItineraryResponse, dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def get_itinerary(
-    itinerary_id: int, member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db)
+    itinerary_id: int, member: CurrentMember = Depends(require_role(UserRole.LEVEL1)), db: Session = Depends(get_db)
 ) -> ItineraryResponse:
     try:
-        return _response(_planner(db, member).get_owned(_user_id(db, member), itinerary_id))
+        return _response(_planner(db, member).get_owned(_user_id(member), itinerary_id))
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.patch("/{itinerary_id}", response_model=ItineraryResponse, dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.patch("/{itinerary_id}", response_model=ItineraryResponse, dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def update_itinerary(
     itinerary_id: int, payload: ItineraryUpdateRequest,
-    member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db),
+    member: CurrentMember = Depends(require_role(UserRole.LEVEL1)), db: Session = Depends(get_db),
 ) -> ItineraryResponse:
     try:
-        itinerary = _planner(db, member).update_days(_user_id(db, member), itinerary_id, payload.title, payload.days)
+        itinerary = _planner(db, member).update_days(
+            _user_id(member),
+            itinerary_id,
+            payload.title,
+            payload.days,
+            expected_version=payload.expected_version,
+        )
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ItineraryConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ItineraryValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return _response(itinerary)
 
 
-@router.delete("/{itinerary_id}", status_code=204, dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.delete("/{itinerary_id}", status_code=204, dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def delete_itinerary(
-    itinerary_id: int, member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db)
+    itinerary_id: int, member: CurrentMember = Depends(require_role(UserRole.LEVEL1)), db: Session = Depends(get_db)
 ) -> Response:
     try:
-        _planner(db, member).delete(_user_id(db, member), itinerary_id)
+        _planner(db, member).delete(_user_id(member), itinerary_id)
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return Response(status_code=204)
 
 
-@router.get("/{itinerary_id}/exports/{file_format}", dependencies=[Depends(require_entitlement("personalized_itinerary")), Depends(require_role(UserRole.LEVEL1))])
+@router.get("/{itinerary_id}/exports/{file_format}", dependencies=[Depends(require_role(UserRole.LEVEL1))])
 def export_itinerary(
     itinerary_id: int, file_format: str,
-    member: CurrentMember = Depends(require_entitlement("personalized_itinerary")), db: Session = Depends(get_db),
+    member: CurrentMember = Depends(require_role(UserRole.LEVEL1)), db: Session = Depends(get_db),
 ) -> Response:
     try:
-        itinerary = _planner(db, member).get_owned(_user_id(db, member), itinerary_id)
+        itinerary = _planner(db, member).get_owned(_user_id(member), itinerary_id)
     except ItineraryNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     service = ItineraryExportService(db)

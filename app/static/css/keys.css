@@ -16,6 +16,9 @@
 .key-badge { font-size: 0.78rem; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
 .key-badge.configured { background: rgba(34, 139, 34, 0.12); color: #1c6b1c; }
 .key-badge.missing { background: rgba(180, 60, 40, 0.10); color: var(--cinnabar); }
+.key-badge.system { background: rgba(47, 75, 110, 0.12); color: var(--indigo); }
+.key-shell .page-note { font-size: 0.85rem; color: var(--muted); margin: -4px 0 18px; }
+.key-shell .page-note code { font-family: var(--mono, monospace); background: rgba(38, 34, 28, 0.06); padding: 1px 5px; border-radius: 4px; }
 .key-hint { margin: 0; color: var(--muted); font-size: 0.85rem; }
 .key-apply-link { font-size: 0.85rem; color: var(--indigo); }
 .key-input { width: 100%; }
@@ -97,3 +100,13 @@
 .lm-photo img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
 .lm-photo .key-badge { align-self: flex-start; }
 .lm-photo-caption { font-size: 0.74rem; color: var(--muted); line-height: 1.5; word-break: break-all; }
+
+/* 阶段05：密钥用途说明与返回任务 */
+.key-usage{margin:18px 0 22px;padding:16px 18px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper3)}
+.key-usage h2{font-size:16px;letter-spacing:.1em;margin-bottom:10px}
+.key-usage dl{display:grid;grid-template-columns:max-content 1fr;gap:8px 16px;margin:0;font-size:13.5px}
+.key-usage dt{font-family:var(--serif);font-weight:700;color:var(--ink)}
+.key-usage dd{margin:0;color:var(--ink2)}
+.key-return{margin-top:18px;font-size:13px;color:var(--muted)}
+.key-return a{color:var(--indigo)}
+@media(max-width:600px){.key-usage dl{grid-template-columns:1fr;gap:2px}}

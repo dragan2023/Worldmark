@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import Settings, get_settings
 from app.integrations.search.base import SearchProvider
-from app.integrations.search.bocha_web_search import BochaWebSearchProvider
+from app.integrations.search.deepseek_web_search import DeepSeekWebSearchProvider
 from app.models.search_run import SearchReferenceRecord, SearchRun
 
 
@@ -12,8 +12,9 @@ class SearchDiscoveryService:
     def __init__(self, db: Session, settings: Settings | None = None, provider: SearchProvider | None = None) -> None:
         self._db = db
         self._settings = settings or get_settings()
-        self._provider = provider or BochaWebSearchProvider(
-            api_key=self._settings.bocha_api_key.get_secret_value() if self._settings.bocha_api_key else None,
+        self._provider = provider or DeepSeekWebSearchProvider(
+            api_key=self._settings.deepseek_api_key.get_secret_value() if self._settings.deepseek_api_key else None,
+            base_url=self._settings.deepseek_base_url,
         )
 
     def discover(self, query_template: str, query: str) -> SearchRun:

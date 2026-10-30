@@ -12,6 +12,7 @@ from dataclasses import replace
 from math import asin, cos, radians, sin, sqrt
 
 from app.integrations.amap_web_service import AmapWebService
+from app.services.geocoding import wgs84_to_gcj02
 from app.services.mock_itinerary_generator import PlannedStop
 
 EARTH_RADIUS_METERS = 6371000.0
@@ -91,7 +92,10 @@ class RouteOptimizer:
     def _walking_or_haversine(self, a: tuple[float, float], b: tuple[float, float]) -> float:
         if self._amap is not None:
             try:
-                result = self._amap.walking_distance(f"{a[1]},{a[0]}", f"{b[1]},{b[0]}")
+                # 库内坐标是 WGS-84，高德步行接口要求 GCJ-02，必须显式转换。
+                a_lng, a_lat = wgs84_to_gcj02(a[1], a[0])
+                b_lng, b_lat = wgs84_to_gcj02(b[1], b[0])
+                result = self._amap.walking_distance(f"{a_lng:.6f},{a_lat:.6f}", f"{b_lng:.6f},{b_lat:.6f}")
                 if result and result.get("distance_meters"):
                     return float(result["distance_meters"])
             except Exception:

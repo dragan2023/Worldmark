@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 import secrets
 
 import jwt
-from fastapi import Cookie, Depends, Header, HTTPException, status
+from fastapi import Cookie, Depends, Header, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -14,7 +14,7 @@ from app.models.enums import MembershipTier, UserStatus, UserRole
 from app.models.membership import Membership
 from app.models.user import User
 from app.services.entitlements import EntitlementService
-from app.services.permissions import normalize_role, role_at_least
+from app.services.permissions import effective_role, normalize_role, role_at_least
 
 DEV_USER_EMAIL = "dev@iplandmarks.local"
 DEV_USER_PASSWORD_HASH = "dev-mode-no-login"
@@ -62,21 +62,15 @@ def _ensure_dev_user(db: Session) -> User:
     return user
 
 
-ANONYMOUS_USER_EMAIL = "anonymous@iplandmarks.local"
-ANONYMOUS_USER_PASSWORD_HASH = "anonymous-no-login"
+ANONYMOUS_ROLE = UserRole.LEVEL2
 
 
-def resolve_user_id(db: Session, member: CurrentMember) -> int:
-    """Return the member's user id, creating a shared guest identity for anonymous visitors."""
-    if member.user_id is not None:
-        return member.user_id
-    user = db.scalar(select(User).where(User.email == ANONYMOUS_USER_EMAIL))
-    if user is None:
-        user = User(email=ANONYMOUS_USER_EMAIL, password_hash=ANONYMOUS_USER_PASSWORD_HASH)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    return user.id
+class LoginRequired(Exception):
+    """页面级守卫：未登录访客需要跳转登录页，并带回安全的站内 next。"""
+
+    def __init__(self, next_url: str = "/") -> None:
+        self.next_url = next_url
+        super().__init__("login required")
 
 
 def get_current_member(
@@ -110,13 +104,19 @@ def get_current_member(
         return CurrentMember(None, MembershipTier.FREE, UserRole.LEVEL2)
     if user.status == UserStatus.BANNED.value:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="该账号已被封禁，如有疑问请联系管理员。")
-    role = normalize_role(user.role)
-    if user.is_admin:
-        role = UserRole.ADMIN
-    expires_at = user.membership.expires_at
-    if expires_at is not None and expires_at < datetime.now(UTC):
+    role = effective_role(user.role, user.is_admin)
+    if _membership_expired(user.membership.expires_at):
         return CurrentMember(user.id, MembershipTier.FREE, role)
     return CurrentMember(user.id, user.membership.tier, role)
+
+
+def _membership_expired(expires_at: datetime | None) -> bool:
+    """会员到期判断：SQLite 取回的是无时区 datetime，先归一化为 UTC 再比较。"""
+    if expires_at is None:
+        return False
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+    return expires_at < datetime.now(UTC)
 
 
 def require_entitlement(feature: str):
@@ -155,12 +155,55 @@ def require_role(minimum: str | UserRole):
     return dependency
 
 
+def safe_next_path(value: str | None, default: str = "/") -> str:
+    """只接受站内绝对路径，阻断开放重定向（//evil.com、https://…、反斜杠等）。"""
+    if not value:
+        return default
+    candidate = value.strip()
+    if not candidate.startswith("/") or candidate.startswith("//"):
+        return default
+    if "\\" in candidate or ":" in candidate or "\n" in candidate or "\r" in candidate:
+        return default
+    return candidate
+
+
+def require_page_role(minimum: str | UserRole):
+    """HTML 页面守卫：未登录跳登录页（带 next），角色不足返回说明性 403。
+
+    API 仍使用 require_role 返回 401/403 JSON，页面与接口的能力边界由此保持一致。
+    """
+
+    def dependency(request: Request, member: CurrentMember = Depends(get_current_member)) -> CurrentMember:
+        if member.user_id is None:
+            raise LoginRequired(request.url.path + (f"?{request.url.query}" if request.url.query else ""))
+        if not role_at_least(member.role, minimum):
+            required = normalize_role(minimum)
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "该功能需要「一级贡献者」权限。完成一次地标贡献并通过审核后会自动升级；"
+                    "现在可以先去「参与共创」提交候选地标。"
+                    if required == UserRole.LEVEL1
+                    else "当前账号无权访问该页面。"
+                ),
+            )
+        return member
+
+    return dependency
+
+
 def require_admin(
     x_admin_token: str | None = Header(default=None),
     member: CurrentMember = Depends(get_current_member),
     settings: Settings = Depends(get_settings),
 ) -> CurrentMember:
-    """管理员守卫：admin 角色用户，或过渡期兼容旧 X-Admin-Token（后续下线）。"""
+    """管理员守卫：admin 角色用户，或过渡期兼容旧 X-Admin-Token。
+
+    X-Admin-Token 的保留条件：系统级运维脚本/自动化仍需在无人登录时调用
+    `/api/v1/admin/routes/*`（有测试与脚本调用方，见 tests/api/test_routes.py）。
+    移除条件：这些调用方全部迁移到管理员登录态（或独立的服务账号令牌），
+    并且 `ADMIN_API_TOKEN` 在部署配置中确认不再使用。在此之前不得删除该分支。
+    """
     if member.user_id is not None and member.role == UserRole.ADMIN:
         return member
     configured_token = settings.admin_api_token.get_secret_value() if settings.admin_api_token else None

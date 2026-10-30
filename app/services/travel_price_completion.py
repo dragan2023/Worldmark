@@ -9,7 +9,8 @@ import re
 
 from app.integrations.amap_web_service import AmapServiceError, AmapWebService
 from app.integrations.meituan_travel_mcp import MeituanMcpError, MeituanMcpUnavailable, MeituanTravelMcp
-from app.integrations.search.bocha_web_search import BochaWebSearchProvider, SearchConfigurationError, SearchProviderError
+from app.integrations.search.base import SearchConfigurationError, SearchProviderError
+from app.integrations.search.deepseek_web_search import DeepSeekWebSearchProvider
 from app.services.meituan_itinerary_parser import StructuredTravelPlan, TravelPlanItem
 
 
@@ -24,12 +25,12 @@ class TravelPriceCompletionService:
 
     meituan_source = "美团酒旅官方 Skill"
     amap_source = "高德地图 POI"
-    bocha_source = "博查 AI 搜索"
+    search_source = "DeepSeek 网页搜索"
 
-    def __init__(self, adapter: MeituanTravelMcp | None, *, amap: AmapWebService | None = None, bocha_api_key: str | None = None) -> None:
+    def __init__(self, adapter: MeituanTravelMcp | None, *, amap: AmapWebService | None = None, search_api_key: str | None = None) -> None:
         self._adapter = adapter
         self._amap = amap
-        self._bocha = BochaWebSearchProvider(bocha_api_key) if bocha_api_key else None
+        self._search = DeepSeekWebSearchProvider(search_api_key) if search_api_key else None
 
     def complete(self, plan: StructuredTravelPlan) -> StructuredTravelPlan:
         missing = [item for item in plan.items if item.amount is None and item.category in {"scenic", "food"}]
@@ -52,8 +53,8 @@ class TravelPriceCompletionService:
                 price = self._amap_price(item)
                 source = self.amap_source if price is not None else None
             if price is None:
-                price = self._bocha_price(item)
-                source = self.bocha_source if price is not None else None
+                price = self._search_price(item)
+                source = self.search_source if price is not None else None
             if price is not None:
                 completed.append(replace(item, amount=price))
                 sources[self.source_key(item)] = source or "第三方参考"
@@ -66,7 +67,7 @@ class TravelPriceCompletionService:
         return self.review_prices(StructuredTravelPlan(tuple(completed), budget, plan.warning))
 
     def review_prices(self, plan: StructuredTravelPlan) -> StructuredTravelPlan:
-        """Keep a price only when a separate Bocha web search can corroborate it.
+        """Keep a price only when a separate DeepSeek web search can corroborate it.
 
         Search snippets often contain unrelated article counts, bundle prices, or
         hotel totals.  The final itinerary must prefer a blank amount over a
@@ -80,9 +81,9 @@ class TravelPriceCompletionService:
             return plan
 
         verified: dict[tuple[str, str], int] = {}
-        if self._bocha is not None:
+        if self._search is not None:
             for item in suspicious:
-                if price := self._bocha_item_review(item):
+                if price := self._search_item_review(item):
                     verified[(item.city, item.name)] = price
 
         sources = dict(plan.budget.get("price_sources") or {})
@@ -96,15 +97,15 @@ class TravelPriceCompletionService:
                 sources.pop(self.source_key(item), None)
                 reviewed.append(replace(item, amount=None))
                 continue
-            sources[self.source_key(item)] = self.bocha_source
+            sources[self.source_key(item)] = self.search_source
             reviewed.append(replace(item, amount=price))
 
         budget = self._budget(reviewed)
         budget["price_sources"] = sources
         budget["price_review_status"] = (
-            "异常价格已通过博查网页独立复核；没有明确项目价格的信息已留空。"
-            if self._bocha is not None
-            else "未配置博查网页搜索，异常价格未展示。"
+            "异常价格已通过 DeepSeek 网页独立复核；没有明确项目价格的信息已留空。"
+            if self._search is not None
+            else "未配置 DeepSeek 网页搜索，异常价格未展示。"
         )
         budget["status"] = "已汇总合理范围内的价格；异常价格须经独立网页搜索复核后才会计入预算。"
         return StructuredTravelPlan(tuple(reviewed), budget, plan.warning)
@@ -235,20 +236,20 @@ class TravelPriceCompletionService:
             return None
         return pois[0].reference_cost if pois else None
 
-    def _bocha_price(self, item: TravelPlanItem) -> int | None:
-        if self._bocha is None:
+    def _search_price(self, item: TravelPlanItem) -> int | None:
+        if self._search is None:
             return None
         label = "成人门票价格" if item.category == "scenic" else "人均消费价格"
         try:
-            result = self._bocha.search(f"{item.city} {item.name} {label}")
+            result = self._search.search(f"{item.city} {item.name} {label}")
         except (SearchConfigurationError, SearchProviderError):
             return None
         content = "\n".join(f"{reference.title}\n{reference.snippet or ''}" for reference in result.references)
         return self._valid_price_near_name(content, item.name, item.category)
 
-    def _bocha_item_review(self, item: TravelPlanItem) -> int | None:
+    def _search_item_review(self, item: TravelPlanItem) -> int | None:
         try:
-            result = self._bocha.search(
+            result = self._search.search(
                 f"{item.city} {item.name} {'成人门票' if item.category == 'scenic' else '人均消费'} 价格。"
                 "仅返回能明确对应项目名称和人民币价格的网页信息；套餐总价、商品价格、培训价格和无关数字不采纳。"
             )

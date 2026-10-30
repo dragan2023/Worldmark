@@ -148,7 +148,7 @@ def test_compose_prompt_must_carry_reference_urls(db_session):
 
 
 def test_search_failure_degrades_with_warning(db_session):
-    from app.integrations.search.bocha_web_search import SearchProviderError
+    from app.integrations.search.base import SearchProviderError
 
     search = FakeSearch(error=SearchProviderError("boom"))
     outcome = build_agent(db_session, search=search).intake("黑神话悟空 小西天")

@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core import rate_limit as login_rate_limit
@@ -24,7 +25,7 @@ from app.db.session import get_db
 from app.models.enums import MembershipTier, UserStatus, UserRole
 from app.models.membership import Membership
 from app.models.user import User
-from app.services.permissions import normalize_role, permissions_for_role
+from app.services.permissions import effective_role, permissions_for_role
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -59,7 +60,8 @@ def _set_auth_cookie(response: Response, token: str) -> None:
 
 
 def _user_payload(user: User, token: str | None = None) -> dict[str, object]:
-    role = normalize_role(user.role)
+    # 与 get_current_member 使用同一个有效角色解析，保证 /me 与授权一致。
+    role = effective_role(user.role, user.is_admin)
     payload: dict[str, object] = {
         "authenticated": True,
         "user_id": user.id,
@@ -101,9 +103,17 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
         status=UserStatus.ACTIVE.value,
     )
     db.add(user)
-    db.flush()
-    db.add(Membership(user_id=user.id, tier=MembershipTier.FREE, expires_at=None))
-    db.commit()
+    try:
+        db.flush()
+        db.add(Membership(user_id=user.id, tier=MembershipTier.FREE, expires_at=None))
+        db.commit()
+    except IntegrityError as exc:
+        # 并发注册撞上唯一约束：转成 409 并回滚，避免半写入和 500。
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="该用户名或邮箱已被占用，请更换后再试。",
+        ) from exc
     db.refresh(user)
 
     token = create_access_token(user.id)

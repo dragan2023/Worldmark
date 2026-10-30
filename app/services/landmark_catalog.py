@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models.enums import IPType, PublicationStatus
+from app.models.enums import IPType, PublicationStatus, VerificationStatus
 from app.models.contribution import LandmarkContribution
 from app.models.ip_work import IPWork
 from app.models.landmark import Landmark
@@ -125,15 +125,9 @@ class LandmarkCatalogService:
         return self._paginate(published_landmark_statement(filters), page, page_size)
 
     def search(self, query: str, page: int = 1, page_size: int = 20) -> CatalogPage:
-        pattern = f"%{query.strip()}%"
-        statement = (
-            select(Landmark)
-            .join(Landmark.ip_work)
-            .join(Landmark.location)
-            .where(Landmark.published_at.is_not(None), IPWork.status == PublicationStatus.PUBLISHED)
-            .where(or_(IPWork.title.ilike(pattern), IPWork.aliases.ilike(pattern), Landmark.name.ilike(pattern)))
-        )
-        return self._paginate(statement, page, page_size)
+        """全局搜索复用与目录/地图一致的公开条件，避免漏掉审核或软删过滤。"""
+        filters = CatalogFilters.from_values(query=query.strip() or None)
+        return self._paginate(published_landmark_statement(filters), page, page_size)
 
     def _paginate(self, statement, page: int, page_size: int) -> CatalogPage:
         if page < 1:
@@ -158,24 +152,42 @@ class LandmarkCatalogService:
 
     def filter_options(self, ip_type: IPType | None = None) -> FilterOptions:
         statement = (
-            select(Location.country_code, Location.country_name, Location.province_name, Location.city_name)
+            # distinct 投影：数据库只回传去重后的地区组合，不再把全部地标行拉进内存
+            select(
+                Location.country_code,
+                Location.country_name,
+                Location.province_name,
+                Location.city_name,
+            )
             .join(Landmark, Landmark.location_id == Location.id)
             .join(IPWork, Landmark.ip_work_id == IPWork.id)
-            .where(Landmark.published_at.is_not(None), IPWork.status == PublicationStatus.PUBLISHED)
+            .where(
+                Landmark.deleted_at.is_(None),
+                Landmark.verification_status == VerificationStatus.VERIFIED,
+                Landmark.published_at.is_not(None),
+                IPWork.status == PublicationStatus.PUBLISHED,
+            )
+            .distinct()
         )
         if ip_type is not None:
             statement = statement.where(IPWork.ip_type == ip_type)
 
         countries: dict[str, str] = {}
-        provinces: dict[str, RegionOption] = {}
-        cities: dict[str, RegionOption] = {}
+        provinces: dict[tuple[str, str | None], RegionOption] = {}
+        cities: dict[tuple[str, str | None, str], RegionOption] = {}
         for country_code, country_name, province_name, city_name in self._db.execute(statement).all():
             if country_code:
                 countries.setdefault(country_code, country_name or country_code)
             if province_name:
-                provinces.setdefault(province_name, RegionOption(province_name, country_code))
+                # 省/市按「名称 + 所属国家/省」去重，避免同名跨地区被合并
+                provinces.setdefault(
+                    (province_name, country_code), RegionOption(province_name, country_code)
+                )
             if city_name:
-                cities.setdefault(city_name, RegionOption(city_name, country_code, province_name))
+                cities.setdefault(
+                    (city_name, country_code, province_name),
+                    RegionOption(city_name, country_code, province_name),
+                )
 
         return FilterOptions(
             countries=tuple(FilterOption(code, label) for code, label in sorted(countries.items())),
@@ -262,12 +274,22 @@ class LandmarkCatalogService:
 
 
 def published_landmark_statement(filters: CatalogFilters):
-    """Return the shared public-catalog SQL statement without loading private coordinates."""
+    """公开地标的唯一 SQL 条件（目录、搜索、筛选项、地图、路线、规划候选共用）。
+
+    公开 = 未软删 AND 已核验 AND 已发布 AND 所属作品处于 published。
+    ``deleted_at`` 在这里显式写出，因为统计总数用的是 Core 子查询，
+    不经过 ORM 的软删 ``with_loader_criteria``，否则会出现列表 20 条、总数更多的偏差。
+    """
     statement = (
         select(Landmark)
         .join(Landmark.ip_work)
         .join(Landmark.location)
-        .where(Landmark.published_at.is_not(None), IPWork.status == PublicationStatus.PUBLISHED)
+        .where(
+            Landmark.deleted_at.is_(None),
+            Landmark.verification_status == VerificationStatus.VERIFIED,
+            Landmark.published_at.is_not(None),
+            IPWork.status == PublicationStatus.PUBLISHED,
+        )
     )
     if filters.ip_type is not None:
         statement = statement.where(IPWork.ip_type == filters.ip_type)

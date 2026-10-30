@@ -17,6 +17,7 @@ from app.models.source import LandmarkSource
 from app.schemas.itinerary import ItineraryCreateRequest, ItineraryDayEdit
 from app.services.deepseek_itinerary_generator import DeepSeekItineraryGenerator, ItineraryGenerationError
 from app.services.confirmed_itinerary import ConfirmedItineraryBuilder
+from app.services.geocoding import gcj02_to_wgs84
 from app.services.itinerary_validator import ItineraryValidationError, ItineraryValidator
 from app.services.landmark_catalog import CatalogFilters, published_landmark_statement
 from app.services.mock_itinerary_generator import MockItineraryGenerator, PlannedDay
@@ -29,6 +30,19 @@ from app.services.travel_price_completion import TravelPriceCompletionService
 
 class ItineraryNotFound(ValueError):
     """Raised when an itinerary is absent or belongs to another member."""
+
+
+class ItineraryConflict(ValueError):
+    """并发编辑：客户端持有的版本已过期。"""
+
+
+class EnhancementUnavailable(RuntimeError):
+    """外部行程增强不可用（未配置凭据或上游失败），与参数错误区分开。"""
+
+    def __init__(self, message: str, *, reason: str, config_url: str | None = None) -> None:
+        self.reason = reason  # not_configured | upstream_failed | upstream_timeout
+        self.config_url = config_url
+        super().__init__(message)
 
 
 class ItineraryPlannerService:
@@ -64,11 +78,11 @@ class ItineraryPlannerService:
     def _build_travel_enrichment(self) -> TravelEnrichmentService:
         effective_token = self._settings.effective_meituan_travel_token
         token = effective_token.get_secret_value() if effective_token else None
-        bocha_key = self._settings.bocha_api_key.get_secret_value() if self._settings.bocha_api_key else None
+        search_key = self._settings.deepseek_api_key.get_secret_value() if self._settings.deepseek_api_key else None
         amap_key = self._settings.amap_web_service_api_key.get_secret_value() if self._settings.amap_web_service_api_key else None
         return TravelEnrichmentService(
             MeituanTravelMcp(token) if token else None,
-            bocha_api_key=bocha_key,
+            search_api_key=search_key,
             amap=AmapWebService(amap_key) if amap_key else None,
         )
 
@@ -76,11 +90,11 @@ class ItineraryPlannerService:
         effective_token = self._settings.effective_meituan_travel_token
         token = effective_token.get_secret_value() if effective_token else None
         amap_key = self._settings.amap_web_service_api_key.get_secret_value() if self._settings.amap_web_service_api_key else None
-        bocha_key = self._settings.bocha_api_key.get_secret_value() if self._settings.bocha_api_key else None
+        search_key = self._settings.deepseek_api_key.get_secret_value() if self._settings.deepseek_api_key else None
         return TravelPriceCompletionService(
             MeituanTravelMcp(token) if token else None,
             amap=AmapWebService(amap_key) if amap_key else None,
-            bocha_api_key=bocha_key,
+            search_api_key=search_key,
         )
 
     def _optimize_routes(
@@ -108,12 +122,21 @@ class ItineraryPlannerService:
             return None
         try:
             value = AmapWebService(key).geocode(request.lodging_address or request.lodging_name or "", request.lodging_city or destination_city)
-            if not value:
-                return None
-            lng, lat = (float(part) for part in value.split(",", 1))
-            return lat, lng
+            return self._amap_location_to_wgs84(value)
         except Exception:
             return None
+
+    @staticmethod
+    def _amap_location_to_wgs84(value: str | None) -> tuple[float, float] | None:
+        """高德返回的是 GCJ-02 的 ``lng,lat``；库内与地图统一用 WGS-84 ``(lat, lng)``。"""
+        if not value:
+            return None
+        try:
+            longitude, latitude = (float(part) for part in value.split(",", 1))
+        except ValueError:
+            return None
+        wgs_longitude, wgs_latitude = gcj02_to_wgs84(longitude, latitude)
+        return wgs_latitude, wgs_longitude
 
     def _generate_with_fallback(
         self,
@@ -305,11 +328,17 @@ class ItineraryPlannerService:
         }
 
     def finalize(self, user_id: int, request: ItineraryCreateRequest) -> Itinerary:
-        """Keep supplier output backstage and persist only the normalized itinerary."""
+        """外部增强路径：保留供应商内容在后台，只持久化标准化后的行程。"""
         preview = self.preview_choices(request)
         plan = preview["meituan_plan"]
         if plan["status"] != "available" or not plan["content"]:
-            raise ItineraryValidationError(plan["warning"] or "暂时无法完成行程规划，请稍后重试。")
+            warning = plan["warning"] or "暂时无法完成外部行程增强，请稍后重试。"
+            reason = "not_configured" if "未配置" in warning else "upstream_failed"
+            raise EnhancementUnavailable(
+                warning,
+                reason=reason,
+                config_url="/account/api-keys" if reason == "not_configured" else None,
+            )
         final_request = request.model_copy(
             update={
                 "confirmed_plan": True,
@@ -597,10 +626,7 @@ class ItineraryPlannerService:
             return None
         try:
             value = AmapWebService(key).geocode(lodging.address or lodging.name, lodging.city or destination_city)
-            if not value:
-                return None
-            lng, lat = (float(part) for part in value.split(",", 1))
-            return lat, lng
+            return self._amap_location_to_wgs84(value)
         except Exception:
             return None
 
@@ -633,22 +659,47 @@ class ItineraryPlannerService:
             select(Itinerary).where(Itinerary.user_id == user_id).order_by(Itinerary.updated_at.desc())
         ).all()
 
-    def update_days(self, user_id: int, itinerary_id: int, title: str | None, days: list[ItineraryDayEdit]) -> Itinerary:
+    def update_days(
+        self,
+        user_id: int,
+        itinerary_id: int,
+        title: str | None,
+        days: list[ItineraryDayEdit],
+        expected_version: int | None = None,
+    ) -> Itinerary:
+        """编辑行程：保留未修改的补充安排与上下文，冲突时返回 409。
+
+        - 补充安排（supplemental_items）与当天的住宿/城际交通上下文
+          （travel_context）不因编辑景点而清空；只标记预算需要重新核算。
+        - 用 version 做乐观并发检查，避免旧页面覆盖别人的改动。
+        """
         itinerary = self.get_owned(user_id, itinerary_id)
+        if expected_version is not None and expected_version != itinerary.version:
+            raise ItineraryConflict("行程已被其他窗口或设备更新，请刷新后比较差异再提交。")
+
         expected_days = (itinerary.end_date - itinerary.start_date).days + 1
         if days:
             allowed = set(itinerary.candidate_landmark_ids)
             self._validator.validate_days(days, allowed, expected_days)
-            itinerary.days.clear()
-            self._db.flush()
+            self._validate_time_sequence(days)
+
+            existing = {day.day_number: day for day in itinerary.days}
+            requested_numbers = {payload.day_number for payload in days}
             for payload in sorted(days, key=lambda value: value.day_number):
-                day = ItineraryDay(
-                    day_number=payload.day_number,
-                    itinerary_date=itinerary.start_date + timedelta(days=payload.day_number - 1),
-                    summary=payload.summary.strip() if payload.summary else None,
-                    supplemental_items=[],
-                    travel_context={},
-                )
+                day = existing.get(payload.day_number)
+                if day is None:
+                    day = ItineraryDay(
+                        day_number=payload.day_number,
+                        itinerary_date=itinerary.start_date + timedelta(days=payload.day_number - 1),
+                        supplemental_items=[],
+                        travel_context={},
+                    )
+                    itinerary.days.append(day)
+                    existing[payload.day_number] = day
+                if payload.summary is not None:
+                    day.summary = payload.summary.strip() or None
+                day.stops.clear()
+                self._db.flush()
                 day.stops = [
                     ItineraryStop(
                         landmark_id=stop.landmark_id,
@@ -660,13 +711,43 @@ class ItineraryPlannerService:
                     )
                     for index, stop in enumerate(payload.stops, start=1)
                 ]
-                itinerary.days.append(day)
+            for number, day in list(existing.items()):
+                if number not in requested_numbers:
+                    itinerary.days.remove(day)
             itinerary.used_landmark_ids = [stop.landmark_id for day in days for stop in day.stops]
+            itinerary.budget_summary = self._mark_budget_stale(itinerary.budget_summary)
         if title:
             itinerary.title = title.strip()
         itinerary.version += 1
         self._db.commit()
         return self.get_owned(user_id, itinerary.id)
+
+    @staticmethod
+    def _validate_time_sequence(days: list[ItineraryDayEdit]) -> None:
+        """同一天内的安排必须按时间递增，避免编辑出「26:00」这类越界时间。"""
+        for day in days:
+            previous_end = -1
+            for stop in day.stops:
+                match = re.fullmatch(r"(\d{1,2}):(\d{2})", (stop.time_slot or "").strip())
+                if not match:
+                    raise ItineraryValidationError("时间格式应为 HH:MM。")
+                hour, minute = int(match.group(1)), int(match.group(2))
+                if hour > 23 or minute > 59:
+                    raise ItineraryValidationError(f"无效时间：{stop.time_slot}。")
+                start = hour * 60 + minute
+                if start < previous_end:
+                    raise ItineraryValidationError(f"第 {day.day_number} 天的安排时间重叠，请调整顺序。")
+                previous_end = start + stop.planned_minutes
+
+    @staticmethod
+    def _mark_budget_stale(budget_summary: dict | None) -> dict | None:
+        """编辑后预算不再可信：保留原数字但明确标记需重新核算。"""
+        if not budget_summary:
+            return budget_summary
+        updated = dict(budget_summary)
+        updated["needs_recalculation"] = True
+        updated["status"] = "行程已编辑，费用与预算汇总待重新核算"
+        return updated
 
     def delete(self, user_id: int, itinerary_id: int) -> None:
         itinerary = self.get_owned(user_id, itinerary_id)

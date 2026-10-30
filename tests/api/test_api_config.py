@@ -49,7 +49,7 @@ def test_snapshot_masks_secret_and_reports_status(client, monkeypatch):
             "DEEPSEEK_BASE_URL",
             "DEEPSEEK_MODEL",
         ]
-        assert {item["id"] for item in data["clients"]} == {"llm", "amap", "meituan", "bocha", "maptile"}
+        assert {item["id"] for item in data["clients"]} == {"llm", "amap", "meituan", "maptile"}
     finally:
         get_settings.cache_clear()
 
@@ -111,7 +111,7 @@ def test_update_rejects_unknown_env_names(client, tmp_path, monkeypatch):
 
 def test_update_rejects_values_with_newlines(client, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    response = client.put("/api/v1/api-config", json={"values": {"BOCHA_API_KEY": "line1\nline2"}})
+    response = client.put("/api/v1/api-config", json={"values": {"AMAP_WEB_SERVICE_API_KEY": "line1\nline2"}})
     assert response.status_code == 422
 
 
@@ -119,7 +119,7 @@ def test_update_refuses_cross_origin_request(client, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     response = client.put(
         "/api/v1/api-config",
-        json={"values": {"BOCHA_API_KEY": "x"}},
+        json={"values": {"AMAP_WEB_SERVICE_API_KEY": "x"}},
         headers={"Origin": "https://evil.example"},
     )
     assert response.status_code == 403
@@ -128,9 +128,11 @@ def test_update_refuses_cross_origin_request(client, tmp_path, monkeypatch):
 def test_update_refuses_production_env(client, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("APP_ENV", "production")
+    # 生产环境现在会拒绝默认密钥，这里给出合规密钥以验证“配置写入被拒绝”本身
+    monkeypatch.setenv("APP_SECRET_KEY", "x" * 48)
     get_settings.cache_clear()
     try:
-        response = client.put("/api/v1/api-config", json={"values": {"BOCHA_API_KEY": "x"}})
+        response = client.put("/api/v1/api-config", json={"values": {"AMAP_WEB_SERVICE_API_KEY": "x"}})
         assert response.status_code == 403
     finally:
         get_settings.cache_clear()

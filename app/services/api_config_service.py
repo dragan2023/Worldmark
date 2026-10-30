@@ -61,8 +61,11 @@ CLIENT_SPECS: tuple[ApiClientSpec, ...] = (
         id="llm",
         name="LLM 大模型客户端",
         vendor="OpenAI 兼容协议（默认 DeepSeek）",
-        purpose="AI 行程生成与「一键入库」地标智能分析，通过 OpenAI 兼容 /chat/completions 接口调用。",
-        features=("AI 行程生成", "一键入库智能分析"),
+        purpose=(
+            "AI 行程生成与「一键入库」地标智能分析（OpenAI 兼容 /chat/completions）；"
+            "同一密钥还用于 /v1/tools/search 网页检索与 /v1/tools/fetch 抓取。"
+        ),
+        features=("AI 行程生成", "一键入库智能分析", "网页检索与抓取"),
         fields=(
             ConfigField(
                 env="DEEPSEEK_API_KEY",
@@ -89,7 +92,10 @@ CLIENT_SPECS: tuple[ApiClientSpec, ...] = (
         apply_url="https://platform.deepseek.com/api_keys",
         docs_url="https://api-docs.deepseek.com/zh-cn/",
         requirement="recommended",
-        note="未配置时 AI 行程生成回退到本地确定性生成器，「一键入库」不可用。",
+        note=(
+            "未配置时 AI 行程生成回退到本地确定性生成器，「一键入库」不可用。"
+            "检索与抓取走 DeepSeek 官方接口，换成其他 OpenAI 兼容服务商时该能力不可用。"
+        ),
     ),
     ApiClientSpec(
         id="amap",
@@ -128,25 +134,7 @@ CLIENT_SPECS: tuple[ApiClientSpec, ...] = (
         ),
         apply_url="https://developer.meituan.com/zh/v2/dev/token",
         requirement="optional",
-        note="调用依赖本机 Node.js/npx，首次运行自动拉取 @meituan-travel/ht-ai；未配置时仅跳过价格参考。",
-    ),
-    ApiClientSpec(
-        id="bocha",
-        name="博查 AI 搜索",
-        vendor="博查开放平台",
-        purpose="候选地标联网检索、行程资料检索与「一键入库」来源核实。",
-        features=("候选发现", "行程资料检索", "一键入库来源核实"),
-        fields=(
-            ConfigField(
-                env="BOCHA_API_KEY",
-                label="API Key",
-                secret=True,
-                placeholder="在博查开放平台创建后获取",
-            ),
-        ),
-        apply_url="https://open.bochaai.com/api-keys",
-        requirement="optional",
-        note="未配置时「一键入库」将跳过联网核实，来源可信度降低并会给出提示。",
+        note="调用依赖本机 Node.js/npx，使用固定版本 @meituan-travel/ht-ai@0.0.6；未配置时仅跳过价格参考。",
     ),
     ApiClientSpec(
         id="maptile",
@@ -325,11 +313,6 @@ def run_client_probe(client_id: str, settings: Settings) -> tuple[bool, str]:
         DeepSeekConfigurationError,
     )
     from app.integrations.meituan_travel_mcp import MeituanTravelMcp
-    from app.integrations.search.bocha_web_search import (
-        BochaWebSearchProvider,
-        SearchConfigurationError,
-        SearchProviderError,
-    )
 
     if client_id == "amap":
         key = settings.amap_web_service_api_key
@@ -371,19 +354,6 @@ def run_client_probe(client_id: str, settings: Settings) -> tuple[bool, str]:
         if not skill.is_available():
             return False, "Token 已配置，但本机未检测到 npx（请安装 Node.js）。"
         return True, "Token 与 npx 均就绪（未实际调用官方 Skill，避免产生外部请求）。"
-
-    if client_id == "bocha":
-        key = settings.bocha_api_key
-        if not key or not key.get_secret_value().strip():
-            return False, "未配置 BOCHA_API_KEY。"
-        provider = BochaWebSearchProvider(key.get_secret_value().strip())
-        try:
-            result = provider.search("北京 旅游")
-        except SearchConfigurationError as exc:
-            return False, str(exc)
-        except SearchProviderError as exc:
-            return False, f"博查请求失败：{exc}"
-        return True, f"检索正常，示例查询返回 {len(result.references)} 条结果。"
 
     if client_id == "maptile":
         url = (settings.map_tile_url or "").strip()

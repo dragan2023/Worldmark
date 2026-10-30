@@ -12,6 +12,8 @@ from app.core.auth import CurrentMember, require_member
 from app.core.config import Settings, get_settings
 from app.db.session import get_db
 from app.services.landmark_album_editor import (
+    MAX_UPLOAD_BYTES,
+    AlbumConflictError,
     AlbumEditorError,
     LandmarkAlbumEditorService,
     LandmarkAlbumNotFound,
@@ -19,7 +21,8 @@ from app.services.landmark_album_editor import (
 )
 from app.services.key_resolution import KeyResolutionService
 from app.services.landmark_access import LandmarkAccessError, get_landmark_for_edit
-from app.models.enums import PublicationStatus, VerificationStatus
+from app.services.review import LandmarkReviewService
+from app.models.user import User
 
 router = APIRouter(prefix="/api/v1/landmarks", tags=["album-editor"])
 
@@ -39,16 +42,46 @@ class AlbumSubmitPhoto(BaseModel):
 
 class AlbumSubmitRequest(BaseModel):
     photos: list[AlbumSubmitPhoto] = Field(min_length=1, max_length=60)
+    # 编辑器快照返回的 revision；提供时必须与当前相册一致，否则 409。
+    expected_revision: str | None = Field(default=None, max_length=64)
+
+
+UPLOAD_CHUNK_BYTES = 64 * 1024
+
+
+async def _read_upload_limited(file: UploadFile) -> bytes:
+    """分块读取，超过上限立即停止，不把超大文件整体读进内存。"""
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        chunk = await file.read(UPLOAD_CHUNK_BYTES)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > MAX_UPLOAD_BYTES:
+            raise AlbumEditorError("单张图片不能超过 8MB。")
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
+def get_album_storage_root() -> Path:
+    """相册文件根目录：生产是项目根，测试通过 dependency_overrides 指向隔离目录。
+
+    没有这层依赖时，测试会读到真实的 data/contributions/landmark_albums/manifest.json，
+    真实数据一旦变化（例如正式键迁移成 landmark:<id>），同 id 的合成地标就会串入真实图片。
+    """
+    return PROJECT_ROOT
 
 
 def get_album_editor(
     member: CurrentMember = Depends(require_member),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
+    storage_root: Path = Depends(get_album_storage_root),
 ) -> LandmarkAlbumEditorService:
     """装配编辑器服务（密钥按用户隔离）；测试通过 dependency_overrides 注入替身。"""
     effective = KeyResolutionService(db).effective_settings(member, settings)
-    return LandmarkAlbumEditorService(db, PROJECT_ROOT, settings=effective)
+    return LandmarkAlbumEditorService(db, storage_root, settings=effective)
 
 
 def _not_found(exc: Exception) -> HTTPException:
@@ -64,17 +97,13 @@ def _guard_edit(db: Session, member: CurrentMember, landmark_id: int) -> bool:
     return is_admin
 
 
-def _trigger_rereview(db: Session, landmark_id: int) -> None:
-    """贡献者修改后进入重新审核：撤回上架、回到待审核。"""
-    from app.models.landmark import Landmark
-
-    landmark = db.get(Landmark, landmark_id)
-    if landmark is None:
-        return
-    landmark.verification_status = VerificationStatus.CANDIDATE
-    landmark.published_at = None
-    landmark.ip_work.status = PublicationStatus.DRAFT
-    db.commit()
+def _trigger_rereview(db: Session, member: CurrentMember, landmark_id: int) -> None:
+    """贡献者修改相册后进入重新审核：只撤回该地标，不影响同作品其他条目。"""
+    user = db.get(User, member.user_id) if member.user_id else None
+    actor = user.username if user is not None else f"user:{member.user_id}"
+    LandmarkReviewService(db).request_rereview(
+        landmark_id, actor=actor, reason="贡献者更新地标相册，进入重新审核。"
+    )
 
 
 @router.get("/{landmark_id}/album/editor")
@@ -105,8 +134,8 @@ async def upload_photos(
     saved: list[dict] = []
     errors: list[dict[str, str]] = []
     for file in files:
-        content = await file.read()
         try:
+            content = await _read_upload_limited(file)
             photo = editor.save_upload(landmark_id, file.filename or "", content, file.content_type)
         except AlbumEditorError as exc:
             errors.append({"file": file.filename or "未命名", "reason": str(exc)})
@@ -169,12 +198,18 @@ def submit_album(
 ) -> dict:
     is_admin = _guard_edit(db, member, landmark_id)
     try:
-        result = editor.submit(landmark_id, [item.model_dump() for item in payload.photos])
+        result = editor.submit(
+            landmark_id,
+            [item.model_dump() for item in payload.photos],
+            expected_revision=payload.expected_revision,
+        )
     except (LandmarkAlbumNotFound, StagingNotFoundError) as exc:
         raise _not_found(exc) from exc
+    except AlbumConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except AlbumEditorError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not is_admin:
-        _trigger_rereview(db, landmark_id)
+        _trigger_rereview(db, member, landmark_id)
         result["review_note"] = "相册已更新并进入重新审核，重新审核通过前该地标将暂时下架。"
     return result

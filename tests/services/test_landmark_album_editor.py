@@ -11,8 +11,10 @@ from app.services.landmark_album_editor import (
     LandmarkAlbumEditorService,
     StagingNotFoundError,
 )
+from app.services.landmark_albums import album_key
+from tests.images import CORRUPT_IMAGE_BYTES, REAL_JPEG_BYTES, REAL_PNG_BYTES
 
-PNG_BYTES = b"\x89PNG\r\n\x1a\nfake-png-content"
+PNG_BYTES = REAL_PNG_BYTES
 
 
 class FakeProvider:
@@ -98,7 +100,7 @@ def test_delete_staged_removes_file_and_rejects_traversal(editor, landmark):
         editor.delete_staged(landmark.id, "../escape.png")
 
 
-JPEG_BYTES = b"\xff\xd8\xff\xe0fake-jpeg-content"
+JPEG_BYTES = REAL_JPEG_BYTES
 
 
 def build_full_editor(db_session, project_root, candidates, downloads):
@@ -145,8 +147,8 @@ def test_ai_download_saves_candidates_and_records_failures(db_session, project_r
     assert url_a in editor._llm.prompts[1]
 
 
-def test_default_providers_use_commons_without_bocha_key(db_session, project_root):
-    """博查无独立图片端点，默认链路应只有 Commons（免 Key）。"""
+def test_default_providers_use_commons_without_any_key(db_session, project_root):
+    """默认图片来源只有 Commons（免 Key、自由授权）。"""
     editor = LandmarkAlbumEditorService(db_session, project_root, settings=get_settings())
     assert [item.name for item in editor._resolve_providers()] == ["wikimedia_commons"]
 
@@ -234,7 +236,7 @@ def test_submit_moves_staged_files_and_updates_manifest(db_session, project_root
     assert result["added_count"] == 2
     assert result["removed_count"] == 0
     manifest = json.loads((project_root / "data" / "contributions" / "landmark_albums" / "manifest.json").read_text(encoding="utf-8"))
-    entries = manifest["albums"]["game:应县木塔"]
+    entries = manifest["albums"][album_key(landmark.id)]
     assert len(entries) == 3
     assert entries[0]["file"] == "game/existing-landmark/commons-01.jpg"
     new_files = [entries[1]["file"], entries[2]["file"]]
@@ -260,7 +262,7 @@ def test_submit_moves_removed_published_to_trash(db_session, project_root, landm
 
     assert result["removed_count"] == 1
     manifest = json.loads((project_root / "data" / "contributions" / "landmark_albums" / "manifest.json").read_text(encoding="utf-8"))
-    entries = manifest["albums"]["game:应县木塔"]
+    entries = manifest["albums"][album_key(landmark.id)]
     assert len(entries) == 1 and entries[0]["alt"] == "替代旧图"
     trash = list((project_root / "data" / "contributions" / "landmark_albums" / "_trash").iterdir())
     assert len(trash) == 1
@@ -283,7 +285,7 @@ def test_editor_snapshot_lists_published_and_staged(db_session, project_root, la
 
     snapshot = editor.editor_snapshot(landmark.id)
 
-    assert snapshot["album_key"] == "game:应县木塔"
+    assert snapshot["album_key"] == album_key(landmark.id)
     assert snapshot["landmark"]["name"] == "应县木塔"
     assert snapshot["landmark"]["work_title"] == "黑神话：悟空"
     assert [item["kind"] for item in snapshot["published"]] == ["published"]

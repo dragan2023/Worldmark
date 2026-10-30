@@ -18,6 +18,7 @@
   var workingSet = []; // {kind, file, url, alt, caption, credit, license, source_url, removed}
   var editingIndex = -1;
   var busy = false;
+  var currentRevision = null; // 快照 revision：提交时带上，旧会话会被后端拒绝（409）
 
   function el(tag, className, text) {
     var node = document.createElement(tag);
@@ -37,8 +38,13 @@
     return fetch(url, options).then(function (response) {
       return response.json().then(function (data) {
         if (!response.ok) {
-          var detail = data && data.detail ? data.detail : "请求失败（" + response.status + "）";
-          throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+          var detail = data && data.detail ? data.detail : null;
+          var text = (window.apiErrors && window.apiErrors.parse)
+            ? window.apiErrors.parse(data, "请求失败（" + response.status + "）")
+            : (typeof detail === "string" ? detail : "请求失败（" + response.status + "）");
+          var error = new Error(text);
+          error.status = response.status;
+          throw error;
         }
         return data;
       });
@@ -238,13 +244,20 @@
     if (!window.confirm("确认提交相册？提交后立即对外展示（共 " + payload.length + " 张）。")) return;
     setBusy(true);
     setStatus("正在提交相册……");
-    request("POST", "/api/v1/landmarks/" + landmarkId + "/album/submit", { photos: payload })
+    request("POST", "/api/v1/landmarks/" + landmarkId + "/album/submit", { photos: payload, expected_revision: currentRevision })
       .then(function (data) {
         var note = data.review_note ? " " + data.review_note : "";
         setStatus("提交完成：新增 " + data.added_count + " 张、移除 " + data.removed_count + " 张，现共 " + data.published_count + " 张已发布。" + note);
         loadEditor();
       })
-      .catch(function (error) { setError(error.message); })
+      .catch(function (error) {
+        setError(error.message);
+        // 409：相册已被其他会话更新，必须重新加载后由用户比较差异
+        if (error.status === 409) {
+          setStatus("相册已在其他窗口更新，已重新载入最新版本，请重新确认你的改动。");
+          loadEditor();
+        }
+      })
       .finally(function () { setBusy(false); });
   });
 
@@ -254,6 +267,7 @@
     request("GET", "/api/v1/landmarks/" + landmarkId + "/album/editor")
       .then(function (data) {
         workingSet = (data.published || []).concat(data.staged || []);
+        currentRevision = data.revision || null;
         render();
       })
       .catch(function (error) {

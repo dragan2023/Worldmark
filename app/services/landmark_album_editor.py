@@ -18,12 +18,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from datetime import UTC, datetime
+import hashlib
+import io
 import json
+import logging
 import os
 import re
 import uuid
 
 import httpx
+from filelock import FileLock, Timeout
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -34,6 +39,8 @@ from app.services.landmark_albums import (
     ALBUM_PUBLIC_PREFIX,
     ALBUM_ROOT,
     ALLOWED_EXTENSIONS,
+    album_key as build_album_key,
+    legacy_album_key,
 )
 
 STAGING_ROOT = "uploads/landmark_albums"
@@ -41,13 +48,39 @@ STAGING_PUBLIC_PREFIX = "/staging/landmark-albums"
 TRASH_DIR_NAME = "_trash"
 
 ALLOWED_IMAGE_MIMES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/avif": ".avif"}
+# Pillow 解码后的真实格式 → 规范后缀；用于拒绝「声明 image/png 实为其他内容」的伪 MIME。
+FORMAT_EXTENSIONS = {"JPEG": ".jpg", "PNG": ".png", "WEBP": ".webp", "AVIF": ".avif"}
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+MAX_IMAGE_PIXELS = 40_000_000  # 40MP：超过此值直接拒绝，避免解码耗尽内存
 MAX_AI_DOWNLOADS = 6
 _STAGED_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$")
 _DEFAULT_LICENSE_BY_KIND = {
     "upload": "用户自传，自行确认版权",
     "ai": "网络检索图片，版权待确认",
 }
+
+logger = logging.getLogger("app.albums")
+
+
+def album_revision(entries: list[dict] | None) -> str:
+    """相册内容摘要：用于乐观并发检查，旧编辑会话提交时返回 409。
+
+    只摘要会让用户看到的内容（文件与署名/说明字段），顺序敏感。
+    """
+    payload = [
+        {
+            "file": entry.get("file"),
+            "alt": entry.get("alt"),
+            "caption": entry.get("caption"),
+            "credit": entry.get("credit"),
+            "license": entry.get("license"),
+            "source_url": entry.get("source_url"),
+        }
+        for entry in (entries or [])
+        if isinstance(entry, dict)
+    ]
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:32]
 
 
 @dataclass(frozen=True)
@@ -78,6 +111,10 @@ class AlbumEditorError(RuntimeError):
 
 class LandmarkAlbumNotFound(AlbumEditorError):
     """The landmark does not exist."""
+
+
+class AlbumConflictError(AlbumEditorError):
+    """旧编辑会话提交：manifest 已被其他会话改动。"""
 
 
 class StagingNotFoundError(AlbumEditorError):
@@ -116,12 +153,41 @@ class LandmarkAlbumEditorService:
             raise AlbumEditorError("上传文件为空。")
         if len(content) > MAX_UPLOAD_BYTES:
             raise AlbumEditorError("单张图片不能超过 8MB。")
-        extension = ALLOWED_IMAGE_MIMES.get((content_type or "").split(";")[0].strip().lower())
-        if extension is None:
+        declared_extension = ALLOWED_IMAGE_MIMES.get((content_type or "").split(";")[0].strip().lower())
+        if declared_extension is None:
             raise AlbumEditorError("仅支持 JPG / PNG / WebP / AVIF 格式的图片。")
+        extension = self._validate_image(content, declared_extension)
         staged_name = f"{kind}-{uuid.uuid4().hex[:12]}{extension}"
         self._write_staged(landmark_id, staged_name, content)
         return self._staged_photo(landmark_id, kind, staged_name)
+
+    @staticmethod
+    def _validate_image(content: bytes, declared_extension: str) -> str:
+        """真实解码校验：格式、可解码性、画幅上限；声明 MIME 必须与内容一致。"""
+        try:
+            with Image.open(io.BytesIO(content)) as probe:
+                image_format = (probe.format or "").upper()
+                probe.verify()
+            # verify() 之后对象不可再用，重新打开读取尺寸
+            with Image.open(io.BytesIO(content)) as probe:
+                width, height = probe.size
+        except (UnidentifiedImageError, OSError, ValueError) as exc:
+            raise AlbumEditorError("图片内容无法解码，请上传未损坏的 JPG / PNG / WebP / AVIF 文件。") from exc
+
+        expected_extension = FORMAT_EXTENSIONS.get(image_format)
+        if expected_extension is None:
+            raise AlbumEditorError("仅支持 JPG / PNG / WebP / AVIF 格式的图片。")
+        if expected_extension != declared_extension:
+            raise AlbumEditorError(
+                f"文件内容实际为 {image_format}，与声明的格式不一致，请重新导出后再上传。"
+            )
+        if width <= 0 or height <= 0:
+            raise AlbumEditorError("图片尺寸无效。")
+        if width * height > MAX_IMAGE_PIXELS:
+            raise AlbumEditorError(
+                f"图片像素过大（{width}×{height}），请压缩到 {MAX_IMAGE_PIXELS // 1_000_000}MP 以内。"
+            )
+        return expected_extension
 
     def list_staged(self, landmark_id: int) -> tuple[StagedPhoto, ...]:
         directory = self.staging_dir(landmark_id)
@@ -352,8 +418,8 @@ class LandmarkAlbumEditorService:
     def _resolve_providers(self) -> list:
         """解析图片来源：显式注入优先；默认 Commons（免 Key、自由授权、自带署名元数据）。
 
-        博查当前未提供独立图片搜索端点（/v1/images/search 实测 404，2026-08），
-        待其开放后再加入默认链路；web-search 仍用于一键入库的资料核实。
+        第三方图片搜索暂未接入（原博查客户端已于 2026-10 移除），
+        如后续需要多来源，另接一个实现 ImageSearchResult 协议的提供方即可。
         """
         if self._image_provider is not None:
             return [self._image_provider]
@@ -379,7 +445,16 @@ class LandmarkAlbumEditorService:
         landmark = self._get_landmark(landmark_id)
         if landmark is None:
             raise LandmarkAlbumNotFound("地标不存在。")
-        album_key = f"{landmark.ip_work.ip_type.value}:{landmark.name}"
+        key = build_album_key(landmark.id)
+        entries = self._published_entries(key)
+        legacy_key = None
+        if not entries:
+            # 真实历史数据尚未获授权迁移：旧键仅作读取兼容，提交时写入新键。
+            legacy = legacy_album_key(landmark.ip_work.ip_type, landmark.name)
+            legacy_entries = self._published_entries(legacy)
+            if legacy_entries:
+                legacy_key = legacy
+                entries = legacy_entries
         return {
             "landmark": {
                 "id": landmark.id,
@@ -388,16 +463,18 @@ class LandmarkAlbumEditorService:
                 "work_title": landmark.ip_work.title if landmark.ip_work else "",
                 "city": landmark.location.city_name if landmark.location else "",
             },
-            "album_key": album_key,
-            "published": self._published_entries(album_key),
+            "album_key": key,
+            "legacy_album_key": legacy_key,
+            "revision": album_revision(entries),
+            "published": entries,
             "staged": [photo.__dict__ | {"kind": photo.kind} for photo in self.list_staged(landmark_id)],
         }
 
-    def _published_entries(self, album_key: str) -> list[dict]:
-        manifest = self._read_manifest()
-        entries = manifest.get("albums", {}).get(album_key, [])
+    def _published_entries(self, key: str) -> list[dict]:
+        albums = self._read_manifest().get("albums", {})
+        entries = albums.get(key, []) if isinstance(albums, dict) else []
         published = []
-        for entry in entries:
+        for entry in entries if isinstance(entries, list) else []:
             if not isinstance(entry, dict):
                 continue
             file = entry.get("file")
@@ -417,20 +494,104 @@ class LandmarkAlbumEditorService:
             )
         return published
 
-    def submit(self, landmark_id: int, photos: list[dict]) -> dict:
-        """把编辑器工作集落库：移动文件、更新 manifest、清理被移除的旧图。"""
+    def submit(self, landmark_id: int, photos: list[dict], expected_revision: str | None = None) -> dict:
+        """把编辑器工作集落库。
+
+        顺序：校验全部输入 → 取跨进程锁 → 校验相册版本（旧会话 409）→ 逐个移动
+        暂存文件到正式目录 → 原子写 manifest → 成功后把被移除的旧图移入回收站。
+        任一步失败都会把已移动的文件退回暂存区，原相册保持可读。
+        """
         landmark = self._get_landmark(landmark_id)
         if landmark is None:
             raise LandmarkAlbumNotFound("地标不存在。")
         if not photos:
             raise AlbumEditorError("工作集为空：至少保留一张图片，或先上传新图片。")
 
-        album_key = f"{landmark.ip_work.ip_type.value}:{landmark.name}"
-        current_entries = {entry["file"]: entry for entry in self._published_entries(album_key)}
+        key = build_album_key(landmark.id)
+        prepared, kept_published, previous_files = self._prepare_entries(landmark, photos, key)
+        images_dir = self._album_root / "images"
 
-        new_entries: list[dict] = []
+        lock = self._manifest_lock()
+        try:
+            lock.acquire(timeout=10)
+        except Timeout as exc:
+            raise AlbumEditorError("相册正在被其他操作更新，请稍后重试。") from exc
+
+        moved: list[tuple[Path, Path]] = []
+        try:
+            manifest = self._read_manifest()
+            albums = manifest.get("albums", {})
+            current_entries = [
+                entry for entry in (albums.get(key, []) if isinstance(albums, dict) else [])
+                if isinstance(entry, dict) and isinstance(entry.get("file"), str)
+            ]
+            current_revision = album_revision(self._published_entries(key))
+            if expected_revision and expected_revision != current_revision:
+                raise AlbumConflictError("相册已被其他会话更新，请刷新后重新比较你的改动。")
+
+            current_files = {str(entry["file"]) for entry in current_entries} | previous_files
+            if kept_published - previous_files:
+                # 校验阶段看到的旧图集合与实际不符：说明期间被其他会话改过
+                raise AlbumConflictError("部分已发布图片已被其他会话移除，请刷新后重试。")
+
+            target_dir = self._resolve_album_dir(images_dir, landmark, current_files)
+            target_dir.mkdir(parents=True, exist_ok=True)
+
+            final_entries: list[dict] = []
+            for entry, staged_name in prepared:
+                if staged_name is None:
+                    final_entries.append(entry)
+                    continue
+                extension = (staged_name.rsplit(".", 1)[-1] or "jpg").lower()
+                kind = entry.pop("_kind")
+                final_name = f"{kind}-{uuid.uuid4().hex[:10]}.{extension}"
+                source = self.staging_dir(landmark.id) / staged_name
+                destination = target_dir / final_name
+                source.replace(destination)
+                moved.append((source, destination))
+                final_entries.append({**entry, "file": f"{landmark.ip_work.ip_type.value}/{target_dir.name}/{final_name}"})
+
+            self._write_album_entries(key, final_entries)
+        except Exception:
+            # 回滚本次已移动的暂存文件；manifest 未改动，原相册仍可读。
+            for source, destination in reversed(moved):
+                try:
+                    destination.replace(source)
+                except OSError:  # 回滚失败不掩盖原始异常，但留下可追踪日志
+                    logger.error("album rollback failed: %s -> %s", destination, source)
+            raise
+        finally:
+            lock.release()
+
+        # 索引已切换成功，再处理旧资源；清理失败不影响已发布结果。
+        removed = self._move_to_trash(sorted(previous_files - kept_published), images_dir)
+        meta_path = self._meta_path(landmark.id)
+        if meta_path.exists():
+            meta_path.unlink()
+        return {
+            "album_key": key,
+            "revision": album_revision(final_entries),
+            "published_count": len(final_entries),
+            "added_count": len(moved),
+            "removed_count": removed,
+        }
+
+    def _prepare_entries(
+        self, landmark: Landmark, photos: list[dict], key: str
+    ) -> tuple[list[tuple[dict, str | None]], set[str], set[str]]:
+        """纯校验：不移动任何文件，任何一项不合法都在写盘前失败。
+
+        返回 (待写入条目 + 待移动的暂存文件名, 保留的已发布文件, 提交前的全部已发布文件)。
+        """
+        current_entries = {entry["file"]: entry for entry in self._published_entries(key)}
+        if not current_entries:
+            legacy = legacy_album_key(landmark.ip_work.ip_type, landmark.name)
+            current_entries = {entry["file"]: entry for entry in self._published_entries(legacy)}
+        previous_files = set(current_entries)
+
+        prepared: list[tuple[dict, str | None]] = []
         kept_published: set[str] = set()
-        staged_moves: list[tuple[str, str]] = []
+        staged_names: list[str] = []
 
         for position, item in enumerate(photos, start=1):
             kind = item.get("kind")
@@ -445,55 +606,39 @@ class LandmarkAlbumEditorService:
                 if file in kept_published:
                     raise AlbumEditorError(f"图片重复提交：{file}")
                 kept_published.add(file)
-                new_entries.append({"file": file, **metadata})
+                prepared.append(({"file": file, **metadata}, None))
             elif kind in {"upload", "ai"}:
-                source_path = self._resolve_staged_path(landmark_id, file)
+                source_path = self._resolve_staged_path(landmark.id, file)
                 if not source_path.is_file():
                     raise StagingNotFoundError(f"暂存图片不存在：{file}")
-                staged_moves.append((str(source_path), file))
-                new_entries.append({"file": None, "alt": alt, **metadata, "_staged": file, "_kind": kind})
+                if file in staged_names:
+                    raise AlbumEditorError(f"暂存图片重复提交：{file}")
+                staged_names.append(file)
+                prepared.append(({"alt": alt, **metadata, "_kind": kind}, file))
             else:
                 raise AlbumEditorError(f"未知的图片来源类型：{kind}")
+        return prepared, kept_published, previous_files
 
-        images_dir = self._album_root / "images"
-        target_dir = self._resolve_album_dir(images_dir, landmark, current_entries)
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        # 移动暂存文件并补全最终 file 路径
-        final_entries: list[dict] = []
-        for entry in new_entries:
-            if entry.get("file") is not None:
-                final_entries.append({k: v for k, v in entry.items()})
-                continue
-            staged_file = entry.pop("_staged")
-            kind = entry.pop("_kind")
-            extension = (staged_file.rsplit(".", 1)[-1] or "jpg").lower()
-            final_name = f"{kind}-{uuid.uuid4().hex[:10]}.{extension}"
-            (self.staging_dir(landmark_id) / staged_file).replace(target_dir / final_name)
-            final_entries.append({**entry, "file": f"{landmark.ip_work.ip_type.value}/{target_dir.name}/{final_name}"})
-
-        # 被移除的已发布照片移入回收站
-        removed = 0
+    def _move_to_trash(self, removed_files: list[str], images_dir: Path) -> int:
         trash_dir = self._album_root / TRASH_DIR_NAME
-        for file in set(current_entries) - kept_published:
+        removed = 0
+        for file in removed_files:
             trash_dir.mkdir(parents=True, exist_ok=True)
             source = images_dir / file
             if source.is_file():
                 stamp = datetime.now(UTC).strftime("%Y%m%d%H%M%S")
                 target = trash_dir / f"{stamp}-{file.replace('/', '_')}"
-                source.replace(target)
+                try:
+                    source.replace(target)
+                except OSError as exc:
+                    logger.warning("album trash move failed for %s: %s", file, exc)
+                    continue
             removed += 1
+        return removed
 
-        self._write_album_entries(album_key, final_entries)
-        meta_path = self._meta_path(landmark_id)
-        if meta_path.exists():
-            meta_path.unlink()
-        return {
-            "album_key": album_key,
-            "published_count": len(final_entries),
-            "added_count": len(staged_moves),
-            "removed_count": removed,
-        }
+    def _manifest_lock(self) -> FileLock:
+        self._album_root.mkdir(parents=True, exist_ok=True)
+        return FileLock(str(self._album_root / ".manifest.lock"), timeout=10)
 
     @staticmethod
     def _metadata(item: dict) -> dict:

@@ -7,11 +7,23 @@
   <body>
     {% include "_header.html" %}
     <main class="page-shell auth-shell keys-shell">
-      <p class="eyebrow">会员账户</p>
+      <p class="eyebrow">账户</p>
       <h1>个人密钥</h1>
-      <p class="page-lead">使用一键入库、个性化行程等功能需要配置你自己的服务密钥。密钥仅以加密形式保存在本系统，页面永远不显示完整内容。管理员若未自配，将回落使用系统密钥。</p>
+      <p class="page-lead">密钥仅以加密形式保存在本系统，页面永远不显示完整内容。按需配置即可——基础行程、目录浏览与三种导出都不需要任何密钥。</p>
+      <p class="page-note">「使用系统密钥」表示当前生效的是服务器 <code>.env</code> 里的系统密钥（仅管理员回落）；普通用户需自行填写才能使用对应功能。</p>
+
+      <section class="key-usage" aria-labelledby="key-usage-title">
+        <h2 id="key-usage-title">哪个功能需要哪个服务</h2>
+        <dl>
+          <dt>DeepSeek</dt><dd>参与共创的「AI 找图/资料核实」与模型生成行程；未配置时使用规则生成。</dd>
+          <dt>高德 Web 服务 Key</dt><dd>地标坐标补全、住宿锚点定位与站点间步行估算；未配置时按直线距离估算。</dd>
+          <dt>美团酒旅 Token</dt><dd>仅「外部行程增强」需要：酒旅方案、班次与价格参考；未配置时基础规划照常可用。</dd>
+        </dl>
+      </section>
+
       <div id="keys-list" class="keys-list"><p class="keys-loading">正在加载…</p></div>
       <p id="keys-message" class="form-error" role="alert"></p>
+      <p class="key-return">配置完成后可以回到刚才的任务：<a href="/itineraries/new">生成行程</a> · <a href="/intake">参与共创</a> · <a href="/contributions">我的贡献</a></p>
     </main>
     {% include "_footer.html" %}
     <script src="/static/js/account_keys.js"></script>

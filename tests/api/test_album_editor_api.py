@@ -43,9 +43,9 @@ class StubEditor:
             raise self.download_error
         return type("O", (), {"saved": (), "failures": ({"url": "https://x/y.jpg", "reason": "下载失败"},), "queries": ["应县木塔 实景"], "notices": []})()
 
-    def submit(self, landmark_id, photos):
+    def submit(self, landmark_id, photos, expected_revision=None):
         self.submitted = photos
-        return {"album_key": "game:应县木塔", "published_count": len(photos), "added_count": 1, "removed_count": 0}
+        return {"album_key": "landmark:1", "published_count": len(photos), "added_count": 1, "removed_count": 0}
 
 
 @pytest.fixture
@@ -141,7 +141,7 @@ def test_ai_download_reports_failures_and_maps_unconfigured_to_503(client, app, 
     assert ok.json()["failures"][0]["reason"] == "下载失败"
     assert ok.json()["queries"] == ["应县木塔 实景"]
 
-    stub.download_error = AlbumEditorError("未配置博查搜索 Key（BOCHA_API_KEY），无法 AI 找图。")
+    stub.download_error = AlbumEditorError("未配置 DeepSeek Key（DEEPSEEK_API_KEY），无法 AI 找图。")
     failed = client.post(f"/api/v1/landmarks/{landmark_id}/album/editor/ai-download", headers=headers)
     assert failed.status_code == 503
 
@@ -163,11 +163,14 @@ def test_submit_returns_result_and_passes_photos(client, app, db_session, contri
     assert stub.submitted[1]["file"] == "ai-abc.png"
 
 
-def test_album_edit_page_renders(client, db_session):
-    from tests.factories import create_landmark
+def test_album_edit_page_renders(client, contributor_context):
+    """编辑页本身也做权限判断：匿名跳登录，只有贡献者/管理员能打开。"""
+    headers, landmark_id = contributor_context
 
-    landmark = create_landmark(db_session, published=False, landmark_name="应县木塔")
-    response = client.get(f"/landmarks/{landmark.id}/album/edit")
+    anonymous = client.get(f"/landmarks/{landmark_id}/album/edit", follow_redirects=False)
+    assert anonymous.status_code == 303
+
+    response = client.get(f"/landmarks/{landmark_id}/album/edit", headers=headers)
     assert response.status_code == 200
     assert "相册管理" in response.text
     assert "AI 找图" in response.text

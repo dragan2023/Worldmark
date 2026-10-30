@@ -8,8 +8,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
+from app.core.auth import CurrentMember, get_current_member
 from app.db.session import get_db
 from app.models.enums import IPType
+from app.services.landmark_access import LandmarkAccessError, get_landmark_for_edit
 from app.services.landmark_catalog import CatalogFilters, CatalogNotFound, LandmarkCatalogService
 from app.services.landmark_albums import LandmarkAlbumService
 
@@ -22,11 +24,20 @@ MODULES = {
     "games": (IPType.GAME, "游戏地标", "游戏名"),
     "screen": (IPType.SCREEN, "影视地标", "影视剧名"),
 }
+_MODULE_BY_TYPE = {ip_type.value: module for module, (ip_type, _, _) in MODULES.items()}
 
 
 def _with_thumbnails(items) -> tuple:
     album_service = LandmarkAlbumService(PROJECT_ROOT)
-    return tuple(replace(entry, thumbnail_url=album_service.first_photo_url(entry.ip_type, entry.name)) for entry in items)
+    return tuple(
+        replace(
+            entry,
+            thumbnail_url=album_service.first_photo_url(
+                entry.id, ip_type=entry.ip_type, landmark_name=entry.name
+            ),
+        )
+        for entry in items
+    )
 
 
 def _catalog_context(request: Request, module: str, db: Session) -> dict[str, object]:
@@ -90,11 +101,23 @@ def screen_catalog(request: Request, db: Session = Depends(get_db)) -> HTMLRespo
 
 
 @router.get("/landmarks/{landmark_id}", response_class=HTMLResponse, include_in_schema=False)
-def landmark_detail(landmark_id: int, request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+def landmark_detail(
+    landmark_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    member: CurrentMember = Depends(get_current_member),
+) -> HTMLResponse:
     try:
         entry = LandmarkCatalogService(db).get_detail(landmark_id)
     except CatalogNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    can_edit = False
+    if member.user_id is not None:
+        try:
+            get_landmark_for_edit(db, member, landmark_id)
+            can_edit = True
+        except LandmarkAccessError:
+            can_edit = False
     return templates.TemplateResponse(
         request,
         "catalog/detail.html",
@@ -102,6 +125,10 @@ def landmark_detail(landmark_id: int, request: Request, db: Session = Depends(ge
             "request": request,
             "title": f"{entry.name}｜IP 地标旅游",
             "item": entry,
-            "album_photos": LandmarkAlbumService(PROJECT_ROOT).get_photos(entry.ip_type, entry.name),
+            "album_photos": LandmarkAlbumService(PROJECT_ROOT).get_photos(
+                entry.id, ip_type=entry.ip_type, landmark_name=entry.name
+            ),
+            "can_edit": can_edit,
+            "map_url": f"/maps/{_MODULE_BY_TYPE[entry.ip_type.value]}?landmark={entry.name}",
         },
     )

@@ -14,10 +14,17 @@ from sqlalchemy.orm import Session
 
 from app.core.auth import CurrentMember, require_member
 from app.db.session import get_db
-from app.models.enums import PublicationStatus, VerificationStatus
+from app.models.user import User
 from app.services.landmark_access import LandmarkAccessError, get_landmark_for_edit
+from app.services.landmark_input import LandmarkInputError, apply_landmark_updates
+from app.services.review import LandmarkReviewService
 
 router = APIRouter(prefix="/api/v1/landmarks", tags=["contributor"])
+
+
+def _actor(db: Session, member: CurrentMember) -> str:
+    user = db.get(User, member.user_id) if member.user_id else None
+    return user.username if user is not None else f"user:{member.user_id}"
 
 
 class LandmarkContentUpdate(BaseModel):
@@ -66,22 +73,23 @@ def update_landmark_content(
         status_code = 404 if "不存在" in str(exc) else 403
         raise HTTPException(status_code=status_code, detail=str(exc)) from exc
 
-    changed: list[str] = []
-    for field in ("name", "description", "transit_text", "landmark_kind"):
-        value = getattr(payload, field)
-        if value is not None:
-            setattr(landmark, field, value.strip())
-            changed.append(field)
+    try:
+        changed = apply_landmark_updates(landmark, payload, ("name", "description", "transit_text", "landmark_kind"))
+    except LandmarkInputError as exc:
+        db.rollback()
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not changed:
         raise HTTPException(status_code=422, detail="没有需要修改的内容。")
 
     review_required = not is_admin
     if review_required:
-        landmark.verification_status = VerificationStatus.CANDIDATE
-        landmark.published_at = None
-        landmark.ip_work.status = PublicationStatus.DRAFT
+        # 仅撤回目标地标：同作品其他已发布地标继续公开。
+        landmark = LandmarkReviewService(db).request_rereview(
+            landmark.id, actor=_actor(db, member), reason="贡献者修改地标内容，进入重新审核。"
+        )
+    else:
+        db.commit()
 
-    db.commit()
     return {
         "id": landmark.id,
         "changed": changed,
@@ -89,5 +97,6 @@ def update_landmark_content(
         "verification_status": landmark.verification_status.value
         if hasattr(landmark.verification_status, "value")
         else str(landmark.verification_status),
+        "published": landmark.published_at is not None,
         "note": "修改已提交，进入重新审核；重新审核通过前将暂时下架。" if review_required else "修改已即时生效。",
     }

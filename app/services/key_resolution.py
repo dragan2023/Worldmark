@@ -20,7 +20,6 @@ from app.services.permissions import normalize_role
 PROVIDER_FIELDS: dict[str, tuple[str, ...]] = {
     "deepseek": ("deepseek_api_key",),
     "amap": ("amap_web_service_api_key",),
-    "bocha": ("bocha_api_key",),
     "meituan": ("meituan_ht_token", "meituan_travel_token"),
 }
 

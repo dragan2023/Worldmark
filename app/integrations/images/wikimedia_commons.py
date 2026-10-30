@@ -17,7 +17,7 @@ import re
 
 import httpx
 
-from app.integrations.search.bocha_image_search import ImageCandidate, ImageSearchResult
+from app.integrations.images.base import ImageCandidate, ImageSearchResult
 
 ALLOWED_MIMES = {"image/jpeg", "image/png", "image/webp"}
 _TAG_PATTERN = re.compile(r"<[^>]+>")

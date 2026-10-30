@@ -2,11 +2,13 @@
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+import logging
 import re
 
 from app.integrations.amap_web_service import AmapServiceError, AmapWebService
 from app.integrations.meituan_travel_mcp import MeituanMcpError, MeituanMcpUnavailable, MeituanTravelMcp
-from app.integrations.search.bocha_web_search import BochaWebSearchProvider, SearchConfigurationError, SearchProviderError
+from app.integrations.search.base import SearchConfigurationError, SearchProviderError
+from app.integrations.search.deepseek_web_search import DeepSeekWebSearchProvider
 from app.services.meituan_itinerary_parser import MeituanItineraryParser
 
 
@@ -14,6 +16,14 @@ _LINK = re.compile(r"\[([^\]]+)\]\((https?://[^)]+)\)")
 _HOTEL = re.compile(r'<ka type=hotel[^>]*>\{"name":"([^"]+)"')
 _TRANSPORT = re.compile(r'<ka type=transport id=([^ >]+)>\["([^"]+)"\]</ka>')
 _MONEY = re.compile(r"(?:\u00a5|\uffe5)\s*(\d+(?:\.\d+)?)")
+
+logger = logging.getLogger("app.integrations.travel")
+
+
+def _short(message: str, limit: int = 160) -> str:
+    """日志只保留可定位的短原因，避免整段上游内容进入日志。"""
+    text = " ".join((message or "").split())
+    return text[:limit]
 
 
 @dataclass(frozen=True)
@@ -39,16 +49,16 @@ class MeituanTravelPlan:
 class TravelEnrichmentService:
     meituan_source = "美团酒旅 MCP"
     amap_source = "高德地图 POI"
-    bocha_source = "博查 AI 搜索"
+    search_source = "DeepSeek 网页搜索"
 
     def __init__(
         self,
         adapter: MeituanTravelMcp | None,
-        bocha_api_key: str | None = None,
+        search_api_key: str | None = None,
         amap: AmapWebService | None = None,
     ) -> None:
         self._adapter = adapter
-        self._bocha = BochaWebSearchProvider(bocha_api_key) if bocha_api_key else None
+        self._search = DeepSeekWebSearchProvider(search_api_key) if search_api_key else None
         self._amap = amap
 
     def plan(
@@ -66,27 +76,36 @@ class TravelEnrichmentService:
         """
         cities = [item.get("city") for item in city_plan if item.get("city")]
         if not cities:
+            logger.info("provider=meituan outcome=unavailable reason=no_city")
             return MeituanTravelPlan("unavailable", None, self.meituan_source, None, "缺少可用于规划的目的城市。")
         if self._adapter is None:
+            logger.info("provider=meituan outcome=unavailable reason=not_configured")
             return MeituanTravelPlan("unavailable", None, self.meituan_source, None, "美团酒旅官方 Skill 未配置。")
         query = self._build_plan_query(request, city_plan, landmark_names_by_city)
         try:
             result = self._adapter.query(cities[0], query, origin_query=query)
         except MeituanMcpUnavailable as exc:
+            logger.info("provider=meituan outcome=unavailable reason=%s", _short(str(exc)))
             return MeituanTravelPlan("unavailable", None, self.meituan_source, None, str(exc))
         except MeituanMcpError as exc:
+            logger.warning("provider=meituan outcome=failed reason=%s", _short(str(exc)))
             return MeituanTravelPlan("failed", None, self.meituan_source, None, str(exc))
         if self._has_daily_items(result.content, request, cities[0]):
+            logger.info("provider=meituan outcome=available calls=1")
             return MeituanTravelPlan("available", result.content, result.source, result.queried_at)
         retry_query = self._build_repair_query(request, city_plan, landmark_names_by_city)
         try:
             retry = self._adapter.query(cities[0], retry_query, origin_query=retry_query)
         except MeituanMcpUnavailable as exc:
+            logger.info("provider=meituan outcome=unavailable calls=2 reason=%s", _short(str(exc)))
             return MeituanTravelPlan("unavailable", None, self.meituan_source, None, str(exc))
         except MeituanMcpError as exc:
+            logger.warning("provider=meituan outcome=failed calls=2 reason=%s", _short(str(exc)))
             return MeituanTravelPlan("failed", None, self.meituan_source, None, str(exc))
         if self._has_daily_items(retry.content, request, cities[0]):
+            logger.info("provider=meituan outcome=available calls=2")
             return MeituanTravelPlan("available", retry.content, retry.source, retry.queried_at)
+        logger.warning("provider=meituan outcome=failed calls=2 reason=no_daily_items")
         return MeituanTravelPlan("failed", None, self.meituan_source, None, "暂未获得可用的分日行程信息，请稍后重试。")
 
     @staticmethod
@@ -147,13 +166,13 @@ class TravelEnrichmentService:
             return TravelEnrichment((), None, None, budget, {})
 
         supplemental: list[dict] = []
-        bocha_references: dict[str, list[dict]] = {}
+        search_references: dict[str, list[dict]] = {}
         for item in city_plan:
             city, names = item["city"], landmark_names_by_city.get(item["city"], [])
             supplemental.extend(self._nearby_items(request, city, item["days"], names))
             supplemental.extend(self._food_items(request, city, item["days"]))
             references = self._local_references(city, request.interests, names)
-            bocha_references[city] = references
+            search_references[city] = references
             supplemental.extend(self._references_as_supplements(city, references, names))
 
         lodging = self._lodgings(request, city_plan)
@@ -175,7 +194,7 @@ class TravelEnrichmentService:
                 "city_plan": city_plan,
                 "lodging": lodging,
                 "intercity_transport": transport,
-                "bocha_destination_references": bocha_references,
+                "search_destination_references": search_references,
                 "budget": budget,
             },
         )
@@ -191,7 +210,7 @@ class TravelEnrichmentService:
             if poi and poi.reference_cost:
                 estimates[landmark_id] = self._price(poi.reference_cost, self.amap_source, "reference")
                 continue
-            estimate = self._bocha_price(city, f"{city}{name} 门票价格 官方")
+            estimate = self._search_price(city, f"{city}{name} 门票价格 官方")
             estimates[landmark_id] = estimate or self._price(None, None, "unavailable")
         return estimates
 
@@ -209,7 +228,7 @@ class TravelEnrichmentService:
             if price_info is None and poi and poi.reference_cost:
                 price_info = self._price(poi.reference_cost, self.amap_source, "reference")
             if price_info is None:
-                price_info = self._bocha_price(city, f"{city}{name} 门票价格 官方") or self._price(None, None, "unavailable")
+                price_info = self._search_price(city, f"{city}{name} 门票价格 官方") or self._price(None, None, "unavailable")
             items.append({
                 "type": "系统补充景点", "name": name, "city": city, "address": poi.address if poi else None,
                 "source_url": url, "source": self.meituan_source if content else (price_info.get("source") or None),
@@ -230,7 +249,7 @@ class TravelEnrichmentService:
             if price_info is None and poi and poi.reference_cost:
                 price_info = self._price(poi.reference_cost, self.amap_source, "reference")
             if price_info is None:
-                price_info = self._bocha_price(city, f"{city}{name} 人均消费 价格") or self._price(None, None, "unavailable")
+                price_info = self._search_price(city, f"{city}{name} 人均消费 价格") or self._price(None, None, "unavailable")
             items.append({
                 "type": "候选餐饮", "name": name, "city": city, "address": poi.address if poi else None,
                 "source_url": url, "source": self.meituan_source if content else (price_info.get("source") or None),
@@ -266,7 +285,7 @@ class TravelEnrichmentService:
                 if price_info is None and poi and poi.reference_cost:
                     price_info = self._price(poi.reference_cost, self.amap_source, "reference")
                 if price_info is None:
-                    price_info = self._bocha_price(city, f"{city}{name} {item['start_date']} 酒店 价格") or self._price(None, None, "unavailable")
+                    price_info = self._search_price(city, f"{city}{name} {item['start_date']} 酒店 价格") or self._price(None, None, "unavailable")
                 options.append({
                     "name": name, "address": poi.address if poi else None, "price": price_info["amount"],
                     "price_info": price_info, "rating": poi.rating if poi else None,
@@ -309,25 +328,25 @@ class TravelEnrichmentService:
         return result
 
     def _local_references(self, city: str, interests: list[str], landmark_names: list[str]) -> list[dict]:
-        if self._bocha is None:
+        if self._search is None:
             return []
         try:
-            result = self._bocha.search(f"{city} {' '.join(landmark_names)} {' '.join(interests)} 旅游景点 开放预约 官方")
+            result = self._search.search(f"{city} {' '.join(landmark_names)} {' '.join(interests)} 旅游景点 开放预约 官方")
         except (SearchConfigurationError, SearchProviderError):
             return []
-        return [{"title": item.title, "url": item.url, "snippet": item.snippet, "source": self.bocha_source} for item in result.references if item.url or item.snippet]
+        return [{"title": item.title, "url": item.url, "snippet": item.snippet, "source": self.search_source} for item in result.references if item.url or item.snippet]
 
-    def _bocha_price(self, city: str, query: str) -> dict | None:
-        if self._bocha is None:
+    def _search_price(self, city: str, query: str) -> dict | None:
+        if self._search is None:
             return None
         try:
-            result = self._bocha.search(query)
+            result = self._search.search(query)
         except (SearchConfigurationError, SearchProviderError):
             return None
         for reference in result.references:
             values = self._money_values(f"{reference.title}\n{reference.snippet or ''}")
             if values:
-                return self._price(values[0], self.bocha_source, "reference", url=reference.url)
+                return self._price(values[0], self.search_source, "reference", url=reference.url)
         return None
 
     def _amap_poi(self, name: str, city: str):

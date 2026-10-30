@@ -8,7 +8,7 @@ def _item(name: str, category: str) -> TravelPlanItem:
     return TravelPlanItem(1, "开封市", "09:00", name, "步行/打车", "美团行程", None, category)
 
 
-class _Bocha:
+class _Search:
     def __init__(self, text: str):
         self._text = text
 
@@ -25,7 +25,7 @@ def test_completion_prefers_the_meituan_price_before_map_or_search():
 
     plan = StructuredTravelPlan((_item("开封府", "scenic"), _item("灌汤包", "food")), {}, None)
     service = TravelPriceCompletionService(Meituan())
-    service._bocha = _Bocha("开封府 成人门票 ¥65；灌汤包 人均 ¥30")
+    service._search = _Search("开封府 成人门票 ¥65；灌汤包 人均 ¥30")
     result = service.complete(plan)
 
     assert [item.amount for item in result.items] == [65, 30]
@@ -45,7 +45,7 @@ def test_completion_uses_amap_only_after_the_meituan_price_is_missing():
             return (AmapPoi("poi", "开封府", "开封", None, reference_cost=60),)
 
     service = TravelPriceCompletionService(NoPriceMeituan(), amap=Amap())
-    service._bocha = _Bocha("开封府 成人门票 ¥60")
+    service._search = _Search("开封府 成人门票 ¥60")
     result = service.complete(StructuredTravelPlan((_item("开封府", "scenic"),), {}, None))
 
     assert result.items[0].amount == 60
@@ -136,11 +136,11 @@ def test_completion_queries_lodging_per_city_segment_even_if_the_raw_plan_had_a_
 def test_price_review_removes_an_unreasonable_or_unverified_search_number():
     plan = StructuredTravelPlan(
         (TravelPlanItem(1, "朔州市", "12:00", "宋辽糖干炉", "步行", "餐饮", 96585, "food"),),
-        {"price_sources": {"1:宋辽糖干炉": "博查 AI 搜索"}},
+        {"price_sources": {"1:宋辽糖干炉": "DeepSeek 网页搜索"}},
         None,
     )
     service = TravelPriceCompletionService(None)
-    service._bocha = _Bocha("宋辽糖干炉 价格 ¥96585")
+    service._search = _Search("宋辽糖干炉 价格 ¥96585")
 
     result = service.review_prices(plan)
 
@@ -148,9 +148,9 @@ def test_price_review_removes_an_unreasonable_or_unverified_search_number():
     assert result.budget["unpriced_item_count"] == 1
 
 
-def test_price_completion_does_not_use_an_unrelated_bocha_price():
+def test_price_completion_does_not_use_an_unrelated_search_price():
     service = TravelPriceCompletionService(None)
-    service._bocha = _Bocha("山西省居民人均消费支出 ¥44649")
+    service._search = _Search("山西省居民人均消费支出 ¥44649")
 
     result = service.complete(StructuredTravelPlan((_item("宋辽糖干炉", "food"),), {}, None))
 

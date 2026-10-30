@@ -14,7 +14,7 @@ class UserApiKey(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
-    provider: Mapped[str] = mapped_column(String(32), nullable=False)  # deepseek / amap / bocha / meituan
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)  # deepseek / amap / meituan
     encrypted_value: Mapped[str] = mapped_column(String(512), nullable=False)
     key_hint: Mapped[str] = mapped_column(String(32), nullable=False, default="")
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)

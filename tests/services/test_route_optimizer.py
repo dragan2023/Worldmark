@@ -35,7 +35,8 @@ def test_reassigns_time_slots_in_new_order():
     assert [stop.time_slot for stop in optimized] == ["09:00", "10:00", "11:30"]
 
 
-def test_amap_walking_uses_lng_lat_format():
+def test_amap_walking_uses_gcj02_lng_lat_format():
+    """库内坐标是 WGS-84，高德接口要 GCJ-02：必须转换且保持 lng,lat 顺序。"""
     seen = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -47,7 +48,11 @@ def test_amap_walking_uses_lng_lat_format():
     optimizer = RouteOptimizer(amap)
     coords = {1: (39.0, 113.0), 2: (39.01, 113.01), 3: (40.0, 116.0)}
     optimizer.optimize_day((_stop(1), _stop(2), _stop(3)), coords)
-    assert ("113.0,39.0", "113.01,39.01") in seen
+
+    assert seen
+    origin_lng, origin_lat = (float(part) for part in seen[0][0].split(","))
+    assert abs(origin_lng - 113.0) < 0.01 and abs(origin_lat - 39.0) < 0.01
+    assert (origin_lng, origin_lat) != (113.0, 39.0)  # 已偏移，未直接透传 WGS-84
 
 
 def test_falls_back_to_haversine_when_amap_fails():

@@ -3,8 +3,8 @@
    ============================================================ */
 
 /* ---------- 首页：卷首横幅 ---------- */
-.home-hero{display:grid;grid-template-columns:auto 1fr;gap:30px;align-items:stretch;margin:14px 0 6px}
-.hero-vt{display:flex;gap:14px;justify-content:center;align-items:stretch}
+.home-hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(18px,3vw,34px);align-items:center;margin:14px 0 6px}
+.hero-vt{display:flex;flex-direction:row;gap:14px;justify-content:center;align-items:flex-start}
 .hero-vt .hero-title{
   writing-mode:vertical-rl;font-family:var(--serif);font-weight:900;
   font-size:clamp(34px,3.6vw,50px);letter-spacing:.3em;color:var(--ink);line-height:1;
@@ -13,8 +13,12 @@
   writing-mode:vertical-rl;font-size:11.5px;letter-spacing:.32em;color:var(--indigo);
   border-left:1.5px solid var(--line);padding-left:11px;
 }
-.hero-art{position:relative;border:1.5px solid var(--ink);border-radius:12px;overflow:hidden;min-height:190px}
-.hero-art svg{display:block;width:100%;height:100%;min-height:190px}
+.hero-search-block{display:flex;flex-direction:column;gap:10px;min-width:0}
+.hero-search-block .hero-line{margin:0}
+.hero-search-block .hero-hint{margin:0}
+.hero-search-block .home-search form{max-width:none}
+.hero-art{position:relative;margin:0;border:1.5px solid var(--ink);border-radius:12px;overflow:hidden;min-width:0}
+.hero-art svg{display:block;width:100%;height:clamp(120px,13vw,168px)}
 .hero-chip{
   position:absolute;left:16px;bottom:14px;display:inline-flex;align-items:center;gap:8px;
   font-family:var(--serif);font-size:12px;letter-spacing:.14em;color:var(--ink);
@@ -39,7 +43,7 @@
 .module-grid h2 a{text-decoration:none;transition:.2s}
 .module-grid article:nth-child(1) h2 a{color:var(--indigo)}
 .module-grid article:nth-child(2) h2 a{color:var(--cinnabar)}
-.module-grid article:nth-child(3) h2 a{color:var(--gold)}
+.module-grid article:nth-child(3) h2 a{color:var(--gold-ink)}
 .module-grid article:nth-child(1){border-top:4px solid var(--indigo)}
 .module-grid article:nth-child(2){border-top:4px solid var(--cinnabar)}
 .module-grid article:nth-child(3){border-top:4px solid var(--gold)}
@@ -124,6 +128,7 @@
 /* ---------- 分页 ---------- */
 .pagination{display:flex;justify-content:center;align-items:center;gap:16px;margin:26px 0 4px}
 .page-link{
+  display:inline-flex;align-items:center;justify-content:center;min-height:44px;
   font-family:var(--serif);font-size:12.5px;letter-spacing:.1em;text-decoration:none;color:var(--ink2);
   border:1.5px dashed var(--line2);border-radius:999px;padding:8px 18px;background:var(--paper3);
 }
@@ -162,7 +167,7 @@ a.page-link:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
 /* ---------- 地标相册（拍立得卷轴） ---------- */
 .album-heading{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:12px}
 .album-heading h2{margin:2px 0 0}
-.album-count{font-size:11.5px;color:var(--gold);border:1.5px solid rgba(169,129,47,.5);border-radius:6px;padding:2px 10px;letter-spacing:.12em}
+.album-count{font-size:11.5px;color:var(--gold-ink);border:1.5px solid rgba(169,129,47,.5);border-radius:6px;padding:2px 10px;letter-spacing:.12em}
 .album-carousel{border:1.5px dashed var(--line2);border-radius:10px;padding:14px;background:var(--paper2)}
 .album-track{display:flex;gap:16px;overflow-x:auto;padding:6px 4px 12px;scroll-behavior:smooth}
 .album-card{
@@ -176,7 +181,7 @@ a.page-link:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
 .album-card figcaption a{color:var(--indigo);text-decoration:none;border-bottom:1px dashed rgba(51,86,91,.4)}
 .album-controls{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:2px}
 .album-button{
-  width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line2);
+  width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line2);
   display:grid;place-items:center;background:var(--paper3);font-size:15px;color:var(--ink2);transition:.2s;
 }
 .album-button:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
@@ -188,9 +193,9 @@ a.page-link:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
 #landmark-map{height:480px;border:1.5px solid var(--ink);border-radius:10px;background:#EDE4CE;z-index:1}
 .map-locate{border:1.5px solid var(--line);border-radius:10px;background:var(--paper3);overflow:hidden}
 .map-locate-head{display:flex;gap:8px;padding:12px;border-bottom:1.5px solid var(--line);background:var(--paper2)}
-.map-locate-head input{padding:8px 11px;font-size:12.5px}
+.map-locate-head input{padding:8px 11px;font-size:12.5px;min-height:44px}
 .map-locate-head button{
-  flex:0 0 auto;font-family:var(--serif);font-size:12px;letter-spacing:.1em;
+  flex:0 0 auto;font-family:var(--serif);font-size:12px;letter-spacing:.1em;min-height:44px;
   border:1.5px solid var(--ink);border-radius:8px;padding:0 14px;background:var(--ink);color:var(--paper2);
 }
 .map-locate-head button:hover{background:var(--cinnabar);border-color:var(--cinnabar)}
@@ -239,7 +244,46 @@ a.work-link:hover{border-bottom-style:solid}
 /* 相册管理入口 */
 .album-heading-actions{display:flex;align-items:center;gap:12px}
 .album-manage-link{
+  display:inline-flex;align-items:center;min-height:44px;
   font-size:12px;color:var(--indigo);text-decoration:none;border:1px solid rgba(51,86,91,.4);
   border-radius:999px;padding:3px 12px;white-space:nowrap;
 }
 .album-manage-link:hover{background:rgba(51,86,91,.08)}
+
+/* ============================================================
+   阶段05 扩展：详情主操作、地图侧栏按钮、列表懒加载占位
+   ============================================================ */
+.detail-updated{font-size:12.5px;color:var(--muted);margin:4px 0 0}
+.detail-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.detail-actions .primary-button,.detail-actions .secondary-button{min-height:var(--control-height)}
+.detail-hint{color:var(--muted);font-size:13px}
+.secondary-button{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--serif);font-weight:700;font-size:13.5px;letter-spacing:.12em;
+  text-decoration:none;color:var(--ink);background:var(--paper2);
+  border:1.5px solid var(--ink);border-radius:10px;padding:10px 20px;min-height:var(--control-height);
+  transition:.15s;
+}
+.secondary-button:hover{background:rgba(51,86,91,.08);border-color:var(--indigo);color:var(--indigo)}
+.secondary-button.danger:hover{background:rgba(181,56,42,.1);border-color:var(--cinnabar);color:var(--cinnabar)}
+.secondary-button:disabled{opacity:.5;cursor:not-allowed}
+
+.map-locate-button{
+  display:block;width:100%;text-align:left;padding:11px 14px 11px 32px;
+  min-height:var(--control-height);font-size:13px;color:var(--ink2);
+}
+.map-locate-button:hover{color:var(--cinnabar);background:rgba(181,56,42,.05)}
+.map-locate-item.is-active .map-locate-button{background:rgba(181,56,42,.09);color:var(--cinnabar);font-weight:700}
+.map-locate-count{margin:0;padding:8px 13px;font-size:12px;color:var(--muted);border-bottom:1px dashed var(--line);background:var(--paper2)}
+.map-locate-empty{padding:14px 13px;font-size:12.5px;color:var(--muted);line-height:1.9}
+.map-status{margin-top:8px;font-size:12.5px;color:var(--status-warn);min-height:1em}
+
+/* 图片失效占位：不显示破图图标 */
+.card-media img{background:linear-gradient(150deg,#33565B,#6E8F7C 70%,#C9B87A)}
+.card-media img.is-broken{visibility:hidden}
+.card-media:has(img.is-broken) .card-placeholder{display:grid}
+
+@media(max-width:760px){
+  .detail-actions{flex-direction:column;align-items:stretch}
+  .detail-actions .primary-button,.detail-actions .secondary-button{justify-content:center}
+}

@@ -1,44 +1,31 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ title }}</title>
-    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/css/site.css">
-    <link rel="stylesheet" href="/static/css/catalog.css">
-  </head>
-  <body>
-    {% include "_header.html" %}
+{% extends "base.html" %}
+{% block styles %}<link rel="stylesheet" href="/static/css/catalog.css">{% endblock %}
+{% block content %}
     <main class="page-shell">
       <section class="home-hero" aria-label="山河印迹">
         <div class="hero-vt">
           <span class="hero-title">山河印迹</span>
           <span class="hero-side">读万卷书 · 行万里路</span>
         </div>
-        <div class="hero-art">
-          <svg viewBox="0 0 880 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="山水横幅：层峦与朱日">
-            <rect width="880" height="260" fill="#EDE4CE"/>
-            <circle cx="726" cy="76" r="34" fill="#B5382A" opacity=".88"/>
-            <circle cx="726" cy="76" r="43" fill="none" stroke="#B5382A" stroke-width="1" opacity=".35"/>
-            <path d="M-10 208 Q150 92 320 176 T560 156 Q680 108 820 172 T900 156 V266 H-10 Z" fill="#33565B" opacity=".20"/>
-            <path d="M-10 222 Q180 128 400 204 T680 188 Q780 148 900 204 V268 H-10 Z" fill="#33565B" opacity=".38"/>
-            <path d="M-10 238 Q240 172 480 234 T900 228 V272 H-10 Z" fill="#26221C" opacity=".62"/>
-            <g stroke="#26221C" stroke-width="2" fill="none" opacity=".8">
-              <path d="M300 176 L300 142 M290 152 L300 142 L310 152 M286 162 L300 148 L314 162"/>
-            </g>
-            <path d="M40 218 q14 -7 28 0 t28 0 M120 232 q14 -7 28 0 t28 0 M600 226 q14 -7 28 0 t28 0 M680 238 q14 -7 28 0 t28 0" stroke="#33565B" stroke-width="1.6" fill="none" opacity=".5"/>
-          </svg>
-          <p class="hero-chip"><b>已核验</b> · 方可入册</p>
+        <div class="hero-search-block">
+          <div class="hero-art" aria-hidden="true">
+            <svg viewBox="0 0 880 200" preserveAspectRatio="xMidYMid slice">
+              <rect width="880" height="200" fill="#EDE4CE"/>
+              <circle cx="726" cy="66" r="30" fill="#B5382A" opacity=".88"/>
+              <path d="M-10 168 Q150 78 320 146 T560 130 Q680 92 820 146 T900 132 V206 H-10 Z" fill="#33565B" opacity=".22"/>
+              <path d="M-10 182 Q180 106 400 170 T680 156 Q780 122 900 170 V208 H-10 Z" fill="#33565B" opacity=".4"/>
+              <path d="M-10 194 Q240 140 480 190 T900 186 V210 H-10 Z" fill="#26221C" opacity=".6"/>
+            </svg>
+          </div>
+          <p class="hero-line">一步一印 · 走进书里的山河</p>
+          <div class="home-search">
+            <form method="get" action="/search" role="search">
+              <input name="q" value="{{ query or '' }}" maxlength="255" placeholder="搜索作品名或地标名，如「黑神话」「外白渡桥」" aria-label="搜索作品或地标">
+              <button type="submit">检 索</button>
+            </form>
+          </div>
+          <p class="hero-hint">从作品、地点或地区出发，先看已核验的地标，再生成可编辑的行程。</p>
         </div>
-      </section>
-      <p class="poem-line">一步一印 · 走进书里的山河<small>WORLD IN BOOKS · MARKS ON MAPS</small></p>
-
-      <section class="home-search" aria-label="全局搜索">
-        <form method="get" action="/search">
-          <input name="q" value="{{ query or '' }}" maxlength="255" placeholder="搜索作品名或地标名，如「黑神话」「外白渡桥」" aria-label="搜索作品或地标">
-          <button type="submit">检 索</button>
-        </form>
       </section>
 
       <section class="module-grid" aria-label="地标模块">
@@ -48,12 +35,12 @@
       </section>
 
       {% if featured %}
-      <div class="section-heading"><h2>精选地标</h2><a href="/literature">查看全部 →</a></div>
+      <div class="section-heading"><h2>精选地标</h2><a href="/search">查看全部 →</a></div>
       <section class="landmark-grid" aria-label="精选地标">
         {% for item in featured %}
         <article class="landmark-card">
           <a class="card-media" href="/landmarks/{{ item.id }}" aria-label="{{ item.name }}">
-            {% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="{{ item.name }}" loading="lazy">{% else %}<span class="card-placeholder">{{ item.work_title[:1] }}</span>{% endif %}
+            {% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="{{ item.name }}" loading="lazy" width="320" height="200">{% else %}<span class="card-placeholder" aria-hidden="true">{{ item.work_title[:1] }}</span>{% endif %}
           </a>
           <div class="card-body">
             <p class="card-work"><a href="/works/{{ item.work_id }}">{{ item.work_title }}</a></p>
@@ -64,8 +51,5 @@
         {% endfor %}
       </section>
       {% endif %}
-
     </main>
-    {% include "_footer.html" %}
-  </body>
-</html>
+{% endblock %}

@@ -20,5 +20,9 @@ def list_map_landmarks(
     city: str | None = Query(default=None, max_length=100),
     db: Session = Depends(get_db),
 ) -> MapMarkerListResponse:
-    markers = MapDataService(db).list_markers(_filters(ip_type, work, country, province, city))
-    return MapMarkerListResponse(items=[MapMarkerResponse(**marker.__dict__) for marker in markers])
+    marker_set = MapDataService(db).list_marker_set(_filters(ip_type, work, country, province, city))
+    return MapMarkerListResponse(
+        items=[MapMarkerResponse(**marker.__dict__) for marker in marker_set.markers],
+        truncated=marker_set.truncated,
+        limit=marker_set.limit,
+    )

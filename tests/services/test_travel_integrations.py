@@ -71,7 +71,8 @@ def test_meituan_adapter_uses_official_skill_raw_json_contract(monkeypatch):
 
     command, kwargs = calls[0]
     assert command == [
-        "npx", "--yes", "@meituan-travel/ht-ai@latest", "query", "--query", "北京两日游",
+        # 固定版本，禁止 @latest 漂移（升级需人工验证后修改常量）
+        "npx", "--yes", "@meituan-travel/ht-ai@0.0.6", "query", "--query", "北京两日游",
         "--origin-query", "我想去北京两日游", "--channel", "meituan-developer", "--city", "北京", "-o", "json",
     ]
     assert kwargs["env"]["MEITUAN_HT_TOKEN"] == "test-token"

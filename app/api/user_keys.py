@@ -13,9 +13,11 @@ from sqlalchemy.orm import Session
 from app.core.auth import CurrentMember, require_member
 from app.core.config import get_settings
 from app.db.session import get_db
+from app.models.enums import UserRole
 from app.models.user_api_key import UserApiKey
 from app.services.api_config_service import run_client_probe
 from app.services.key_resolution import PROVIDER_FIELDS, KeyResolutionService
+from app.services.permissions import normalize_role
 
 router = APIRouter(prefix="/api/v1/me/api-keys", tags=["me"])
 
@@ -32,12 +34,6 @@ _PROVIDER_CATALOG: dict[str, dict[str, Any]] = {
         "probe": "amap",
         "apply_url": "https://console.amap.com/dev/key/app",
         "hint": "32 位字符串；用于地理编码与行程路线",
-    },
-    "bocha": {
-        "label": "博查 AI 搜索",
-        "probe": "bocha",
-        "apply_url": "https://open.bochaai.com/api-keys",
-        "hint": "sk- 开头；用于一键入库的联网核实（可选）",
     },
     "meituan": {
         "label": "美团酒旅官方 Skill",
@@ -58,25 +54,45 @@ def _require_provider(provider: str) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"未知的密钥类型：{provider}")
 
 
+def _system_configured(settings, provider: str) -> bool:
+    """该 provider 在系统级（环境变量 / .env）里是否已有可用密钥。"""
+    for field_name in PROVIDER_FIELDS[provider]:
+        value = getattr(settings, field_name, None)
+        if value is not None and value.get_secret_value().strip():
+            return True
+    return False
+
+
 @router.get("")
 def list_my_keys(member: CurrentMember = Depends(require_member), db: Session = Depends(get_db)) -> dict[str, object]:
     rows = db.scalars(select(UserApiKey).where(UserApiKey.user_id == member.user_id)).all()
     by_provider = {row.provider: row for row in rows}
-    catalog = [
-        {
-            "provider": provider,
-            "label": spec["label"],
-            "apply_url": spec["apply_url"],
-            "hint": spec["hint"],
-            "configured": provider in by_provider,
-            "key_hint": by_provider[provider].key_hint if provider in by_provider else None,
-            "is_active": by_provider[provider].is_active if provider in by_provider else None,
-            "verified_at": (
-                by_provider[provider].verified_at.isoformat() if provider in by_provider and by_provider[provider].verified_at else None
-            ),
-        }
-        for provider, spec in _PROVIDER_CATALOG.items()
-    ]
+    settings = get_settings()
+    is_admin = normalize_role(member.role) == UserRole.ADMIN
+    catalog = []
+    for provider, spec in _PROVIDER_CATALOG.items():
+        row = by_provider.get(provider)
+        system_configured = _system_configured(settings, provider)
+        if row is not None:
+            effective = "user"  # 自配密钥优先
+        elif system_configured and is_admin:
+            effective = "system"  # 管理员未自配时回落系统密钥
+        else:
+            effective = "none"  # 普通用户不回落系统密钥
+        catalog.append(
+            {
+                "provider": provider,
+                "label": spec["label"],
+                "apply_url": spec["apply_url"],
+                "hint": spec["hint"],
+                "configured": row is not None,
+                "system_configured": system_configured,
+                "effective": effective,
+                "key_hint": row.key_hint if row is not None else None,
+                "is_active": row.is_active if row is not None else None,
+                "verified_at": row.verified_at.isoformat() if row is not None and row.verified_at else None,
+            }
+        )
     return {"items": catalog}
 
 

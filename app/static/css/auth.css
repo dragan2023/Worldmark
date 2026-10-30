@@ -63,15 +63,14 @@
   margin-left: 18px;
 }
 
+/* .auth-link 只存在于 _header.html 的玄墨横梁上，配色统一由 site.css 负责；
+   这里若再指定深色，会覆盖 site.css 的浅色并与页头背景同色，链接直接看不见。 */
 .auth-link {
   font-size: 13px;
-  color: var(--ink, #2b2620);
   text-decoration: none;
-  border-bottom: 1px dashed var(--line2, #cfc4ad);
 }
 
 .auth-register {
-  color: var(--cinnabar, #b03a2e);
   border-bottom-color: currentcolor;
 }
 

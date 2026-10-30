@@ -2,6 +2,14 @@ from dataclasses import dataclass
 from typing import Protocol
 
 
+class SearchConfigurationError(RuntimeError):
+    """Raised before a search request when required local configuration is absent."""
+
+
+class SearchProviderError(RuntimeError):
+    """Raised when the upstream provider rejects or cannot complete a request."""
+
+
 @dataclass(frozen=True)
 class SearchReference:
     title: str

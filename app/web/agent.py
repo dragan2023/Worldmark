@@ -10,5 +10,5 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parents[1] / 
 
 @router.get("/intake", response_class=HTMLResponse, include_in_schema=False)
 def intake_page(request: Request) -> HTMLResponse:
-    """「一键入库」页面：自然语言输入，AI 生成候选地标条目。"""
-    return templates.TemplateResponse(request, "agent_intake.html", {"title": "一键入库｜山河印迹"})
+    """「参与共创」页面：自然语言输入，AI 生成候选地标条目（提交后进入审核）。"""
+    return templates.TemplateResponse(request, "agent_intake.html", {"title": "参与共创｜山河印迹"})

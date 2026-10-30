@@ -3,7 +3,7 @@
 编排流程（每个组件都可注入替身，测试完全离线）：
 
 1. parse    —— LLM 从「作品名 + 地标名」自然语言中解析结构化意图；
-2. research —— 博查检索作品与地标的现实资料（未配置时跳过并告警）；
+2. research —— 用 DeepSeek 网页检索作品与地标的现实资料（未配置时跳过并告警）；
 3. compose  —— LLM 基于检索结果生成候选条目字段（三段式简介、来源取自检索结果）；
 4. ground   —— 高德/Nominatim 地理编码补全坐标（失败不编造，仅告警）；
 5. persist  —— 复用 LandmarkImportService 以 CANDIDATE 状态入库，天然获得去重与来源关联。
@@ -127,11 +127,12 @@ class LandmarkIntakeAgent:
 
     def _ensure_search(self) -> SearchDiscoveryService:
         if self._search_service is None:
-            from app.integrations.search.bocha_web_search import BochaWebSearchProvider
+            from app.integrations.search.deepseek_web_search import DeepSeekWebSearchProvider
 
-            key = self._settings.bocha_api_key
-            provider = BochaWebSearchProvider(
-                api_key=key.get_secret_value().strip() if key and key.get_secret_value().strip() else None
+            key = self._settings.deepseek_api_key
+            provider = DeepSeekWebSearchProvider(
+                api_key=key.get_secret_value().strip() if key and key.get_secret_value().strip() else None,
+                base_url=self._settings.deepseek_base_url,
             )
             self._search_service = SearchDiscoveryService(self._db, self._settings, provider)
         return self._search_service
@@ -217,7 +218,7 @@ class LandmarkIntakeAgent:
         except Exception as exc:
             steps.append(IntakeStep("research", "skipped", str(exc)))
             warnings.append(
-                "联网检索不可用（未配置 BOCHA_API_KEY 或调用失败），来源未经联网核实，审核发布前请人工确认。"
+                "联网检索不可用（未配置 DEEPSEEK_API_KEY 或调用失败），来源未经联网核实，审核发布前请人工确认。"
             )
 
         # 3) 生成候选条目
@@ -244,7 +245,7 @@ class LandmarkIntakeAgent:
                 source_url = references[0]["url"]
                 warnings.append("模型选择的来源不在检索结果中，已替换为检索结果第一条。")
         elif not source_url.lower().startswith(("http://", "https://")):
-            raise LandmarkIntakeError("AI 未给出可用的来源链接，请重试或先配置博查搜索 Key。")
+            raise LandmarkIntakeError("AI 未给出可用的来源链接，请重试或先配置 DeepSeek Key。")
         if not references:
             warnings.append("条目来源未经联网核实，请打开来源链接确认内容后再审核发布。")
 

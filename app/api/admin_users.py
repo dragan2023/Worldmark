@@ -4,19 +4,20 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.auth import CurrentMember, require_admin
 from app.db.session import get_db
-from app.models.enums import UserRole
+from app.models.enums import UserRole, UserStatus
 from app.models.membership import Membership
 from app.models.user import User
-from app.services.permissions import normalize_role, role_at_least
+from app.services.permissions import role_at_least
 
 router = APIRouter(prefix="/api/v1/admin/users", tags=["admin"])
 
-_STATUSES = {"active", "banned"}
+_STATUSES = {UserStatus.ACTIVE.value, UserStatus.BANNED.value}
+_ROLES = {role.value for role in UserRole}
 
 
 class AdminUserUpdate(BaseModel):
@@ -24,8 +25,7 @@ class AdminUserUpdate(BaseModel):
     status: str | None = Field(default=None, min_length=1, max_length=16)
 
 
-def _serialize(db: Session, user: User) -> dict[str, object]:
-    membership = db.scalar(select(Membership).where(Membership.user_id == user.id))
+def _serialize(user: User, membership: Membership | None) -> dict[str, object]:
     return {
         "id": user.id,
         "username": user.username,
@@ -63,12 +63,21 @@ def list_users(
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     stmt = select(User).order_by(User.id.asc())
-    if q:
-        like = f"%{q.strip()}%"
-        stmt = stmt.where(or_(User.username.contains(q.strip()), User.email.contains(q.strip())))
-    total = len(db.scalars(select(User.id)).all())
+    count_stmt = select(func.count()).select_from(User)
+    if q and q.strip():
+        keyword = q.strip()
+        condition = or_(User.username.contains(keyword), User.email.contains(keyword))
+        stmt = stmt.where(condition)
+        count_stmt = count_stmt.where(condition)
+    total = int(db.scalar(count_stmt) or 0)
     users = db.scalars(stmt.limit(limit).offset(offset)).all()
-    return {"total": total, "items": [_serialize(db, user) for user in users]}
+    memberships: dict[int, Membership] = {}
+    if users:
+        for membership in db.scalars(
+            select(Membership).where(Membership.user_id.in_([user.id for user in users]))
+        ).all():
+            memberships[membership.user_id] = membership
+    return {"total": total, "items": [_serialize(user, memberships.get(user.id)) for user in users]}
 
 
 @router.patch("/{user_id}")
@@ -80,13 +89,16 @@ def update_user(
 ) -> dict[str, object]:
     user = _get_user(db, user_id)
 
-    if payload.role is not None and payload.role != user.role:
-        new_role = normalize_role(payload.role)
-        # 只有更高（或同级）管理员能调整角色；且不能把比自己权限高的人降级
-        if not role_at_least(operator.role, UserRole.ADMIN):
-            raise HTTPException(status_code=403, detail="仅管理员可调整角色。")
-        _guard_self_action(operator, user, "role")
-        user.role = new_role
+    if payload.role is not None:
+        requested_role = payload.role.strip().lower()
+        if requested_role not in _ROLES:
+            # 未知角色不能静默降级成 level2，直接拒绝，避免越权/误降。
+            raise HTTPException(status_code=422, detail="非法的角色值，仅支持 admin / level1 / level2。")
+        if requested_role != user.role:
+            if not role_at_least(operator.role, UserRole.ADMIN):
+                raise HTTPException(status_code=403, detail="仅管理员可调整角色。")
+            _guard_self_action(operator, user, "role")
+            user.role = requested_role
 
     if payload.status is not None and payload.status != user.status:
         if payload.status not in _STATUSES:
@@ -96,7 +108,8 @@ def update_user(
 
     db.commit()
     db.refresh(user)
-    return _serialize(db, user)
+    membership = db.scalar(select(Membership).where(Membership.user_id == user.id))
+    return _serialize(user, membership)
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_200_OK)

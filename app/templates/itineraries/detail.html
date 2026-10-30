@@ -1,17 +1,6 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ title }}</title>
-    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/css/site.css">
-    <link rel="stylesheet" href="/static/css/catalog.css">
-    <link rel="stylesheet" href="/static/css/itinerary.css">
-    {% if has_map_data and map_tile_url %}<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">{% endif %}
-  </head>
-  <body>
-    {% include "_header.html" %}
+{% extends "base.html" %}
+{% block styles %}<link rel="stylesheet" href="/static/css/catalog.css"><link rel="stylesheet" href="/static/css/itinerary.css">{% if has_map_data and map_tile_url %}<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">{% endif %}{% endblock %}
+{% block content %}
     <main class="itinerary-shell">
       <a class="back-link" href="/itineraries">← 返回我的行程</a>
       <p class="eyebrow">行程规划 · v{{ itinerary.version }}</p>
@@ -27,6 +16,15 @@
         {% if itinerary.transport_reference %}<p>大交通：{{ itinerary.transport_reference.status }}；班次、余票和票价以出行前实际查询为准。</p>{% for leg in itinerary.transport_reference.legs or [] %}<p class="transport-leg"><strong>{{ leg.label }}</strong> · {{ leg.from }} → {{ leg.to }}（{{ leg.date }}）{% if leg.flight_options %}<br>机票候选：{% for option in leg.flight_options %}{{ option.id }}（{{ option.seat }}）{% if not loop.last %}、{% endif %}{% endfor %}{% endif %}{% if leg.train_options %}<br>火车候选：{% for option in leg.train_options %}{{ option.id }}（{{ option.seat }}）{% if not loop.last %}、{% endif %}{% endfor %}{% endif %}</p>{% endfor %}{% endif %}
       </section>
       <div class="export-actions"><a href="/api/v1/itineraries/{{ itinerary.id }}/exports/html">导出 HTML</a><a href="/api/v1/itineraries/{{ itinerary.id }}/exports/docx">导出 DOCX</a><a href="/api/v1/itineraries/{{ itinerary.id }}/exports/xlsx">导出 XLSX</a></div>
+
+      <section class="itinerary-editor" id="itinerary-editor" aria-labelledby="editor-heading">
+        <details>
+          <summary id="editor-heading">编辑行程（名称、时间与备注）</summary>
+          <p class="editor-hint">修改后会保留你的补充安排与当天住宿/交通信息，费用会标记为待重新核算。</p>
+          <div id="itinerary-editor-body"></div>
+        </details>
+      </section>
+      <script type="application/json" id="itinerary-edit-data">{{ edit_data | tojson }}</script>
 
       {% if has_map_data and map_tile_url %}
       <section class="map-section" aria-label="行程路线地图">
@@ -68,15 +66,16 @@
         {% if manual_supplements or day.travel_context.confirmed_food_events %}<div class="supplemental-items"><h3>已确认补充安排</h3><ul>{% for item in manual_supplements %}<li><strong>{{ item.time_slot }}{% if item.end_time %}–{{ item.end_time }}{% endif %}</strong> · {% if item.source_url %}<a href="{{ item.source_url }}" target="_blank" rel="noopener">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %} <span>· ¥{{ item.price or 0 }} · {{ item.note }}</span></li>{% endfor %}{% for item in day.travel_context.confirmed_food_events or [] %}<li><strong>{{ item.time_slot }}–{{ item.end_time }}</strong> · 用餐：{{ item.name }} <span>· ¥{{ item.price or 0 }} · {{ item.note }}</span></li>{% endfor %}</ul></div>{% endif %}
         {% if day.stops %}<details class="ip-landmark-reference"{% if not meituan_items %} open{% endif %}><summary>IP 地标参考点位（用于地图与线路校验）</summary><ol class="timeline">
           {% for stop in day.stops|sort(attribute='stop_order') %}
-          <li class="timeline-item">
+          <li class="timeline-item{% if not stop.is_available %} is-unavailable{% endif %}">
             <div class="timeline-time">{{ stop.time_slot }}</div>
             <div class="timeline-rail"><span class="timeline-dot"></span></div>
             <article class="timeline-card">
-              <p class="timeline-meta">建议停留 {{ stop.planned_minutes }} 分钟</p>
-              <h3><a href="/landmarks/{{ stop.landmark_id }}">{{ stop.landmark.name }}</a></h3>
-              <p class="timeline-address">{{ stop.landmark.location.normalized_address }}</p>
-              <p class="timeline-transit">{{ stop.landmark.transit_text or '暂无交通文字说明。' }}</p>
+              <p class="timeline-meta">建议停留 {{ stop.planned_minutes }} 分钟{% if not stop.is_available %} · 地点不可用{% endif %}</p>
+              <h3>{% if stop.is_available %}<a href="/landmarks/{{ stop.landmark_id }}">{{ stop.display_name }}</a>{% else %}{{ stop.display_name }}{% endif %}</h3>
+              {% if stop.display_address %}<p class="timeline-address">{{ stop.display_address }}</p>{% endif %}
+              <p class="timeline-transit">{{ stop.display_transit }}</p>
               <p class="reason">{{ stop.selection_reason }}</p>
+              {% if stop.user_note %}<p class="stop-note">我的备注：{{ stop.user_note }}</p>{% endif %}
             </article>
           </li>
           {% endfor %}
@@ -86,11 +85,12 @@
 
       <p class="disclaimer">本计划以已发布 IP 地标为核心；系统补充景点、酒店民宿和大交通均为生成时参考。交通、票价、营业、预约、天气及安全信息请在出行前向官方确认。</p>
     </main>
+{% endblock %}
+{% block scripts %}
     {% if has_map_data and map_tile_url %}
     <script src="/static/vendor/leaflet/leaflet.js"></script>
     <script src="/static/js/itinerary-map.js"></script>
     {% endif %}
+    <script src="/static/js/itinerary-editor.js"></script>
     <script src="/static/js/export-feedback.js"></script>
-  {% include "_footer.html" %}
-  </body>
-</html>
+{% endblock %}

@@ -1,50 +1,49 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ title }}</title>
-    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/css/site.css">
-    <link rel="stylesheet" href="/static/css/catalog.css">
-  </head>
-  <body>
-    {% include "_header.html" %}
+{% extends "base.html" %}
+{% block styles %}<link rel="stylesheet" href="/static/css/catalog.css">{% endblock %}
+{% block content %}
     <main class="catalog-shell">
-      <p class="eyebrow">SEARCH</p>
       <h1>搜索地标</h1>
       <section class="home-search" aria-label="全局搜索">
-        <form method="get" action="/search">
-          <input name="q" value="{{ query }}" maxlength="255" placeholder="搜索作品名或地标名" aria-label="搜索作品或地标">
+        <form method="get" action="/search" role="search">
+          <input name="q" value="{{ query }}" maxlength="255" placeholder="搜索作品名、别名或地标名" aria-label="搜索作品或地标">
           <button type="submit">搜索</button>
         </form>
       </section>
 
       {% if query %}
-      <p class="intro">「{{ query }}」找到 {{ total }} 个已发布地标。</p>
+      <p class="intro" role="status">「{{ query }}」找到 {{ total }} 个已发布地标{% if total_pages > 1 %} · 第 {{ page }}/{{ total_pages }} 页{% endif %}。</p>
       {% if items %}
       <section class="landmark-grid" aria-label="搜索结果">
         {% for item in items %}
         <article class="landmark-card">
           <a class="card-media" href="/landmarks/{{ item.id }}" aria-label="{{ item.name }}">
-            {% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="{{ item.name }}" loading="lazy">{% else %}<span class="card-placeholder">{{ item.work_title[:1] }}</span>{% endif %}
+            {% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="{{ item.name }}" loading="lazy" width="320" height="200">{% else %}<span class="card-placeholder" aria-hidden="true">{{ item.work_title[:1] }}</span>{% endif %}
           </a>
           <div class="card-body">
             <p class="card-work"><a href="/works/{{ item.work_id }}">{{ item.work_title }}</a></p>
             <h2 class="card-title"><a href="/landmarks/{{ item.id }}">{{ item.name }}</a></h2>
-            <p class="card-region">{{ item.country_name }}{% if item.province_name %} · {{ item.province_name }}{% endif %}{% if item.city_name %} · {{ item.city_name }}{% endif %}</p>
+            <p class="card-region">{% if item.province_name %}{{ item.province_name }}{% endif %}{% if item.city_name %} · {{ item.city_name }}{% endif %}</p>
             <p class="card-desc">{{ item.description_summary }}</p>
           </div>
         </article>
         {% endfor %}
       </section>
-      {% else %}
-      <section class="empty-state"><h2>没有匹配的地标</h2><p>试试其他关键词，或到文学 / 游戏 / 影视目录中浏览。</p></section>
+      {% if total_pages > 1 %}
+      <nav class="pagination" aria-label="分页">
+        {% if page > 1 %}<a class="page-link" href="/search?{{ page_url(page - 1) }}">← 上一页</a>{% else %}<span class="page-link is-disabled">← 上一页</span>{% endif %}
+        <span class="page-info">第 {{ page }} / {{ total_pages }} 页</span>
+        {% if page < total_pages %}<a class="page-link" href="/search?{{ page_url(page + 1) }}">下一页 →</a>{% else %}<span class="page-link is-disabled">下一页 →</span>{% endif %}
+      </nav>
       {% endif %}
       {% else %}
-      <section class="empty-state"><h2>输入关键词开始搜索</h2><p>支持按作品名、别名或地标名跨文学、游戏、影视三类搜索。</p></section>
+      <section class="empty-state">
+        <h2>没有匹配的地标</h2>
+        <p>可以换个关键词，或直接按分类浏览已核验地标。</p>
+        <p><a href="/search">清除关键词</a> · <a href="/literature">文学</a> · <a href="/games">游戏</a> · <a href="/screen">影视</a> · <a href="/intake">参与共创</a></p>
+      </section>
+      {% endif %}
+      {% else %}
+      <section class="empty-state"><h2>输入关键词开始搜索</h2><p>支持按作品名、别名或地标名跨文学、游戏、影视三类搜索。</p><p><a href="/literature">文学地标</a> · <a href="/games">游戏地标</a> · <a href="/screen">影视地标</a></p></section>
       {% endif %}
     </main>
-  {% include "_footer.html" %}
-  </body>
-</html>
+{% endblock %}

@@ -21,10 +21,14 @@ try {
     & $python -m alembic upgrade head
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+    # 先用合成样本自检检查器本身，再扫描当前库；空库 0 问题不等于内容可靠。
+    & $python -m app.scripts.check_data_quality --self-test
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
     & $python -m app.scripts.check_data_quality
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    & $python -m pytest -q
+    & $python -m pytest -q -p no:cacheprovider --basetemp=.pytest-verification\run
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 finally {

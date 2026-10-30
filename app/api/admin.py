@@ -4,23 +4,34 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.album import get_album_editor
-from app.core.auth import require_admin
+from app.core.auth import CurrentMember, require_admin
 from app.db.session import get_db
 from app.models.enums import VerificationStatus
 from app.models.landmark import Landmark
+from app.models.user import User
 from app.services.data_quality import LandmarkDataQualityService
 from app.services.import_landmarks import LandmarkImportService
 from app.services.landmark_album_editor import LandmarkAlbumEditorService, LandmarkAlbumNotFound
+from app.services.landmark_input import LandmarkInputError, apply_landmark_updates
 from app.services.review import LandmarkReviewService, ReviewValidationError
 from app.services.search_discovery import SearchDiscoveryService
-from app.integrations.search.bocha_web_search import SearchConfigurationError, SearchProviderError
+from app.integrations.search.base import SearchConfigurationError, SearchProviderError
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
+
+
+def _actor(member: CurrentMember | None, db: Session | None = None) -> str:
+    """审核/管理操作的操作者标识（来自服务端认证，不采信请求体）。"""
+    if member is None or member.user_id is None:
+        return "admin-token"
+    user = db.get(User, member.user_id) if db is not None else None
+    return user.username if user is not None else f"user:{member.user_id}"
+
 
 class ReviewRequest(BaseModel):
     decision: VerificationStatus
     reason: str = Field(min_length=1, max_length=4000)
-    reviewer_name: str = Field(min_length=1, max_length=255)
+
 
 class SearchDiscoveryRequest(BaseModel):
     query_template: str = Field(min_length=1, max_length=500)
@@ -37,12 +48,23 @@ async def import_landmarks(file: UploadFile = File(...), db: Session = Depends(g
     }
 
 @router.post("/landmarks/{landmark_id}/review", dependencies=[Depends(require_admin)])
-def review_landmark(landmark_id: int, payload: ReviewRequest, db: Session = Depends(get_db)) -> dict[str, object]:
+def review_landmark(
+    landmark_id: int,
+    payload: ReviewRequest,
+    member: CurrentMember = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
     try:
-        landmark = LandmarkReviewService(db).review(landmark_id, payload.decision, payload.reason, payload.reviewer_name)
+        landmark = LandmarkReviewService(db).review(
+            landmark_id, payload.decision, payload.reason, _actor(member, db)
+        )
     except ReviewValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    return {"id": landmark.id, "verification_status": landmark.verification_status}
+    return {
+        "id": landmark.id,
+        "verification_status": landmark.verification_status,
+        "published": landmark.published_at is not None,
+    }
 
 @router.post("/landmarks/{landmark_id}/publish", dependencies=[Depends(require_admin)])
 def publish_landmark(landmark_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
@@ -198,7 +220,7 @@ def admin_list_landmarks(
     if q:
         stmt = stmt.where(Landmark.name.contains(q.strip()))
 
-    total = len(db.scalars(stmt).all())
+    total = int(db.scalar(select(func.count()).select_from(stmt.subquery())) or 0)
     landmarks = db.scalars(stmt.limit(limit).offset(offset)).all()
     ids = [item.id for item in landmarks]
 
@@ -245,45 +267,42 @@ def admin_update_landmark(
     landmark_id: int, payload: LandmarkUpdateRequest, db: Session = Depends(get_db)
 ) -> dict[str, object]:
     landmark = _admin_get_landmark(db, landmark_id)
-    changed: list[str] = []
-    for field in ("name", "description", "transit_text", "landmark_kind"):
-        value = getattr(payload, field)
-        if value is not None:
-            setattr(landmark, field, value.strip())
-            changed.append(field)
+    try:
+        changed = apply_landmark_updates(landmark, payload, ("name", "description", "transit_text", "landmark_kind"))
+    except LandmarkInputError as exc:
+        db.rollback()
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    if not changed:
+        raise HTTPException(status_code=422, detail="没有需要修改的内容。")
     db.commit()
     return {"id": landmark.id, "changed": changed}
 
 
 @router.post("/landmarks/{landmark_id}/unpublish", dependencies=[Depends(require_admin)])
-def admin_unpublish_landmark(landmark_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
-    from app.models.enums import PublicationStatus
-
-    landmark = _admin_get_landmark(db, landmark_id)
-    landmark.published_at = None
-    landmark.ip_work.status = PublicationStatus.DRAFT
-    db.commit()
+def admin_unpublish_landmark(landmark_id: int, member=Depends(require_admin), db: Session = Depends(get_db)) -> dict[str, object]:
+    """只撤下这一条；同作品其他已发布地标保持公开。"""
+    try:
+        landmark = LandmarkReviewService(db).unpublish(landmark_id, actor=_actor(member))
+    except ReviewValidationError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     return {"id": landmark.id, "published": False}
 
 
 @router.post("/landmarks/{landmark_id}/restore", dependencies=[Depends(require_admin)])
-def admin_restore_landmark(landmark_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
-    from app.models.enums import PublicationStatus
-
-    landmark = _admin_get_landmark(db, landmark_id, include_deleted=True)
-    if landmark.deleted_at is not None:
-        landmark.deleted_at = None
-    landmark.ip_work.status = PublicationStatus.PUBLISHED if landmark.published_at else PublicationStatus.DRAFT
-    db.commit()
-    return {"id": landmark.id, "deleted": False}
+def admin_restore_landmark(landmark_id: int, member=Depends(require_admin), db: Session = Depends(get_db)) -> dict[str, object]:
+    """撤销软删；是否重新公开仍由审核与发布状态决定。"""
+    try:
+        landmark = LandmarkReviewService(db).restore(landmark_id, actor=_actor(member))
+    except ReviewValidationError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"id": landmark.id, "deleted": False, "published": landmark.published_at is not None}
 
 
 @router.delete("/landmarks/{landmark_id}", dependencies=[Depends(require_admin)])
-def admin_delete_landmark(landmark_id: int, db: Session = Depends(get_db)) -> dict[str, object]:
+def admin_delete_landmark(landmark_id: int, member=Depends(require_admin), db: Session = Depends(get_db)) -> dict[str, object]:
     """软删：置 deleted_at，全局查询自动隐藏；可用 restore 恢复。"""
-    from datetime import UTC, datetime
-
-    landmark = _admin_get_landmark(db, landmark_id)
-    landmark.deleted_at = datetime.now(UTC)
-    db.commit()
+    try:
+        landmark = LandmarkReviewService(db).soft_delete(landmark_id, actor=_actor(member))
+    except ReviewValidationError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     return {"id": landmark.id, "deleted": True}

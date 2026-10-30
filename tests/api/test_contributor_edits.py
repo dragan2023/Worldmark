@@ -90,7 +90,7 @@ def test_album_endpoints_require_contributor_or_admin(client, app, db_session, o
         def editor_snapshot(self, landmark_id):
             return {"published": [], "staged": [], "landmark": {}}
 
-        def submit(self, landmark_id, photos):
+        def submit(self, landmark_id, photos, expected_revision=None):
             return {"added_count": 1, "removed_count": 0, "published_count": 1}
 
     contributor, landmark = owned_landmark

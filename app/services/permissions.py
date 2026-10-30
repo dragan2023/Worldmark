@@ -61,5 +61,14 @@ def role_at_least(role: str | UserRole | None, minimum: str | UserRole) -> bool:
     return _ROLE_ORDER[normalize_role(role)] >= _ROLE_ORDER[normalize_role(minimum)]
 
 
+def effective_role(role: str | UserRole | None, is_admin: bool = False) -> UserRole:
+    """有效角色：历史 ``is_admin`` 标记仍然只升不降。
+
+    服务端授权与 ``/me`` 回报都走这一个函数，避免「接口说 level2、授权却按 admin」。
+    """
+    normalized = normalize_role(role)
+    return UserRole.ADMIN if is_admin else normalized
+
+
 def permissions_for_role(role: str | UserRole | None) -> RolePermissions:
     return _ROLE_MATRIX[normalize_role(role)]

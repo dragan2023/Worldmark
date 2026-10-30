@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block styles %}<link rel="stylesheet" href="/static/css/catalog.css">{% endblock %}
+{% block content %}
+    <main class="catalog-shell contributions-shell">
+      <h1>我的共创记录</h1>
+      <p class="intro">这里只有你自己提交的条目。修改内容或相册后会暂时下架并进入重新审核，审核通过后才会再次公开。</p>
+
+      {% if result["items"] %}
+      <section class="contribution-records" aria-label="我的共创记录">
+        {% for item in result["items"] %}
+        <article class="contribution-record">
+          <div class="record-head">
+            <h2>{% if item.name and item.can_edit %}<a href="/landmarks/{{ item.landmark_id }}">{{ item.name }}</a>{% elif item.name %}{{ item.name }}{% else %}已下架条目{% endif %}</h2>
+            <span class="status-badge status-{{ item.status }}">{{ item.status_label }}</span>
+          </div>
+          <p class="card-meta">{% if item.work_title %}{{ item.work_title }}{% endif %}{% if item.region %} · {{ item.region }}{% endif %}{% if item.updated_at %} · 更新于 {{ item.updated_at.strftime('%Y-%m-%d') }}{% endif %}</p>
+          {% if item.status == 'deleted' %}
+          <p class="record-feedback">该条目已被下架删除，仅保留状态记录。如需重新提交，请前往「参与共创」。</p>
+          {% endif %}
+          {% if item.review_feedback %}
+          <div class="record-feedback">
+            <p><strong>审核反馈{% if item.review_feedback.decision_label %}（{{ item.review_feedback.decision_label }}）{% endif %}</strong>{% if item.review_feedback.reviewed_at %} · {{ item.review_feedback.reviewed_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}</p>
+            <p>{{ item.review_feedback.reason }}</p>
+          </div>
+          {% elif item.status == 'candidate' %}
+          <p class="record-feedback">已提交，等待管理员审核。</p>
+          {% endif %}
+          {% if item.can_edit %}
+          <p class="record-actions"><a class="secondary-button" href="/landmarks/{{ item.landmark_id }}/album/edit">编辑内容与相册</a></p>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </section>
+
+      {% if total_pages > 1 %}
+      <nav class="pagination" aria-label="分页">
+        {% if page > 1 %}<a class="page-link" href="/contributions?page={{ page - 1 }}">← 上一页</a>{% else %}<span class="page-link is-disabled">← 上一页</span>{% endif %}
+        <span class="page-info">第 {{ page }} / {{ total_pages }} 页</span>
+        {% if page < total_pages %}<a class="page-link" href="/contributions?page={{ page + 1 }}">下一页 →</a>{% else %}<span class="page-link is-disabled">下一页 →</span>{% endif %}
+      </nav>
+      {% endif %}
+      {% else %}
+      <section class="empty-state">
+        <h2>还没有共创记录</h2>
+        <p>提交一个候选地标：审核通过并发布后，账号会自动升级为一级，可生成个性化行程。</p>
+        <p><a class="primary-button" href="/intake">参与共创</a></p>
+      </section>
+      {% endif %}
+    </main>
+{% endblock %}

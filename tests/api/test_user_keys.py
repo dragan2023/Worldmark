@@ -5,6 +5,7 @@ from pydantic import SecretStr
 
 from app.core import secret_box
 from app.core.auth import create_access_token
+from app.core.config import get_settings
 from app.models.enums import MembershipTier, UserRole
 from app.services.key_resolution import KeyResolutionService, PROVIDER_FIELDS
 from tests.factories import create_admin, create_member
@@ -92,14 +93,14 @@ def test_set_key_is_upsert_and_delete(db_session):
     db_session.commit()
     service = KeyResolutionService(db_session)
 
-    first = service.set_key(member.id, "bocha", "sk-bocha-old", verified=False)
-    second = service.set_key(member.id, "bocha", "sk-bocha-new", verified=True)
+    first = service.set_key(member.id, "amap", "amap-key-old", verified=False)
+    second = service.set_key(member.id, "amap", "amap-key-new", verified=True)
     assert first.id == second.id  # upsert 不重复建行
-    assert service.user_key(member.id, "bocha") == "sk-bocha-new"
+    assert service.user_key(member.id, "amap") == "amap-key-new"
     assert second.verified_at is not None
 
-    assert service.delete_key(member.id, "bocha") is True
-    assert service.user_key(member.id, "bocha") is None
+    assert service.delete_key(member.id, "amap") is True
+    assert service.user_key(member.id, "amap") is None
 
 
 # ---------------------------------------------------------------- API
@@ -148,10 +149,51 @@ def test_put_key_without_verify_saves_masked(client, db_session):
 
 def test_delete_key_reports_missing(client, db_session):
     headers, _ = _member_headers(db_session)
-    body = client.delete("/api/v1/me/api-keys/bocha", headers=headers).json()
-    assert body == {"provider": "bocha", "deleted": False}
+    body = client.delete("/api/v1/me/api-keys/amap", headers=headers).json()
+    assert body == {"provider": "amap", "deleted": False}
 
 
 def test_verify_without_saved_key_returns_404(client, db_session):
     headers, _ = _member_headers(db_session)
-    assert client.post("/api/v1/me/api-keys/bocha/verify", headers=headers).status_code == 404
+    assert client.post("/api/v1/me/api-keys/amap/verify", headers=headers).status_code == 404
+
+def test_admin_without_personal_key_reports_system_key(client, db_session, monkeypatch):
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-system-key")
+    get_settings.cache_clear()
+    try:
+        headers, _ = _member_headers(db_session, role=UserRole.ADMIN.value)
+        body = client.get("/api/v1/me/api-keys", headers=headers).json()
+        deepseek = next(item for item in body["items"] if item["provider"] == "deepseek")
+        assert deepseek["configured"] is False
+        assert deepseek["system_configured"] is True
+        assert deepseek["effective"] == "system"
+    finally:
+        get_settings.cache_clear()
+
+
+def test_ordinary_member_is_not_offered_the_system_key(client, db_session, monkeypatch):
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-system-key")
+    get_settings.cache_clear()
+    try:
+        headers, _ = _member_headers(db_session)
+        body = client.get("/api/v1/me/api-keys", headers=headers).json()
+        deepseek = next(item for item in body["items"] if item["provider"] == "deepseek")
+        assert deepseek["system_configured"] is True
+        assert deepseek["effective"] == "none"
+    finally:
+        get_settings.cache_clear()
+
+
+def test_personal_key_wins_over_the_system_key(client, db_session, monkeypatch):
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-system-key")
+    get_settings.cache_clear()
+    try:
+        headers, member = _member_headers(db_session, role=UserRole.ADMIN.value)
+        KeyResolutionService(db_session).set_key(member.id, "deepseek", "sk-own-12345678", verified=False)
+        body = client.get("/api/v1/me/api-keys", headers=headers).json()
+        deepseek = next(item for item in body["items"] if item["provider"] == "deepseek")
+        assert deepseek["configured"] is True
+        assert deepseek["effective"] == "user"
+    finally:
+        get_settings.cache_clear()
+

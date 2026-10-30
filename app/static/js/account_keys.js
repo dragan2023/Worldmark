@@ -35,8 +35,14 @@
     var card = el("div", "key-card");
     var head = el("div", "key-card-head");
     head.appendChild(el("h2", "key-label", item.label));
-    var badge = el("span", "key-badge " + (item.configured ? "configured" : "missing"),
-      item.configured ? "已配置 " + (item.key_hint || "") : "未配置");
+    var badge;
+    if (item.effective === "user") {
+      badge = el("span", "key-badge configured", "已配置 " + (item.key_hint || ""));
+    } else if (item.effective === "system") {
+      badge = el("span", "key-badge system", "使用系统密钥");
+    } else {
+      badge = el("span", "key-badge missing", "未配置");
+    }
     head.appendChild(badge);
     card.appendChild(head);
 
@@ -49,7 +55,9 @@
 
     var input = el("input", "auth-input key-input");
     input.type = "password";
-    input.placeholder = item.configured ? "输入新密钥以覆盖" : "粘贴你的密钥";
+    input.placeholder = item.configured
+      ? "输入新密钥以覆盖"
+      : (item.effective === "system" ? "可选：粘贴个人密钥以覆盖系统密钥" : "粘贴你的密钥");
     input.autocomplete = "off";
     card.appendChild(input);
 

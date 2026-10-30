@@ -1,2 +1,22 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ title }}</title>
-    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/css/site.css"><link rel="stylesheet" href="/static/css/itinerary.css"></head><body>{% include "_header.html" %}<main class="itinerary-shell"><a class="back-link" href="/">← 返回首页</a><p class="eyebrow">行程规划</p><div class="page-title"><h1>我的个性化行程</h1><a class="primary-button" href="/itineraries/new">生成新行程</a></div>{% if items %}<section class="itinerary-list">{% for item in items %}<article><p>{{ item.start_date }} 至 {{ item.end_date }} · v{{ item.version }}</p><h2><a href="/itineraries/{{ item.id }}">{{ item.title }}</a></h2><p>状态：{{ item.status }}</p></article>{% endfor %}</section>{% else %}<section class="empty-state"><h2>还没有行程</h2><p>选择已发布的 IP 地标和出行偏好，生成一份可编辑、可导出的草案。</p></section>{% endif %}</main>{% include "_footer.html" %}</body></html>
+{% extends "base.html" %}
+{% block styles %}<link rel="stylesheet" href="/static/css/itinerary.css">{% endblock %}
+{% block content %}
+    <main class="itinerary-shell">
+      <a class="back-link" href="/">← 返回首页</a>
+      <div class="page-title"><h1>我的行程</h1><a class="primary-button" href="/itineraries/new">生成新行程</a></div>
+      <p class="intro">行程默认使用系统内置的基础规划，生成后可以编辑名称、时间与备注，并导出 HTML / DOCX / XLSX。</p>
+      {% if items %}
+      <section class="itinerary-list" aria-label="行程列表">
+        {% for item in items %}
+        <article>
+          <p class="card-meta">{{ item.start_date }} 至 {{ item.end_date }} · v{{ item.version }}</p>
+          <h2><a href="/itineraries/{{ item.id }}">{{ item.title }}</a></h2>
+          <p class="card-meta">状态：{{ '已生成' if item.status.value == 'succeeded' else item.status.value }}</p>
+        </article>
+        {% endfor %}
+      </section>
+      {% else %}
+      <section class="empty-state"><h2>还没有行程</h2><p>选择已发布的 IP 地标和出行偏好，生成一份可编辑、可导出的草案。</p><p><a class="primary-button" href="/itineraries/new">开始规划</a></p></section>
+      {% endif %}
+    </main>
+{% endblock %}

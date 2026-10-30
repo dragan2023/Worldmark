@@ -52,13 +52,27 @@ class ItineraryExportService:
         sheet.append(("价格仅作参考，请以实际情况为准。",))
         sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(MAIN_HEADERS))
         sheet.append(MAIN_HEADERS)
-        for row in self._main_rows(itinerary): sheet.append(row)
+        for row in self._main_rows(itinerary):
+            self._append_text_safe_row(sheet, row)
         if sheet.max_row >= 4:
+            # 汇总行由系统生成，保留真正的公式；外部文本已在写入时强制为文本类型。
             sheet.cell(sheet.max_row, 7).value = f"=SUM(G3:G{sheet.max_row - 1})"
+            sheet.cell(sheet.max_row, 7).data_type = "f"
         self._format_main_sheet(sheet)
         self._append_reference_sheet(workbook, itinerary)
         output = io.BytesIO(); workbook.save(output)
         return ItineraryExportFile(output.getvalue(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", self._filename(itinerary, "xlsx"))
+
+    @staticmethod
+    def _append_text_safe_row(sheet, row: tuple[object, ...]) -> None:
+        """用户/上游文本一律按文本写入，避免以 = + - @ 开头的文案变成公式。"""
+        sheet.append(row)
+        row_index = sheet.max_row
+        for column, value in enumerate(row, start=1):
+            if isinstance(value, str):
+                cell = sheet.cell(row_index, column)
+                cell.value = value
+                cell.data_type = "s"
 
     def _main_rows(self, itinerary: Itinerary) -> list[tuple[object, ...]]:
         rows: list[tuple[object, ...]] = []
@@ -90,7 +104,13 @@ class ItineraryExportService:
                 first = False
             for stop in sorted(day.stops, key=lambda value: value.stop_order):
                 price = (context.get("landmark_costs") or {}).get(str(stop.landmark_id), 0)
-                rows.append((date_text if first else "", city, f"{stop.time_slot}–{self._end_time(stop.time_slot, stop.planned_minutes)}", stop.landmark.name, self._local_transport(stop.landmark.transit_text, itinerary.transport_preference), stop.selection_reason, price))
+                landmark = stop.landmark
+                if landmark is None:
+                    # 地点被软删：保留时间与备注，地点名用占位，不暴露已移除内容
+                    rows.append((date_text if first else "", city, f"{stop.time_slot}–{self._end_time(stop.time_slot, stop.planned_minutes)}", "地点已不可用", "待确认", stop.selection_reason, price))
+                    first = False
+                    continue
+                rows.append((date_text if first else "", city, f"{stop.time_slot}–{self._end_time(stop.time_slot, stop.planned_minutes)}", landmark.name, self._local_transport(landmark.transit_text, itinerary.transport_preference), stop.selection_reason, price))
                 first = False
             for item in day.supplemental_items or []:
                 time_slot = item.get("time_slot") or "按确认安排"

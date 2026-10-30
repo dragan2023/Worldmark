@@ -124,8 +124,8 @@ def test_intake_rejects_blank_and_oversized_input(client, db_session):
 def test_intake_page_renders(client):
     response = client.get("/intake")
     assert response.status_code == 200
-    assert "一键入库" in response.text
-    assert "AI 分析并入库" in response.text
+    assert "参与共创" in response.text
+    assert "AI 分析并生成候选条目" in response.text
 
 
 def test_intake_records_contribution_ownership(client, app, db_session):
